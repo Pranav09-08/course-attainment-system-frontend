@@ -63,16 +63,18 @@
     transform: scale(1.05);
   }
   
-  /* Hero Section */
   .hero {
-    background: linear-gradient(135deg, #5856d6, #9c27b0); /* Gradient of violet shades */
+    background-image: url('assets/backimg.jpg'); /* Replace with your hero image URL */
+    background-size: cover;
+    background-position: center;
     color: #f1f1f1; /* Light text for contrast */
     text-align: center;
     padding: 120px 20px;
     position: relative;
     animation: fadeIn 2s ease-in-out;
-    border-bottom: 5px solid #f1f1f1; /* Light border at the bottom */
+    border-bottom: 5px solid #f1f1f1;
   }
+  
   
   .hero h1 {
     font-size: 60px;
