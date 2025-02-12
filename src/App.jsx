@@ -1,21 +1,50 @@
 // src/App.jsx
 import React from "react";
-import { Routes, Route } from "react-router-dom"; // Only import Routes and Route
-import HomePage from "./pages/HomePage"; // Import HomePage component
-import LoginPage from "./pages/LoginPage"; // Import LoginPage component
-import AdminDashBoard from './pages/admin/Dashboard';
-import FacultyDashboard from './pages/faculty/FacultyDashboard';
-import CoordinatorDashboard from './pages/coordinator/Coordinator_Dashboard'
+import { Routes, Route } from "react-router-dom";
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
+import AdminDashBoard from "./pages/admin/Dashboard";
+import FacultyDashboard from "./pages/faculty/FacultyDashboard";
+import CoordinatorDashboard from "./pages/coordinator/Coordinator_Dashboard";
+import ProtectedRoute from "./components/Protectedroutes"; // Import ProtectedRoute
 
 const App = () => {
   return (
     <Routes>
-      {/* Define routes */}
-      <Route path="/" element={<HomePage />} /> {/* Home page route */}
-      <Route path="/login" element={<LoginPage />} /> {/* Login page route */}
-      <Route path="/admin-dashboard" element={<AdminDashBoard/>}/> {/*Admin Dashboard*/}
-      <Route path="/faculty-dashboard" element={<FacultyDashboard/>}/> {/*Admin Dashboard*/}
-      <Route path="/coordinator-dashboard" element={<CoordinatorDashboard/>}/> {/*Admin Dashboard*/}
+      {/* Public Routes */}
+      <Route path="/" element={<HomePage />} /> 
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* Protected Routes */}
+      <Route
+        path="/admin-dashboard"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminDashBoard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/faculty-dashboard"
+        element={
+          <ProtectedRoute roles={["faculty", "coordinator", "admin"]}>
+            <FacultyDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/coordinator-dashboard"
+        element={
+          <ProtectedRoute roles={["coordinator", "admin"]}>
+            <CoordinatorDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Catch-All Route */}
+      <Route path="*" element={<h2>404 - Page Not Found 🚫</h2>} />
     </Routes>
   );
 };

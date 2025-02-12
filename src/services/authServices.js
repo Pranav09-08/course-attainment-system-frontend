@@ -1,32 +1,24 @@
-const API_URL = 'https://api.example.com/auth';
+// src/services/authService.js
+import axios from "axios";
 
-export const login = async (username, password) => {
-  try {
-    const response = await fetch(`${API_URL}/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
-    });
+const API_URL = "http://localhost:5001"; 
 
-    const data = await response.json();
-
-    if (data.token) {
-      localStorage.setItem('authToken', data.token);
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Login failed', error);
-    throw new Error('Failed to login');
+// Login API Call
+export const login = async (email, password) => {
+  const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+  if (response.data.accessToken) {
+    // Store token and user in localStorage
+    localStorage.setItem("user", JSON.stringify(response.data));
   }
+  return response.data;
 };
 
+// Logout (Remove token)
 export const logout = () => {
-  localStorage.removeItem('authToken');
+  localStorage.removeItem("user");
 };
 
-export const getAuthToken = () => {
-  return localStorage.getItem('authToken');
+// Get current user (with token)
+export const getCurrentUser = () => {
+  return JSON.parse(localStorage.getItem("user"));
 };

@@ -17,51 +17,25 @@ import { useNavigate } from "react-router-dom";
 import "../styles/LoginPage.css";
 import bg from "../assets/signin.svg";
 import bgimg from "../assets/backimg.jpg";
+import { login } from "../services/authServices";
 
 const darkTheme = createTheme({ palette: { mode: "dark" } });
 
-export default function Login() {
-  const navigate = useNavigate();
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Reset error
-
     try {
-      const response = await fetch("https://teacher-attainment-system-backend.onrender.com/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Invalid login credentials");
-      }
-
-      // Save token or session data
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role",data.user.role)
-
-      // Navigate based on role
-    const role = data.user.role;
-    setTimeout(() => {
-      if (role === "admin") {
-        navigate("/admin-dashboard", {replace:true});
-      } else if (role === "faculty") {
-        navigate("/faculty-dashboard");
-      } else if (role === "coordinator") {
-        navigate("/coordinator-dashboard");
-      } else {
-        navigate("/");
-      }
-    }, 100);
+      const user = await login(email, password);
+      if (user.user.role === "admin") navigate("/admin-dashboard");
+      else if (user.user.role === "coordinator") navigate("/coordinator-dashboard");
+      else navigate("/faculty-dashboard");
     } catch (err) {
-      setError(err.message);
+      setError("Invalid Credentials!");
     }
   };
 
@@ -87,7 +61,7 @@ export default function Login() {
                     </Typography>
                   </Box>
                   {error && <Alert severity="error">{error}</Alert>}
-                  <Box component="form" sx={{ mt: 2 }} onSubmit={handleLogin}>
+                  <Box component="form" sx={{ mt: 2 }} onSubmit={handleSubmit}>
                     <Grid container spacing={2}>
                       <Grid item xs={12}>
                         <TextField
@@ -130,4 +104,7 @@ export default function Login() {
       </Box>
     </div>
   );
-}
+};
+
+
+export default Login;

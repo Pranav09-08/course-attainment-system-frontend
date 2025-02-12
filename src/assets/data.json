@@ -1,0 +1,85 @@
+{
+  "Header": {
+    "title": "Measuring Success, Enhancing Learning!",
+    "paragraph": "A Smarter Way to Evaluate Course Attainment, Bridge Learning Gaps, and Enhance Student Success with Data-Driven Decisions!"
+  },
+  "About": {
+    "paragraph": "We are dedicated to transforming the way educators track and analyze student learning outcomes. Our Course Attainment System provides an efficient, automated, and data-driven approach to measuring course attainment, ensuring accuracy and ease of use for teachers and institutions. With a focus on improving curriculum effectiveness, we empower educators with insights that drive meaningful improvements in student learning.",
+    "Why": [
+      "Automated Attainment Calculation",
+      "Data-Driven Insights",
+      "Secure & Scalable",
+      "User-Friendly Interface "
+    ],
+    "Why2": [
+      "Improves Education Quality",
+      "Future-Ready",
+      "Customizable & Flexible ",
+      "Efficient Performance"
+    ]
+  },
+ 
+  "Services": [
+    {
+      "icon": "fa fa-wordpress",
+      "name": "Lorem ipsum dolor",
+      "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis sed dapibus leo nec ornare diam sedasd commodo nibh ante facilisis bibendum dolor feugiat at."
+    },
+    {
+      "icon": "fa fa-cart-arrow-down",
+      "name": "Consectetur adipiscing",
+      "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis sed dapibus leo nec ornare diam sedasd commodo nibh ante facilisis bibendum dolor feugiat at."
+    },
+    {
+      "icon": "fa fa-cloud-download",
+      "name": "Lorem ipsum dolor",
+      "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis sed dapibus leo nec ornare diam sedasd commodo nibh ante facilisis bibendum dolor feugiat at."
+    },
+    {
+      "icon": "fa fa-language",
+      "name": "Consectetur adipiscing",
+      "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis sed dapibus leo nec ornare diam sedasd commodo nibh ante facilisis bibendum dolor feugiat at."
+    },
+    {
+      "icon": "fa fa-plane",
+      "name": "Lorem ipsum dolor",
+      "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis sed dapibus leo nec ornare diam sedasd commodo nibh ante facilisis bibendum dolor feugiat at."
+    },
+    {
+      "icon": "fa fa-pie-chart",
+      "name": "Consectetur adipiscing",
+      "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis sed dapibus leo nec ornare diam sedasd commodo nibh ante facilisis bibendum dolor feugiat at."
+    }
+  ],
+  
+  "Contact": {
+    "address": "4321 California St, San Francisco, CA 12345 ",
+    "phone": "+1 123 456 1234",
+    "email": "info@company.com",
+    "facebook": "fb.com",
+    "twitter": "twitter.com",
+    "youtube": "youtube.com"
+  },
+  "Features": [
+    {
+      "icon": "fa fa-comments-o",
+      "title": "📊 Automated Attainment Calculation",
+      "text": "Computes attainment levels based on student performance in unit tests, in-sem exams, and finals, reducing manual effort and errors."
+    },
+    {
+      "icon": "fa fa-bullhorn",
+      "title": "📁 Course Outcome Mapping ",
+      "text": "Links assessments to predefined Course Outcomes (COs) for structured evaluation and curriculum effectiveness tracking."
+    },
+    {
+      "icon": "fa fa-group",
+      "title": "📈 Data Visualization & Reports ",
+      "text": "Provides graphical insights, analytics, and downloadable reports for easy analysis of attainment trends."
+    },
+    {
+      "icon": "fa fa-magic",
+      "title": "🔒 Secure User & Role Management",
+      "text": "Ensures role-based access control, allowing authorized users to manage student data securely."
+    }
+  ]
+}
