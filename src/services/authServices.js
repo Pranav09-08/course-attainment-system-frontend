@@ -1,7 +1,7 @@
 // src/services/authService.js
 import axios from "axios";
 
-const API_URL = "https://teacher-attainment-system-backend.onrender.com/"; 
+const API_URL = "https://teacher-attainment-system-backend.onrender.com"; 
 
 // Login API Call
 export const login = async (email, password) => {
