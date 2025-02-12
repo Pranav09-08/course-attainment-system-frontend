@@ -1,7 +1,10 @@
 import React from 'react';
+import Profile from '../ProfilePage';
 
 const AdminDashboard = () => {
-  return <div>Welcome to Admin Dashboard!</div>;
+  return <div>
+    <Profile/>
+    Welcome to Admin Dashboard!</div>;
 };
 
 export default AdminDashboard;
