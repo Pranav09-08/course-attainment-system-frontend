@@ -6,8 +6,8 @@
 /*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */
 html {
   font-family: sans-serif;
-  -webkit-text-size-adjust: 100%;
-      -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 120%;
+      -ms-text-size-adjust: 120%;
 }
 body {
   margin: 0;
@@ -1083,7 +1083,7 @@ html {
 }
 body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 14px;
+  font-size: 20px;
   line-height: 1.42857143;
   color: #333;
   background-color: #fff;
