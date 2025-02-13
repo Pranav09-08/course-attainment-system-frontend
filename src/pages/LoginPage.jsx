@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Grid,
@@ -13,10 +13,12 @@ import {
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { getCurrentUser } from "../services/authServices";
 import { useNavigate } from "react-router-dom";
 import "../styles/LoginPage.css";
 import bg from "../assets/signin.svg";
 import bgimg from "../assets/backimg.jpg";
+import { useDispatch } from "react-redux"; 
 import { login } from "../services/authServices";
 
 const darkTheme = createTheme({ palette: { mode: "dark" } });
@@ -25,19 +27,70 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [user, setUser] = useState(null);
+  const dispatch = useDispatch(); // ✅ Initialize dispatch
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const storedUser = await getCurrentUser();  // ✅ Await async function
+      if (storedUser && storedUser.user && storedUser.user.role) {
+        setUser(storedUser);
+      } else {
+        setUser(null);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      switch (user.user.role) {
+        case "admin":
+          navigate("/admin-dashboard");
+          break;
+        case "coordinator":
+          navigate("/coordinator-dashboard");
+          break;
+        default:
+          navigate("/faculty-dashboard");
+      }
+    }
+  }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
     try {
       const user = await login(email, password);
-      if (user.user.role === "admin") navigate("/admin-dashboard");
-      else if (user.user.role === "coordinator") navigate("/coordinator-dashboard");
-      else navigate("/faculty-dashboard");
+      console.log("Login Successful: ", user);
+
+      if (user && user.user && user.user.role) {
+        dispatch({ type: "setRole", userRole: user.user.role });
+        setUser(user); // ✅ Update local state
+
+        // Redirect based on role
+        switch (user.user.role) {
+          case "admin":
+            navigate("/admin-dashboard");
+            break;
+          case "coordinator":
+            navigate("/coordinator-dashboard");
+            break;
+          default:
+            navigate("/faculty-dashboard");
+        }
+      } else {
+        throw new Error("Invalid user data received");
+      }
     } catch (err) {
-      setError("Invalid Credentials!");
+      console.error("Login Error:", err.response?.data || err.message);
+      setError("❌ Invalid Credentials! Try again.");
     }
   };
+  
+  
 
   return (
     <div className="login-container" style={{ backgroundImage: `url(${bgimg})` }}>

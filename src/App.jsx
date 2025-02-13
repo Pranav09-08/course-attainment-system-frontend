@@ -1,23 +1,63 @@
-// src/App.jsx
-import React from "react";
-import { Routes, Route } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import HomePage from "./pages/HomePage";
+import '@coreui/coreui/dist/css/coreui.min.css';
+import '@coreui/icons/css/all.min.css';
+import "bootstrap/dist/css/bootstrap.min.css";
 import LoginPage from "./pages/LoginPage";
 import Profile from './pages/ProfilePage';
 import AdminDashBoard from "./pages/admin/Dashboard";
 import FacultyDashboard from "./pages/faculty/FacultyDashboard";
 import UploadMarks from "./pages/faculty/Uploadmarks";
 import CoordinatorDashboard from "./pages/coordinator/Coordinator_Dashboard";
-import ProtectedRoute from "./components/Protectedroutes"; // Import ProtectedRoute
+import ProtectedRoute from "./components/Protectedroutes";
+import DashboardLayout from "./layout/DashboardLayout";
+import { getCurrentUser } from "./services/authServices";
 
 const App = () => {
+
+
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user from localStorage on initial render
+  useEffect(() => {
+    const fetchUser = async () => {
+      const storedUser = await getCurrentUser();  // ✅ Await async function
+      setUser(storedUser);
+      setLoading(false);
+    };
+
+    fetchUser();
+  }, []);
+
+  // Redirect logged-in users to their respective dashboards
+  useEffect(() => {
+    if (user && user.user && user.user.role) {
+      switch (user.user.role) {
+        case "admin":
+          navigate("/admin-dashboard");
+          break;
+        case "coordinator":
+          navigate("/coordinator-dashboard");
+          break;
+        default:
+          navigate("/faculty-dashboard");
+      }
+    }
+  }, [user, navigate]);
+
+  if (loading) return <div>Loading...</div>; // ✅ Prevent unnecessary redirects
+
+
+
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/" element={<HomePage />} /> 
+      <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/Profile" element={<Profile/>}/>
-      <Route path="/upload-marks" element={<UploadMarks />} />
 
       {/* Protected Routes */}
       <Route
@@ -46,8 +86,6 @@ const App = () => {
           </ProtectedRoute>
         }
       />
-
-     
 
       {/* Catch-All Route */}
       <Route path="*" element={<h2>404 - Page Not Found 🚫</h2>} />

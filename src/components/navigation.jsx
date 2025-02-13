@@ -1,60 +1,53 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-export const Navigation = (props) => {
+export const Navigation = () => {
+  const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false); // State to manage toggle
 
-  const navigate = useNavigate(); // Initialize useNavigate hook
-
-    const handleLoginClick = () => {
-      navigate("/login"); // Navigate to the login page
-    };
-
+  const handleLoginClick = () => {
+    navigate("/login");
+  };
 
   return (
-    <nav id="menu" className="navbar navbar-default navbar-fixed-top">
+    <nav id="menu" className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
       <div className="container">
-        <div className="navbar-header">
-          <button
-            type="button"
-            className="navbar-toggle collapsed"
-            data-toggle="collapse"
-            data-target="#bs-example-navbar-collapse-1"
-          >
-            {" "}
-            <span className="sr-only">Toggle navigation</span>{" "}
-            <span className="icon-bar"></span>{" "}
-            <span className="icon-bar"></span>{" "}
-            <span className="icon-bar"></span>{" "}
-          </button>
-          <a className="navbar-brand page-scroll" href="#page-top">
+        {/* Navbar Brand */}
+        <a className="navbar-brand page-scroll" href="#page-top">
           Course Attainment System
-          </a>{" "}
-        </div>
+        </a>
 
-        <div
-          className="collapse navbar-collapse"
-          id="bs-example-navbar-collapse-1"
+        {/* Navbar Toggler Button */}
+        <button
+          className="navbar-toggler"
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
         >
-          <ul className="nav navbar-nav navbar-right">
-            <li>
-              <a href="#features" className="page-scroll">
+          <span className="navbar-toggler-icon"></span>
+        </button>
+
+        {/* Navbar Links */}
+        <div className={`collapse navbar-collapse ${isOpen ? "show" : ""}`} id="navbarNav">
+          <ul className="navbar-nav ms-auto">
+            <li className="nav-item">
+              <a href="#features" className="nav-link page-scroll">
                 Features
               </a>
             </li>
-            <li>
-              <a href="#about" className="page-scroll">
+            <li className="nav-item">
+              <a href="#about" className="nav-link page-scroll">
                 About
               </a>
             </li>
-            <li>
-              <a href="#contact" className="page-scroll">
+            <li className="nav-item">
+              <a href="#contact" className="nav-link page-scroll">
                 Contact
               </a>
             </li>
-            <li>
-              <a onClick={handleLoginClick} className="page-scroll">
-               Login
-              </a>
+            <li className="nav-item">
+              <button onClick={handleLoginClick} className="btn btn-outline-light ms-3">
+                Login
+              </button>
             </li>
           </ul>
         </div>

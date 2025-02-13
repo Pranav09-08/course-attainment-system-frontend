@@ -4,7 +4,7 @@ import Profile from '../ProfilePage';
 const AdminDashboard = () => {
   return <div>
     <Profile/>
-    Welcome to Admin Dashboard!</div>;
+    </div>
 };
 
 export default AdminDashboard;
