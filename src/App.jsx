@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import Profile from './pages/ProfilePage';
 import AdminDashBoard from "./pages/admin/Dashboard";
 import FacultyDashboard from "./pages/faculty/FacultyDashboard";
+import UploadMarks from "./pages/faculty/Uploadmarks";
 import CoordinatorDashboard from "./pages/coordinator/Coordinator_Dashboard";
 import ProtectedRoute from "./components/Protectedroutes"; // Import ProtectedRoute
 
@@ -16,6 +17,7 @@ const App = () => {
       <Route path="/" element={<HomePage />} /> 
       <Route path="/login" element={<LoginPage />} />
       <Route path="/Profile" element={<Profile/>}/>
+      <Route path="/upload-marks" element={<UploadMarks />} />
 
       {/* Protected Routes */}
       <Route
@@ -44,6 +46,8 @@ const App = () => {
           </ProtectedRoute>
         }
       />
+
+     
 
       {/* Catch-All Route */}
       <Route path="*" element={<h2>404 - Page Not Found 🚫</h2>} />
