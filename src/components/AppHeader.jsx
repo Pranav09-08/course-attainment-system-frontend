@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import { NavLink } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom' // Import navigate hook
 import { useSelector, useDispatch } from 'react-redux'
 import {
   CContainer,
@@ -26,11 +27,12 @@ import {
 } from '@coreui/icons'
 
 import AppBreadcrumb from './AppBreadcrumb';
-import AppHeaderDropdown  from './AppHeaderDropdown';
+import AppHeaderDropdown from './AppHeaderDropdown';
 
 const AppHeader = () => {
   const headerRef = useRef()
   const { colorMode, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
+  const navigate = useNavigate(); // Initialize navigate function
 
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
@@ -41,6 +43,14 @@ const AppHeader = () => {
         headerRef.current.classList.toggle('shadow-sm', document.documentElement.scrollTop > 0)
     })
   }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem("user"); // Clear user data
+    dispatch({ type: 'logout' }); // Clear Redux state if used
+    navigate('/login', { replace: true }); // Redirect & replace history
+    window.location.reload(); // Hard reload to reset app state
+  };
+  
 
   return (
     <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
@@ -128,6 +138,11 @@ const AppHeader = () => {
           <li className="nav-item py-1">
             <div className="vr h-100 mx-2 text-body text-opacity-75"></div>
           </li>
+          <CNavItem>
+            <CNavLink as="button" onClick={handleLogout} style={{ cursor: 'pointer' }}>
+              Logout
+            </CNavLink>
+          </CNavItem>
           <AppHeaderDropdown />
         </CHeaderNav>
       </CContainer>

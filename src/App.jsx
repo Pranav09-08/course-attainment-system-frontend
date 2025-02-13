@@ -23,13 +23,19 @@ const App = () => {
   // Fetch user from localStorage on initial render
   useEffect(() => {
     const fetchUser = async () => {
-      const storedUser = await getCurrentUser();  // ✅ Await async function
-      setUser(storedUser);
+      const storedUser = JSON.parse(localStorage.getItem("user")); // ✅ Fetch from localStorage
+      if (storedUser) {
+        setUser(storedUser);
+      } else {
+        const user = await getCurrentUser();  // If no localStorage, fetch from API
+        setUser(user);
+      }
       setLoading(false);
     };
-
+  
     fetchUser();
   }, []);
+  
 
   // Redirect logged-in users to their respective dashboards
   useEffect(() => {

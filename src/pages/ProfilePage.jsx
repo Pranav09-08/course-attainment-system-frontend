@@ -16,9 +16,9 @@ const Profile = () => {
         const { id: user_id } = user;
 
         const API_ROUTES = {
-          admin: `http://localhost:5001/profile/admin/${user_id}`,
-          coordinator: `http://localhost:5001/profile/coordinator/${user_id}`,
-          faculty: `http://localhost:5001/profile/faculty/${user_id}`,
+          admin: `https://teacher-attainment-system-backend.onrender.com/profile/admin/${user_id}`,
+          coordinator: `https://teacher-attainment-system-backend.onrender.com/profile/coordinator/${user_id}`,
+          faculty: `https://teacher-attainment-system-backend.onrender.com/profile/faculty/${user_id}`,
         };
 
         const response = await axios.get(API_ROUTES[userRole], {
