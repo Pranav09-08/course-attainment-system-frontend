@@ -1,6 +1,7 @@
 /* Ensures the whole layout takes full screen height */
 .dashboard-layout {
     display: flex;
+    background-color: #2A303D;
     flex-direction: row;
     height: 100vh; /* Full viewport height */
   }
@@ -23,6 +24,7 @@
   .main-content {
     flex-grow: 1;
     padding: 20px;
+    background-color: #1D222B;
     overflow-y: auto; /* Allows scrolling when needed */
   }
   
