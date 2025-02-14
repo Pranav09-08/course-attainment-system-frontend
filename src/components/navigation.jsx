@@ -10,7 +10,7 @@ export const Navigation = () => {
   };
 
   return (
-    <nav id="menu" className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <nav id="menu" className="navbar navbar-expand-lg navbar-dark bg-light fixed-top">
       <div className="container">
         {/* Navbar Brand */}
         <a className="navbar-brand page-scroll" href="#page-top">
@@ -30,22 +30,22 @@ export const Navigation = () => {
         <div className={`collapse navbar-collapse ${isOpen ? "show" : ""}`} id="navbarNav">
           <ul className="navbar-nav ms-auto">
             <li className="nav-item">
-              <a href="#features" className="nav-link page-scroll">
+              <a href="#features" className="nav-link text-black page-scroll">
                 Features
               </a>
             </li>
             <li className="nav-item">
-              <a href="#about" className="nav-link page-scroll">
+              <a href="#about" className="nav-link text-black page-scroll">
                 About
               </a>
             </li>
             <li className="nav-item">
-              <a href="#contact" className="nav-link page-scroll">
+              <a href="#contact" className="nav-link text-black page-scroll">
                 Contact
               </a>
             </li>
             <li className="nav-item">
-              <button onClick={handleLoginClick} className="btn btn-outline-light ms-3">
+              <button onClick={handleLoginClick} className="btn btn-outline-dark ms-3">
                 Login
               </button>
             </li>

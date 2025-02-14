@@ -40,28 +40,3 @@
 .read-the-docs {
   color: #888;
 }
-
-
-/* Sidebar Brand */
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  /* gap: 10px; */
-  /* padding: 10px; */
-  text-decoration: none !important; /* Removes underline */
-  color: white; /* Match sidebar text */
-}
-
-/* Logo Size - Matches Text */
-.sidebar-logo {
-  height: 32px; /* Adjust for better look */
-  width: 32px; /* Keep it proportional */
-  object-fit: contain;
-}
-
-/* Title Styling */
-.sidebar-title {
-  font-size: 1.2rem;
-  font-weight: bold;
-  white-space: nowrap;
-}
