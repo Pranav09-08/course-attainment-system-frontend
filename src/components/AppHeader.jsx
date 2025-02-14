@@ -3,10 +3,6 @@ import { useNavigate } from 'react-router-dom' // Import navigate hook
 import { useSelector, useDispatch } from 'react-redux'
 import {
   CContainer,
-  CDropdown,
-  CDropdownItem,
-  CDropdownMenu,
-  CDropdownToggle,
   CHeader,
   CHeaderNav,
   CHeaderToggler,
@@ -17,11 +13,8 @@ import {
 import CIcon from '@coreui/icons-react'
 import {
   cilBell,
-  cilContrast,
   cilEnvelopeOpen,
   cilMenu,
-  cilMoon,
-  cilSun,
 } from '@coreui/icons'
 
 

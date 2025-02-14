@@ -84,11 +84,20 @@ const Login = () => {
       console.error("Login Error:", err.response?.data || err.message);
       setError("❌ Invalid Credentials! Try again.");
     }
-  };
+  };    
   
 
   return (
     <div className="login-container" style={{ backgroundImage: `url(${bgimg})` }}>
+      <Box position="absolute" top={20} right={70}>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          onClick={() => navigate("/")}
+        >
+          Home
+        </Button>
+      </Box>
       <Box className="login-box">
         <Grid container>
           <Grid item xs={12} sm={12} lg={6}>
