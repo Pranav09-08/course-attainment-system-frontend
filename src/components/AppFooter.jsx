@@ -5,14 +5,14 @@ const AppFooter = () => {
   return (
     <CFooter className="px-4">
       <div>
-        <a href="https://coreui.io" target="_blank" rel="noopener noreferrer">
-          IT department
+        <a href="https://pict.edu/" target="_blank" rel="noopener noreferrer">
+          PICT
         </a>
         <span className="ms-1">&copy; 2024 Educated Eagles.</span>
       </div>
       <div className="ms-auto">
         <span className="me-1">Powered by</span>
-        <a href="https://coreui.io/react" target="_blank" rel="noopener noreferrer">
+        <a href="https://pict.edu/IT-dept/" target="_blank" rel="noopener noreferrer">
           PICT IT department
         </a>
       </div>

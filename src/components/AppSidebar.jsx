@@ -3,10 +3,10 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { CSidebar, CSidebarBrand, CSidebarNav, CNavItem } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
-import { cilSpeedometer, cilUser, cilSettings } from '@coreui/icons';
+
 import navigation from '../_nav';
 import logo from '../assets/logo.png';
-import sygnet from '../assets/backimg.jpg';
+
 
 const AppSidebar = () => {
   const dispatch = useDispatch();
@@ -18,10 +18,7 @@ const AppSidebar = () => {
       onVisibleChange={(visible) => dispatch({ type: 'set', sidebarShow: visible })}
     >
       <CSidebarBrand to="/">
-  <img src={logo} alt="Logo" className="sidebar-brand-full" height={100} />
-  <span className="sidebar-brand-text" style={{ fontSize: "1.2rem", fontWeight: "bold", marginLeft: "10px" }}>
-    AttainX
-  </span>
+  <img src={logo} alt="Logo" className="sidebar-brand-full" height={70} />
 </CSidebarBrand>
 
       <CSidebarNav>
