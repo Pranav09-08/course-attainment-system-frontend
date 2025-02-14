@@ -1,22 +1,21 @@
+import { cilSpeedometer, cilUser, cilSettings } from '@coreui/icons'
+
 const navigation = [
   {
-    component: "CNavItem",
-    name: "Dashboard",
-    to: "/dashboard",
-    icon: "cil-speedometer",
+    name: 'Dashboard',
+    to: '/dashboard',
+    icon: cilSpeedometer,
   },
   {
-    component: "CNavItem",
-    name: "Users",
-    to: "/users",
-    icon: "cil-people",
+    name: 'Users',
+    to: '/users',
+    icon: cilUser,
   },
   {
-    component: "CNavItem",
-    name: "Settings",
-    to: "/settings",
-    icon: "cil-settings",
+    name: 'Settings',
+    to: '/settings',
+    icon: cilSettings,
   },
-];
+]
 
-export default navigation;
+export default navigation

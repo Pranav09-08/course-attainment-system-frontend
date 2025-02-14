@@ -18,9 +18,12 @@ const AppSidebar = () => {
       onVisibleChange={(visible) => dispatch({ type: 'set', sidebarShow: visible })}
     >
       <CSidebarBrand to="/">
-        <img src={logo} alt="Logo" className="sidebar-brand-full" height={32} />
-        <img src={sygnet} alt="Sygnet" className="sidebar-brand-narrow" height={32} />
-      </CSidebarBrand>
+  <img src={logo} alt="Logo" className="sidebar-brand-full" height={100} />
+  <span className="sidebar-brand-text" style={{ fontSize: "1.2rem", fontWeight: "bold", marginLeft: "10px" }}>
+    AttainX
+  </span>
+</CSidebarBrand>
+
       <CSidebarNav>
         {navigation.map((item, index) => (
           <CNavItem key={index} name={item.name} to={item.to}>

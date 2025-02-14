@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react'
-import { NavLink } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom' // Import navigate hook
 import { useSelector, useDispatch } from 'react-redux'
 import {
@@ -20,7 +19,6 @@ import {
   cilBell,
   cilContrast,
   cilEnvelopeOpen,
-  cilList,
   cilMenu,
   cilMoon,
   cilSun,
@@ -45,10 +43,13 @@ const AppHeader = () => {
   }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem("user"); // Clear user data
-    dispatch({ type: 'logout' }); // Clear Redux state if used
-    navigate('/login', { replace: true }); // Redirect & replace history
-    window.location.reload(); // Hard reload to reset app state
+    const confirmLogout = window.confirm("Are you sure you want to log out?");
+    if (confirmLogout) {
+      localStorage.removeItem("user"); // Clear user data
+      dispatch({ type: 'logout' }); // Clear Redux state if used
+      navigate('/login', { replace: true }); // Redirect & replace history
+      window.location.reload(); // Hard reload to reset app state
+    }
   };
   
 
@@ -61,28 +62,11 @@ const AppHeader = () => {
         >
           <CIcon icon={cilMenu} size="lg" />
         </CHeaderToggler>
-        <CHeaderNav className="d-none d-md-flex">
-          <CNavItem>
-            <CNavLink to="/dashboard" as={NavLink}>
-              Dashboard
-            </CNavLink>
-          </CNavItem>
-          <CNavItem>
-            <CNavLink href="#">Users</CNavLink>
-          </CNavItem>
-          <CNavItem>
-            <CNavLink href="#">Settings</CNavLink>
-          </CNavItem>
-        </CHeaderNav>
+
         <CHeaderNav className="ms-auto">
           <CNavItem>
             <CNavLink href="#">
               <CIcon icon={cilBell} size="lg" />
-            </CNavLink>
-          </CNavItem>
-          <CNavItem>
-            <CNavLink href="#">
-              <CIcon icon={cilList} size="lg" />
             </CNavLink>
           </CNavItem>
           <CNavItem>
