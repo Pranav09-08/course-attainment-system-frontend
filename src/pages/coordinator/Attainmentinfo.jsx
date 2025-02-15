@@ -19,7 +19,7 @@ const CourseAttainment = () => {
         }
 
         // Fetch attainment data for the specific course using courseId and academicYear
-        axios.get(`http://localhost:5001/api/attainment-data?course_id=${courseId}&academic_yr=${academicYear}`)
+        axios.get(`https://teacher-attainment-system-backend.onrender.com/api/attainment-data?course_id=${courseId}&academic_yr=${academicYear}`)
             .then(response => {
                 console.log("Attainment data fetched:", response.data); // Log the fetched attainment data
                 if (response.data) {

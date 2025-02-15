@@ -14,7 +14,7 @@ const CoursesCoordinated = () => {
   // Fetch courses assigned to the coordinator
   useEffect(() => {
     console.log("Fetching courses for faculty ID:", facultyId); // Log faculty ID to check the correct value
-    axios.get(`http://localhost:5001/api/coordinator-courses?faculty_id=${facultyId}`)
+    axios.get(`https://teacher-attainment-system-backend.onrender.com/api/coordinator-courses?faculty_id=${facultyId}`)
       .then(response => {
         console.log("Courses fetched successfully:", response.data); // Log the fetched courses
         setCourses(response.data);
