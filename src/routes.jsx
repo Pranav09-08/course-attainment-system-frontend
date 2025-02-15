@@ -9,7 +9,7 @@ import Profile from "./pages/ProfilePage";
 import AdminDashBoard from "./pages/admin/Dashboard";
 import FacultyDashboard from "./pages/faculty/FacultyDashboard";
 import CoordinatorDashboard from "./pages/coordinator/Coordinator_Dashboard";
-// import CourseAttainment from './pages/coordinator/Attainmentinfo';
+import CourseAttainment from './pages/coordinator/Attainmentinfo';
 import MyCourses from './pages/faculty/MyCourses'
 import Error from './assets/404_error.jpg'
 import CoursesCoordinated from "./pages/coordinator/CoursesCoordinated";
@@ -40,7 +40,8 @@ const AppRoutes = () => {
       <Route element={<DashboardLayout />}>
         <Route path="/coordinator-dashboard" element={<ProtectedRoute roles={["coordinator", "admin"]}><CoordinatorDashboard /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/mycourses" element={<ProtectedRoute roles={["coordinator", "admin"]}><CoursesCoordinated /></ProtectedRoute>} />
-        <Route path="/coordinator-dashboard/profile" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><Profile /></ProtectedRoute>} />
+        <Route path="/coordinator-dashboard/attainment/:courseId/:academicYear" element={<ProtectedRoute roles={["coordinator", "admin"]}><CourseAttainment /></ProtectedRoute>} />
+        <Route path="/coordinator-dashboard/profile" element={<ProtectedRoute roles={["coordinator", "admin"]}><Profile /></ProtectedRoute>} />
       </Route>
 
       {/* 404 Page */}
