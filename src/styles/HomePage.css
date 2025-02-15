@@ -101,18 +101,3 @@
     transform: scale(1.1);
   }
   
-  /* Fade-in animation */
-  @keyframes fadeIn {
-    0% {
-      opacity: 0;
-    }
-    #about,
-    #contact,
-    #footer {
-      width: 111%;
-    }
-  
-    #portfolio {
-      width: 110%;
-    }
-  }
