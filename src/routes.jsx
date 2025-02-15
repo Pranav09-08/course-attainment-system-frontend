@@ -11,7 +11,9 @@ import FacultyDashboard from "./pages/faculty/FacultyDashboard";
 import CoordinatorDashboard from "./pages/coordinator/Coordinator_Dashboard";
 import CourseAttainment from './pages/coordinator/Attainmentinfo';
 import MyCourses from './pages/faculty/MyCourses'
+import CoordinatedCoursses from './pages/coordinator/CoursesCoordinated';
 import Error from './assets/404_error.jpg'
+import CoursesCoordinated from "./pages/coordinator/CoursesCoordinated";
 
 const AppRoutes = () => {
   return (
@@ -38,7 +40,7 @@ const AppRoutes = () => {
       {/* 🔹 Coordinator Dashboard */}
       <Route element={<DashboardLayout />}>
         <Route path="/coordinator-dashboard" element={<ProtectedRoute roles={["coordinator", "admin"]}><CoordinatorDashboard /></ProtectedRoute>} />
-        <Route path="/attainment/:courseId/:academicYear" element={<ProtectedRoute roles={["coordinator", "admin"]}><CourseAttainment /></ProtectedRoute>} />
+        <Route path="/coordinator-dashboard/mycourses" element={<ProtectedRoute roles={["coordinator", "admin"]}><CoursesCoordinated /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/profile" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><Profile /></ProtectedRoute>} />
       </Route>
 
