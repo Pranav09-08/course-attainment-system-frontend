@@ -18,7 +18,6 @@ import {
 } from '@coreui/icons'
 
 
-import AppHeaderDropdown from './AppHeaderDropdown';
 
 const AppHeader = () => {
   const headerRef = useRef()
@@ -74,7 +73,6 @@ const AppHeader = () => {
               Logout
             </CNavLink>
           </CNavItem>
-          <AppHeaderDropdown />
         </CHeaderNav>
       </CContainer>
     </CHeader>

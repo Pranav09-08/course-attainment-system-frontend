@@ -9,10 +9,8 @@ import "../styles/DashboardLayout.css"; // Ensure you include this CSS file
 const DashboardLayout = () => {
   return (
     <div className="dashboard-layout">
-      {/* Sidebar */}
       <AppSidebar />
 
-      {/* Main Content */}
       <div className="dashboard-content">
         <AppHeader />
         <div className="main-content">

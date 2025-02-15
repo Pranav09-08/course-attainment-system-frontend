@@ -49,34 +49,3 @@ export const getCurrentUser = async () => {
 
   return storedUser;
 };
-
-
-// Refresh Token API
-export const refreshToken = async () => {
-  try {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (!storedUser?.refreshToken) {
-      logout();
-      return null;
-    }
-
-    const response = await axios.post(`${API_URL}/auth/refresh`, { refreshToken: storedUser.refreshToken });
-
-    if (response.status === 200 && response.data.accessToken) {
-      const newExpirationTime = new Date().getTime() + response.data.expiresIn * 1000;
-      const updatedUser = { 
-        ...storedUser, 
-        accessToken: response.data.accessToken, 
-        expirationTime: newExpirationTime 
-      };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-      return response.data.accessToken;
-    }
-  } catch (error) {
-    console.error("Token refresh error:", error);
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      logout();
-    }
-    return null;
-  }
-};

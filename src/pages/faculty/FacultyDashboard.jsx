@@ -1,10 +1,11 @@
 import React from 'react';
-import Profile from '../ProfilePage';
+import { Outlet } from 'react-router-dom';
 
 const TeacherDashboard = () => {
   return (
     <div>
-      <Profile/>
+      <h2>Faculty Dashboard</h2>
+      <Outlet /> {/* ✅ Ensures nested routes (Profile) render correctly */}
     </div>
   );
 };
