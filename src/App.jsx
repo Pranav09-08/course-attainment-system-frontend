@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppRoutes from "./routes";  // ✅ Import only the routes
-import { getCurrentUser } from "./services/authServices";
+// import { getCurrentUser,} from "./services/authServices";
+import { setUserRole } from './redux/actions'; // Adjust the path if necessary
+
+import { useDispatch } from "react-redux";
 
 import '@coreui/coreui/dist/css/coreui.min.css';
 import '@coreui/icons/css/all.min.css';
@@ -11,25 +14,24 @@ const App = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const loadUserRole = () => {
       const storedUser = JSON.parse(localStorage.getItem("user"));
       if (storedUser) {
+        dispatch(setUserRole(storedUser.role)); // Dispatch role to Redux state
         setUser(storedUser);
-      } else {
-        const user = await getCurrentUser();
-        setUser(user);
       }
       setLoading(false);
     };
 
-    fetchUser();
-  }, []);
+    loadUserRole();
+  }, [dispatch]);
 
   useEffect(() => {
-    if (user?.user?.role) {
-      const role = user.user.role;
+    if (user?.role) {
+      const role = user.role;
       const roleToRoute = {
         admin: "/admin-dashboard",
         coordinator: "/coordinator-dashboard",

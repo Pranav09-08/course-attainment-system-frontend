@@ -7,7 +7,6 @@ import {
   cilSync,
   cilSpreadsheet,
   cilUserPlus,
-  cilUserFollow,
   cilChartLine,
   cilGraph,
   cilLibrary,
@@ -24,25 +23,23 @@ import { CNavGroup, CNavItem,} from '@coreui/react';
 export const getNavigation = (role) => {
   let navigation = [];
 
-  navigation.push(
-    { component: CNavItem, name: 'Profile', to: '/add-course', icon: <CIcon icon={cilUser} customClassName="nav-icon" />,},
-  );
 
   // Admin Specific Pages
-  if (role === 'admin') {
-    navigation.push(
-      {
-        component: CNavGroup,
-        name: 'Courses',
-        icon: <CIcon icon={cilBook} customClassName="nav-icon" />,
-        items: [
-          { component: CNavItem, name: 'Add Course', to: '/add-course', icon: <CIcon icon={cilPlus} customClassName="nav-icon" />, className: 'ms-4' },
-          { component: CNavItem, name: 'See Courses', to: '/see-courses', icon: <CIcon icon={cilList} customClassName="nav-icon" />, className: 'ms-4' },
-          { component: CNavItem, name: 'Update Course', to: '/update-course-allotment', icon: <CIcon icon={cilPen} customClassName="nav-icon" />, className: 'ms-4' },
-        
-        ],
-      },
-      {
+    if (role === 'admin') {
+      navigation.push(
+        { component: CNavItem, name: 'Profile', to: '/admin-dashboard/profile?role=admin', icon: <CIcon icon={cilUser} customClassName="nav-icon" />,},
+        {
+          component: CNavGroup,
+          name: 'Courses',
+          icon: <CIcon icon={cilBook} customClassName="nav-icon" />,
+          items: [
+            { component: CNavItem, name: 'Add Course', to: '/add-course', icon: <CIcon icon={cilPlus} customClassName="nav-icon" />, className: 'ms-4' },
+            { component: CNavItem, name: 'See Courses', to: '/see-courses', icon: <CIcon icon={cilList} customClassName="nav-icon" />, className: 'ms-4' },
+            { component: CNavItem, name: 'Update Course', to: '/update-course-allotment', icon: <CIcon icon={cilPen} customClassName="nav-icon" />, className: 'ms-4' },
+          
+          ],
+        },
+        {
         component: CNavGroup,
         name: 'Course Allotment',
         icon: <CIcon icon={cilTask} customClassName="nav-icon" />,

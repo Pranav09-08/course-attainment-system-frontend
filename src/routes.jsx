@@ -21,9 +21,28 @@ const AppRoutes = () => {
       <Route path="/profile" element={<Profile />} />
      
       {/* 🔹 Admin Dashboard */}
+      {/* Wrap in DashboardLayout */}
       <Route element={<DashboardLayout />}>
-        <Route path="/admin-dashboard" element={<ProtectedRoute roles={["admin"]}><AdminDashBoard /></ProtectedRoute>} />
-      </Route>
+          {/* Admin Dashboard with ProtectedRoute */}
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute roles={["admin"]}>
+                <AdminDashBoard />
+              </ProtectedRoute>
+            }
+          >
+            {/* ✅ Wrap Profile Route in ProtectedRoute */}
+            <Route
+              path="profile"
+              element={
+                <ProtectedRoute roles={["admin"]}>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+        </Route>
 
       {/* 🔹 Faculty Dashboard */}
       <Route element={<DashboardLayout />}>
