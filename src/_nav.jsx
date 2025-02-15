@@ -109,7 +109,7 @@ export const getNavigation = (role) => {
       { component: CNavItem, name: 'Profile', to: '/coordinator-dashboard/profile?role=coordinator', icon: <CIcon icon={cilUser} customClassName="nav-icon" />,},
       { component: CNavItem, name: 'Add Marks', to: '/add-marks', icon: <CIcon icon={cilPen} customClassName="nav-icon" /> },
       { component: CNavItem, name: 'Update Marks', to: '/see-subjects-teaching', icon: <CIcon icon={cilSync} customClassName="nav-icon" /> },
-      { component: CNavItem, name: 'My Courses', to: '/coordinator-dashbaord/mycourses', icon: <CIcon icon={cilLibrary} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'My Courses', to: '/coordinator-dashboard/mycourses', icon: <CIcon icon={cilLibrary} customClassName="nav-icon" /> },
       {
         component: CNavGroup,
         name: 'Attainment',

@@ -9,9 +9,8 @@ import Profile from "./pages/ProfilePage";
 import AdminDashBoard from "./pages/admin/Dashboard";
 import FacultyDashboard from "./pages/faculty/FacultyDashboard";
 import CoordinatorDashboard from "./pages/coordinator/Coordinator_Dashboard";
-import CourseAttainment from './pages/coordinator/Attainmentinfo';
+// import CourseAttainment from './pages/coordinator/Attainmentinfo';
 import MyCourses from './pages/faculty/MyCourses'
-import CoordinatedCoursses from './pages/coordinator/CoursesCoordinated';
 import Error from './assets/404_error.jpg'
 import CoursesCoordinated from "./pages/coordinator/CoursesCoordinated";
 
