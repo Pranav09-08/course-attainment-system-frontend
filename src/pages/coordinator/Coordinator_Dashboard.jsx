@@ -1,13 +1,12 @@
 import React from 'react';
-import Profile from '../ProfilePage';
-import CoursesCoordinated from './CoursesCoordinated'
+import { Outlet } from 'react-router-dom';
 
 
 const CoordinatorDashboard = () => {
   return (
-  <div>
-    <Profile/>
-    <CoursesCoordinated/>
+    <div>
+    <h2>Coordinator Dashboard</h2>
+    <Outlet /> {/* ✅ Ensures nested routes (Profile) render correctly */}
   </div>
   );
 };

@@ -94,6 +94,7 @@ export const getNavigation = (role) => {
   // Faculty Specific Pages
   if (role === 'faculty') {
     navigation.push(
+      { component: CNavItem, name: 'Profile', to: '/faculty-dashboard/profile?role=faculty', icon: <CIcon icon={cilUser} customClassName="nav-icon" />,},
       { component: CNavItem, name: 'Add Marks', to: '/add-marks', icon: <CIcon icon={cilPen} customClassName="nav-icon" /> },
       { component: CNavItem, name: 'Update Marks', to: '/see-subjects-teaching', icon: <CIcon icon={cilList} customClassName="nav-icon" /> },
       { component: CNavItem, name: 'My Courses', to: '/see-attainment', icon: <CIcon icon={cilList} customClassName="nav-icon" /> },
@@ -105,6 +106,7 @@ export const getNavigation = (role) => {
   // Coordinator Specific Pages
   if (role === 'coordinator') {
     navigation.push(
+      { component: CNavItem, name: 'Profile', to: '/coordinator-dashboard/profile?role=coordinator', icon: <CIcon icon={cilUser} customClassName="nav-icon" />,},
       { component: CNavItem, name: 'Add Marks', to: '/add-marks', icon: <CIcon icon={cilPen} customClassName="nav-icon" /> },
       { component: CNavItem, name: 'Update Marks', to: '/see-subjects-teaching', icon: <CIcon icon={cilSync} customClassName="nav-icon" /> },
       { component: CNavItem, name: 'My Courses', to: '/see-attainment', icon: <CIcon icon={cilLibrary} customClassName="nav-icon" /> },

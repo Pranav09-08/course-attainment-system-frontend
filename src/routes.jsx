@@ -18,41 +18,26 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/profile" element={<Profile />} />
-     
+
       {/* 🔹 Admin Dashboard */}
       {/* Wrap in DashboardLayout */}
       <Route element={<DashboardLayout />}>
-          {/* Admin Dashboard with ProtectedRoute */}
-          <Route
-            path="/admin-dashboard"
-            element={
-              <ProtectedRoute roles={["admin"]}>
-                <AdminDashBoard />
-              </ProtectedRoute>
-            }
-          >
-            {/* ✅ Wrap Profile Route in ProtectedRoute */}
-            <Route
-              path="profile"
-              element={
-                <ProtectedRoute roles={["admin"]}>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-          </Route>
-        </Route>
+        <Route path="/admin-dashboard" element={<ProtectedRoute roles={["admin"]}><AdminDashBoard /></ProtectedRoute>} />
+        <Route path="/admin-dashboard/profile" element={<ProtectedRoute roles={["admin"]}><Profile /></ProtectedRoute>} />
+      </Route>
+
 
       {/* 🔹 Faculty Dashboard */}
       <Route element={<DashboardLayout />}>
         <Route path="/faculty-dashboard" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><FacultyDashboard /></ProtectedRoute>} />
+        <Route path="/faculty-dashboard/profile" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><Profile /></ProtectedRoute>} />
       </Route>
 
       {/* 🔹 Coordinator Dashboard */}
       <Route element={<DashboardLayout />}>
         <Route path="/coordinator-dashboard" element={<ProtectedRoute roles={["coordinator", "admin"]}><CoordinatorDashboard /></ProtectedRoute>} />
         <Route path="/attainment/:courseId/:academicYear" element={<ProtectedRoute roles={["coordinator", "admin"]}><CourseAttainment /></ProtectedRoute>} />
+        <Route path="/coordinator-dashboard/profile" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><Profile /></ProtectedRoute>} />
       </Route>
 
       {/* 404 Page */}
