@@ -1,12 +1,13 @@
 import React from 'react';
 import Profile from '../ProfilePage';
-import Attainment from './Attainmentinfo'
+import CoursesCoordinated from './CoursesCoordinated'
+
 
 const CoordinatorDashboard = () => {
   return (
   <div>
     <Profile/>
-    <Attainment/>
+    <CoursesCoordinated/>
   </div>
   );
 };
