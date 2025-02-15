@@ -27,7 +27,7 @@ const CoursesCoordinated = () => {
   const handleViewAttainment = (courseId, academicYear) => {
     console.log("Navigating to Attainment with courseId:", courseId, "and academicYear:", academicYear);
     // Navigate to the CourseAttainment page with courseId and academicYear
-    navigate(`/attainment/${courseId}/${academicYear}`);
+    navigate(`/coordinator-dashboard/attainment/${courseId}/${academicYear}`);
   };
 
   return (
