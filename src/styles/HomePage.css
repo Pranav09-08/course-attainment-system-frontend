@@ -1,7 +1,110 @@
-@media screen and (max-width: 400px) {
-    #features {
-      padding: 20px;
-      width: 111%;
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  body {
+    background-color: #22223b; /* Light background */
+    font-size: 16px;
+    color: #22223b;
+    line-height: 1.6;
+  }
+  
+  /* Header Styles */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #212631;/* Dark Violet */
+    padding: 20px 50px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    transition: background-color 0.3s ease;
+  }
+  
+  .header:hover {
+    background-color: #212633; /* Slightly darker shade */
+  }
+  
+  .logo img {
+    width: 140px;
+    height: auto;
+  }
+  
+  .nav a {
+    color: #f1f1f1; /* Light color for nav items */
+    margin: 0 25px;
+    text-decoration: none;
+    font-size: 18px;
+    transition: color 0.3s ease;
+  }
+  
+  .nav a:hover {
+    color: #fbc02d; /* Yellow accent for hover effect */
+  }
+  
+  .nav button {
+    padding: 12px 25px;
+    font-size: 16px;
+    background-color: #fbc02d; /* Bright yellow */
+    color: #4a148c; /* Dark Violet */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  
+  .nav button:hover {
+    background-color: #f57f17; /* Slightly darker yellow */
+    transform: scale(1.05);
+  }
+  
+  /* Hero Section */
+  .hero {
+    background: linear-gradient(135deg, #5856d6, #9c27b0); /* Gradient of violet shades */
+    color: #f1f1f1; /* Light text for contrast */
+    text-align: center;
+    padding: 120px 20px;
+    position: relative;
+    animation: fadeIn 2s ease-in-out;
+    border-bottom: 5px solid #f1f1f1; /* Light border at the bottom */
+  }
+  
+  .hero h1 {
+    font-size: 60px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .hero p {
+    font-size: 24px;
+    margin-bottom: 40px;
+    color: #e0e0e0; /* Lighter gray for subtext */
+  }
+  
+  .cta-button {
+    background-color: #ff9800; /* Bright Orange */
+    color: #4a148c; /* Dark Violet */
+    padding: 15px 30px;
+    font-size: 18px;
+    text-decoration: none;
+    border-radius: 30px;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+  }
+  
+  .cta-button:hover {
+    background-color: #fb8c00; /* Darker Orange on hover */
+    transform: scale(1.1);
+  }
+  
+  /* Fade-in animation */
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
     }
     #about,
     #contact,
