@@ -102,7 +102,7 @@ const Profile = () => {
               <CFormLabel className="fw-semibold">Name</CFormLabel>
             </CCol>
             <CCol md="8">
-              <CFormInput type="text" value={userData?.name || "N/A"} disabled={!editMode} />
+              <CFormInput type="text" value={userData?.name || userData?.dept_name || "N/A"} disabled={!editMode} />
             </CCol>
           </CRow>
 
