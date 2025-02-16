@@ -17,7 +17,22 @@ const SetTarget = () => {
             return;
         }
 
-        axios.get(`http://localhost:5001/set_target/course-coordinator/courses/${facultyId}`)
+        // Retrieve the access token from localStorage
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      const token = storedUser?.accessToken; // Retrieve the accessToken from stored user object
+  
+      if (!token) {
+          console.error("No authentication token found.");
+          setError("Authentication token is missing.");
+          setLoading(false);
+          return;
+      }
+
+      axios.get(`http://localhost:5001/set_target/course-coordinator/courses/${facultyId}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`  // Send the token as Authorization header
+        }
+    })
             .then(response => {
                 setCourses(Array.isArray(response.data) ? response.data : []);
             })
