@@ -13,6 +13,7 @@ import CourseAttainment from './pages/coordinator/Attainmentinfo';
 import MyCourses from './pages/faculty/MyCourses'
 import Error from './assets/404_error.jpg'
 import CoursesCoordinated from "./pages/coordinator/CoursesCoordinated";
+import SetTarget from './pages/coordinator/SetTarget';
 
 const AppRoutes = () => {
   return (
@@ -42,6 +43,7 @@ const AppRoutes = () => {
         <Route path="/coordinator-dashboard/mycourses" element={<ProtectedRoute roles={["coordinator", "admin"]}><CoursesCoordinated /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/attainment/:courseId/:academicYear" element={<ProtectedRoute roles={["coordinator", "admin"]}><CourseAttainment /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/profile" element={<ProtectedRoute roles={["coordinator", "admin"]}><Profile /></ProtectedRoute>} />
+        <Route path="/coordinator-dashboard/setTarget" element={<ProtectedRoute roles={["coordinator", "admin"]}><SetTarget/></ProtectedRoute>} />
       </Route>
 
       {/* 404 Page */}

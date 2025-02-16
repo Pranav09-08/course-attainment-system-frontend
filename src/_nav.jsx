@@ -1,8 +1,8 @@
 import React from 'react';
 import CIcon from '@coreui/icons-react';
 import { 
-  cilStar, cilContact, cilInfo, cilBook, cilUser, cilList, cilPen, 
-  cilPlus, cilSettings, cilEducation, cilPeople, cilSchool, cilReportSlash,
+  cilStar,cilInfo, cilBook, cilUser, cilList, cilPen, 
+  cilPlus, cilSettings, cilPeople,
   cilTask,
   cilSync,
   cilSpreadsheet,
@@ -36,7 +36,6 @@ export const getNavigation = (role) => {
             { component: CNavItem, name: 'Add Course', to: '/add-course', icon: <CIcon icon={cilPlus} customClassName="nav-icon" />, className: 'ms-4' },
             { component: CNavItem, name: 'See Courses', to: '/see-courses', icon: <CIcon icon={cilList} customClassName="nav-icon" />, className: 'ms-4' },
             { component: CNavItem, name: 'Update Course', to: '/update-course-allotment', icon: <CIcon icon={cilPen} customClassName="nav-icon" />, className: 'ms-4' },
-          
           ],
         },
         {
@@ -115,7 +114,7 @@ export const getNavigation = (role) => {
         name: 'Attainment',
         icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
         items: [
-          { component: CNavItem, name: 'Set Target', to: '/see-attainment-all-courses', icon: <CIcon icon={cilSettings} customClassName="nav-icon" />, className: 'ms-4' },
+          { component: CNavItem, name: 'Set Target', to: '/coordinator-dashboard/setTarget', icon: <CIcon icon={cilSettings} customClassName="nav-icon" />, className: 'ms-4' },
           { component: CNavItem, name: 'Calculate Attainment', to: '/see-attainment-selected-courses', icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />, className: 'ms-4' },
           { component: CNavItem, name: 'Download Reports', to: '/see-attainment-selected-courses', icon: <CIcon icon={cilCloudDownload} customClassName="nav-icon" />, className: 'ms-4' },
         ],
