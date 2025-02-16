@@ -53,19 +53,32 @@ const SetTarget = () => {
     };
 
     const handleSaveTargets = (course_id, dept_id, academic_yr) => {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        const token = storedUser?.accessToken;  // Retrieve the accessToken
+    
+        if (!token) {
+            console.error("No authentication token found.");
+            alert("Authentication token is missing.");
+            return;
+        }
+    
         const courseTargets = targets[course_id] || {};
-
+    
         axios.post('http://localhost:5001/set_target/course-target/set-targets', {
             course_id,
             dept_id,
             academic_yr,
             ...courseTargets
+        }, {
+            headers: {
+                'Authorization': `Bearer ${token}`  // Send the token as Authorization header
+            }
         }).then(() => {
             alert('Targets updated successfully');
-            setSelectedCourse(null);  // Close the modal after saving
-        })
-        .catch(error => console.error("Error updating targets:", error));
+            setSelectedCourse(null);
+        }).catch(error => console.error("Error updating targets:", error));
     };
+    
 
     const openModal = (course) => {
         setSelectedCourse(course);
