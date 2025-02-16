@@ -74,14 +74,38 @@ const CourseAttainment = () => {
               {course_target && (
                 <div className="mt-3">
                   <h6 className="text-primary">Course Target</h6>
-                  <div><strong>Target 1:</strong> {course_target.target1 ?? "-"}</div>
-                  <div><strong>Target 2:</strong> {course_target.target2 ?? "-"}</div>
-                  <div><strong>Target 3:</strong> {course_target.target3 ?? "-"}</div>
+                  <table className="table table-bordered text-center">
+                    <thead className="table-dark">
+                      <tr>
+                        <th>Level</th>
+                        <th>Unit Test</th>
+                        <th>SPPU</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Level 3</td>
+                        <td>{course_target.target3 ?? "-"}</td>
+                        <td>{course_target.sppu3 ?? "-"}</td>
+                      </tr>
+                      <tr>
+                        <td>Level 2</td>
+                        <td>{course_target.target2 ?? "-"}</td>
+                        <td>{course_target.sppu2 ?? "-"}</td>
+                      </tr>
+                      <tr>
+                        <td>Level 1</td>
+                        <td>{course_target.target1 ?? "-"}</td>
+                        <td>{course_target.sppu1 ?? "-"}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
           </div>
         </div>
+
 
         {/* Final Attainment Card */}
         <div className="col-md-6">
