@@ -40,14 +40,14 @@ const CoursesCoordinated = () => {
       });
   }, [facultyId]);
 
-  const handleViewAttainment = (courseId, academicYear) => {
+  const handleViewAttainment = (courseId, academicYear,dept_id) => {
     console.log(
       "Navigating to Attainment with courseId:",
       courseId,
       "and academicYear:",
       academicYear
     );
-    navigate(`/coordinator-dashboard/attainment/${courseId}/${academicYear}`);
+    navigate(`/coordinator-dashboard/attainment/${courseId}/${academicYear}/${dept_id}`);
   };
 
   return (
@@ -101,7 +101,7 @@ const CoursesCoordinated = () => {
 
                   <button
                     onClick={() =>
-                      handleViewAttainment(course.course_id, course.academic_yr)
+                      handleViewAttainment(course.course_id, course.academic_yr,course.dept_id)
                     }
                     className="btn btn-outline-primary w-10 me-3" // Full-width button
                   >
