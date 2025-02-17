@@ -13,41 +13,48 @@ const CoursesCoordinated = () => {
   // Fetch courses assigned to the coordinator
   useEffect(() => {
     console.log("Fetching courses for faculty ID:", facultyId);
-
+  
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = storedUser?.accessToken;
-
+  
     if (!token) {
       console.error("No authentication token found.");
       return;
     }
-
+  
     axios
       .get(
         `https://teacher-attainment-system-backend.onrender.com/attainment/coordinator-courses?faculty_id=${facultyId}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       )
       .then((response) => {
-        console.log("Courses fetched successfully:", response.data);
+        console.log("Full API Response:", response);
+        console.log("Courses Data:", response.data);
+  
+        if (!response.data || response.data.length === 0) {
+          console.error("Warning: No courses found!");
+        } else if (!response.data[0].course_name) {
+          console.error("Warning: course_name missing in API response!");
+        }
+  
         setCourses(response.data);
       })
       .catch((error) => {
-        console.error("Error fetching courses:", error);
+        console.error("Error fetching courses:", error.response ? error.response.data : error.message);
       });
   }, [facultyId]);
+  
 
-  const handleViewAttainment = (courseId, academicYear) => {
+  const handleViewAttainment = (courseId, academicYear,dept_id) => {
     console.log(
       "Navigating to Attainment with courseId:",
       courseId,
       "and academicYear:",
       academicYear
     );
-    navigate(`/coordinator-dashboard/attainment/${courseId}/${academicYear}`);
+    navigate(`/coordinator-dashboard/attainment/${courseId}/${academicYear}/${dept_id}`);
   };
 
   return (
@@ -101,7 +108,7 @@ const CoursesCoordinated = () => {
 
                   <button
                     onClick={() =>
-                      handleViewAttainment(course.course_id, course.academic_yr)
+                      handleViewAttainment(course.course_id, course.academic_yr,course.dept_id)
                     }
                     className="btn btn-outline-primary w-10 me-3" // Full-width button
                   >
