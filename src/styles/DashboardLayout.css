@@ -1,0 +1,38 @@
+/* Ensures the whole layout takes full screen height */
+.dashboard-layout {
+    display: flex;
+    background-color: #2A303D;
+    flex-direction: row;
+    height: 100vh; /* Full viewport height */
+  }
+  
+  /* Sidebar styling */
+  .AppSidebar {
+    flex-shrink: 0;
+    height: 100vh; /* Ensure sidebar takes full height */
+  }
+  
+  /* Content takes remaining space */
+  .dashboard-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 100vh; /* Full height to push footer */
+  }
+  
+  /* Main content should fill available space */
+  .main-content {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #1D222B;
+    overflow-y: auto; /* Allows scrolling when needed */
+  }
+  
+  /* Fix the footer to the bottom */
+  .AppFooter {
+    background: #f8f9fa;
+    padding: 10px;
+    text-align: center;
+    width: 100%;
+  }
+  

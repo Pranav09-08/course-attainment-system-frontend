@@ -7,157 +7,160 @@ const initialState = {
   email: "",
   message: "",
 };
-export const Contact = (props) => {
-  const [{ name, email, message }, setState] = useState(initialState);
+
+export const Contact = ({ data }) => {
+  const [formData, setFormData] = useState(initialState);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setState((prevState) => ({ ...prevState, [name]: value }));
+    setFormData((prevState) => ({ ...prevState, [name]: value }));
   };
-  const clearState = () => setState({ ...initialState });
-  
-  
+
+  const clearState = () => setFormData(initialState);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(name, email, message);
-    
-    {/* replace below with your own Service ID, Template ID and Public Key from your EmailJS account */ }
-    
     emailjs
-      .sendForm("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", e.target, "YOUR_PUBLIC_KEY")
+      .sendForm(
+        "YOUR_SERVICE_ID",
+        "YOUR_TEMPLATE_ID",
+        e.target,
+        "YOUR_PUBLIC_KEY"
+      )
       .then(
         (result) => {
-          console.log(result.text);
+          console.log("Message sent:", result.text);
           clearState();
         },
         (error) => {
-          console.log(error.text);
+          console.error("Email error:", error.text);
         }
       );
   };
+
   return (
-    <div>
-      <div id="contact">
-        <div className="container">
+    <div id="contact">
+      <div className="container">
+        <div className="row justify-content-center">
+          {/* Contact Form */}
           <div className="col-md-8">
-            <div className="row">
-              <div className="section-title">
-                <h2>Get In Touch</h2>
-                <p>
-                  Please fill out the form below to send us an email and we will
-                  get back to you as soon as possible.
-                </p>
-              </div>
-              <form name="sentMessage" validate onSubmit={handleSubmit}>
-                <div className="row">
-                  <div className="col-md-6">
-                    <div className="form-group">
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        className="form-control"
-                        placeholder="Name"
-                        required
-                        onChange={handleChange}
-                      />
-                      <p className="help-block text-danger"></p>
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="form-group">
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        className="form-control"
-                        placeholder="Email"
-                        required
-                        onChange={handleChange}
-                      />
-                      <p className="help-block text-danger"></p>
-                    </div>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <textarea
-                    name="message"
-                    id="message"
-                    className="form-control"
-                    rows="4"
-                    placeholder="Message"
-                    required
-                    onChange={handleChange}
-                  ></textarea>
-                  <p className="help-block text-danger"></p>
-                </div>
-                <div id="success"></div>
-                <button type="submit" className="btn btn-custom btn-lg">
-                  Send Message
-                </button>
-              </form>
+            <div className="section-title text-center">
+              <h2>Get In Touch</h2>
+              <p>
+                Please fill out the form below to send us an email, and we will
+                get back to you as soon as possible.
+              </p>
             </div>
+            <form name="sentMessage" onSubmit={handleSubmit}>
+              <div className="row">
+                <div className="col-md-6">
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      className="form-control"
+                      placeholder="Name"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="form-group">
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      className="form-control"
+                      placeholder="Email"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="form-group mt-2">
+                <textarea
+                  name="message"
+                  id="message"
+                  className="form-control"
+                  rows="4"
+                  placeholder="Message"
+                  required
+                  value={formData.message}
+                  onChange={handleChange}
+                ></textarea>
+              </div>
+              <button type="submit" className="btn btn-custom btn-lg btn-block">
+                Send Message
+              </button>
+            </form>
           </div>
-          <div className="col-md-3 col-md-offset-1 contact-info">
-            <div className="contact-item">
+
+          {/* Contact Info */}
+          <div className="col-md-4">
+            <div className="contact-info">
               <h3>Contact Info</h3>
               <p>
                 <span>
-                  <i className="fa fa-map-marker"></i> Address
-                </span>
-                {props.data ? props.data.address : "loading"}
+                  <i className="fa fa-map-marker"></i> Address:
+                </span>{" "}
+                {data?.address || "loading..."}
               </p>
-            </div>
-            <div className="contact-item">
               <p>
                 <span>
-                  <i className="fa fa-phone"></i> Phone
+                  <i className="fa fa-phone"></i> Phone:
                 </span>{" "}
-                {props.data ? props.data.phone : "loading"}
+                {data?.phone || "loading..."}
               </p>
-            </div>
-            <div className="contact-item">
               <p>
                 <span>
-                  <i className="fa fa-envelope-o"></i> Email
+                  <i className="fa fa-envelope-o"></i> Email:
                 </span>{" "}
-                {props.data ? props.data.email : "loading"}
+                {data?.email || "loading..."}
               </p>
-            </div>
-          </div>
-          <div className="col-md-12">
-            <div className="row">
-              <div className="social">
-                <ul>
-                  <li>
-                    <a href={props.data ? props.data.facebook : "/"}>
-                      <i className="fa fa-facebook"></i>
-                    </a>
-                  </li>
-                  <li>
-                    <a href={props.data ? props.data.twitter : "/"}>
-                      <i className="fa fa-twitter"></i>
-                    </a>
-                  </li>
-                  <li>
-                    <a href={props.data ? props.data.youtube : "/"}>
-                      <i className="fa fa-youtube"></i>
-                    </a>
-                  </li>
-                </ul>
-              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div id="footer">
-        <div className="container text-center">
-          <p>
-            &copy; 2025 PICT TEAM. Design by{" DBMS Team "}
-            <a href="https://pict.edu" rel="nofollow">
-              PICT
-            </a>
-          </p>
+
+        {/* Social Links */}
+        <div className="row">
+          <div className="col-md-12 text-center">
+            <div className="social">
+              <ul className="list-inline">
+                <li className="list-inline-item">
+                  <a href={data?.facebook || "/"} target="_blank" rel="noopener noreferrer">
+                    <i className="fa fa-facebook"></i>
+                  </a>
+                </li>
+                <li className="list-inline-item">
+                  <a href={data?.twitter || "/"} target="_blank" rel="noopener noreferrer">
+                    <i className="fa fa-twitter"></i>
+                  </a>
+                </li>
+                <li className="list-inline-item">
+                  <a href={data?.youtube || "/"} target="_blank" rel="noopener noreferrer">
+                    <i className="fa fa-youtube"></i>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div id="footer">
+          <div className="container text-center">
+            <p>
+              &copy; 2025 PICT TEAM. Design by DBMS Team {" "}
+              <a href="https://pict.edu" rel="nofollow" target="_blank">
+                PICT
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>

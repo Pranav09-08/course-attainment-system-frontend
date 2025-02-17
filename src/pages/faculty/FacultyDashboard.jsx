@@ -1,15 +1,11 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import Profile from "../ProfilePage";
+import React from 'react';
+import { Outlet } from 'react-router-dom';
 
 const TeacherDashboard = () => {
-  const navigate = useNavigate();
-
   return (
     <div>
-      <Profile />
-      <h1>Welcome to the Teacher Dashboard</h1>
-      <button onClick={() => navigate("/upload-marks")}>Add Marks</button>
+      <h2>Faculty Dashboard</h2>
+      <Outlet /> {/* ✅ Ensures nested routes (Profile) render correctly */}
     </div>
   );
 };

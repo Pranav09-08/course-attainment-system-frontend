@@ -9,15 +9,14 @@ const ProtectedRoute = ({ children, roles }) => {
   const [loading, setLoading] = useState(true); // Add loading state
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const user = await getCurrentUser();
-      if (user) {
-        dispatch({ type: "SET_USER_ROLE", payload: user.role });
-      }
-      setLoading(false);
-    };
-  
     if (!userRole) {
+      const fetchUser = async () => {
+        const user = await getCurrentUser();
+        if (user) {
+          dispatch({ type: "SET_USER_ROLE", payload: user.role });
+        }
+        setLoading(false);
+      };
       fetchUser();
     } else {
       setLoading(false);

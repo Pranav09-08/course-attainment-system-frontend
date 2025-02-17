@@ -55,12 +55,6 @@ ul,
 ol {
   list-style: none;
 }
-ul,
-ol {
-  padding: 0;
-  webkit-padding: 0;
-  moz-padding: 0;
-}
 hr {
   height: 2px;
   width: 70px;
@@ -76,7 +70,7 @@ hr {
   transition: all 0.8s;
 }
 #menu.navbar-default {
-  background-color: #fff;
+  background-color: #f4eeee;
   border-color: rgba(231, 231, 231, 0);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
 }
@@ -84,7 +78,7 @@ hr {
   font-family: "Raleway", sans-serif;
   font-size: 24px;
   font-weight: 700;
-  color: #333;
+  color: #0e0d0d;
   text-transform: uppercase;
 }
 #menu.navbar-default .navbar-nav > li > a {
@@ -215,9 +209,7 @@ a:focus,
   background-size: cover;
   -o-background-size: cover;
 }
-.intro .overlay {
-  background: rgba(0, 0, 0, 0.2);
-}
+
 .intro h1 {
   font-family: "Raleway", sans-serif;
   color: #fff;
@@ -239,6 +231,13 @@ a:focus,
   margin: 0 auto;
   margin-bottom: 60px;
 }
+
+.nav-item {
+  font-size: 18px; /* Adjust as needed */
+  /* font-weight: bold; Optional: Makes the text bold */
+}
+
+
 header .intro-text {
   padding-top: 350px;
   padding-bottom: 200px;
@@ -350,7 +349,7 @@ header .intro-text {
 }
 .hover-bg:hover .hover-text > h4 {
   opacity: 1;
-  -webkit-backface-visibility: hidden;
+  /* -webkit-backface-visibility: hidden; */
   -webkit-transform: translateY(0);
   transform: translateY(0);
 }

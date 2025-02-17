@@ -13,13 +13,12 @@ import {
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { getCurrentUser } from "../services/authServices";
+import { getCurrentUser, login } from "../services/authServices";
 import { useNavigate } from "react-router-dom";
 import "../styles/LoginPage.css";
 import bg from "../assets/signin.svg";
 import bgimg from "../assets/backimg.jpg";
 import { useDispatch } from "react-redux"; 
-import { login } from "../services/authServices";
 
 const darkTheme = createTheme({ palette: { mode: "dark" } });
 
@@ -27,37 +26,33 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [user, setUser] = useState(null);
-  const dispatch = useDispatch(); // ✅ Initialize dispatch
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Persistent Login
   useEffect(() => {
     const fetchUser = async () => {
-      const storedUser = await getCurrentUser();  // ✅ Await async function
-      if (storedUser && storedUser.user && storedUser.user.role) {
-        setUser(storedUser);
-      } else {
-        setUser(null);
+      const storedUser = await getCurrentUser();  // ✅ Ensure token refresh
+
+      if (storedUser?.user?.role) {
+        dispatch({ type: "setRole", userRole: storedUser.user.role });
+
+        // Redirect to respective dashboard
+        switch (storedUser.user.role) {
+          case "admin":
+            navigate("/admin-dashboard");
+            break;
+          case "coordinator":
+            navigate("/coordinator-dashboard");
+            break;
+          default:
+            navigate("/faculty-dashboard");
+        }
       }
     };
 
     fetchUser();
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      switch (user.user.role) {
-        case "admin":
-          navigate("/admin-dashboard");
-          break;
-        case "coordinator":
-          navigate("/coordinator-dashboard");
-          break;
-        default:
-          navigate("/faculty-dashboard");
-      }
-    }
-  }, [user]);
+  }, [navigate, dispatch]); // ✅ Ensure effect only runs once
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,11 +60,12 @@ const Login = () => {
     try {
       const user = await login(email, password);
       console.log("Login Successful: ", user);
-
+  
       if (user && user.user && user.user.role) {
         dispatch({ type: "setRole", userRole: user.user.role });
-        setUser(user); // ✅ Update local state
-
+        // setUser(user); // ✅ Update local state
+        localStorage.setItem("user", JSON.stringify(user)); // ✅ Store in localStorage
+  
         // Redirect based on role
         switch (user.user.role) {
           case "admin":
@@ -88,8 +84,7 @@ const Login = () => {
       console.error("Login Error:", err.response?.data || err.message);
       setError("❌ Invalid Credentials! Try again.");
     }
-  };
-  
+  };    
   
 
   return (
@@ -158,6 +153,5 @@ const Login = () => {
     </div>
   );
 };
-
 
 export default Login;

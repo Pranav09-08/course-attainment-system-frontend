@@ -9,21 +9,26 @@ import JsonData from "../assets/data.json";
 import SmoothScroll from "smooth-scroll";
 import "../styles/HomePage.css";
 
-
-export const scroll = new SmoothScroll('a[href*="#"]', {
-  speed: 1000,
-  speedAsDuration: true,
-});
-
 const HomePage = () => {
   const [landingPageData, setLandingPageData] = useState({});
+
   useEffect(() => {
     setLandingPageData(JsonData);
   }, []);
 
+  useEffect(() => {
+    const scroll = new SmoothScroll('a[href^="#"]', {
+      speed: 1000,
+      speedAsDuration: true,
+    });
+
+    return () => {
+      scroll.destroy(); // Cleanup on unmount
+    };
+  }, []);
+
   return (
     <div>
-      
       <Helmet>
         <title>Course Attainment System</title>
         <meta charSet="utf-8" />

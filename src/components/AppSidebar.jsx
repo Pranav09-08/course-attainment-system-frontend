@@ -1,36 +1,30 @@
-// src/components/AppSidebar.js
-import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { CSidebar, CSidebarBrand, CSidebarNav, CNavItem } from '@coreui/react';
-import CIcon from '@coreui/icons-react';
-import { cilSpeedometer, cilUser, cilSettings } from '@coreui/icons';
-import navigation from '../_nav';
-import logo from '../assets/logo.png';
-import sygnet from '../assets/backimg.jpg';
+// AppSidebar.jsx
+import React from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { CSidebar, CSidebarBrand } from '@coreui/react'
+import logo from '../assets/logo.png'
+
+import getNavigation from '../_nav'
+import { AppSidebarNav } from './AppSidebarNav'
 
 const AppSidebar = () => {
-  const dispatch = useDispatch();
-  const sidebarShow = useSelector((state) => state.sidebarShow);
+  const dispatch = useDispatch()
+  const sidebarShow = useSelector((state) => state.sidebarShow)
+  const storedUser = JSON.parse(localStorage.getItem("user")); // ✅ Moved here for reusability
+  const role = storedUser?.user?.role; // ✅ Get role directly
+  // Assume role is stored in Redux or context
+
+  const navigation = getNavigation(role)
 
   return (
-    <CSidebar
-      visible={sidebarShow}
-      onVisibleChange={(visible) => dispatch({ type: 'set', sidebarShow: visible })}
-    >
+    <CSidebar visible={sidebarShow} onVisibleChange={(visible) => dispatch({ type: 'set', sidebarShow: visible })}>
       <CSidebarBrand to="/">
-        <img src={logo} alt="Logo" className="sidebar-brand-full" height={32} />
-        <img src={sygnet} alt="Sygnet" className="sidebar-brand-narrow" height={32} />
+        <img src={logo} alt="Logo" className="sidebar-brand-full" height={70} />
       </CSidebarBrand>
-      <CSidebarNav>
-        {navigation.map((item, index) => (
-          <CNavItem key={index} name={item.name} to={item.to}>
-            <CIcon icon={item.icon} className="me-2" />
-            {item.name}
-          </CNavItem>
-        ))}
-      </CSidebarNav>
-    </CSidebar>
-  );
-};
 
-export default AppSidebar;
+      <AppSidebarNav items={navigation} />
+    </CSidebar>
+  )
+}
+
+export default AppSidebar

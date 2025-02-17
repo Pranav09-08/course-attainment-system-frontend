@@ -3,24 +3,21 @@ import { Outlet } from "react-router-dom";
 import AppSidebar from "../components/AppSidebar";
 import AppHeader from "../components/AppHeader";
 import AppFooter from "../components/AppFooter";
-import { CContainer, CRow, CCol } from "@coreui/react";
+import { CContainer } from "@coreui/react";
+import "../styles/DashboardLayout.css"; // Ensure you include this CSS file
 
 const DashboardLayout = () => {
   return (
-    <div className="d-flex">
-      {/* Sidebar */}
+    <div className="dashboard-layout">
       <AppSidebar />
 
-      {/* Main Content */}
-      <div className="flex-grow-1">
+      <div className="dashboard-content">
         <AppHeader />
-        <CContainer fluid className="mt-3">
-          <CRow>
-            <CCol>
-              <Outlet /> {/* ✅ This renders the correct dashboard based on the route */}
-            </CCol>
-          </CRow>
-        </CContainer>
+        <div className="main-content">
+          <CContainer fluid className="mt-3">
+            <Outlet /> {/* ✅ Ensures correct page loads */}
+          </CContainer>
+        </div>
         <AppFooter />
       </div>
     </div>
