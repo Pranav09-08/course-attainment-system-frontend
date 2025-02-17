@@ -63,7 +63,7 @@ export const getNavigation = (role) => {
         name: 'Faculty',
         icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
         items: [
-          { component: CNavItem, name: 'See Faculty', to: '/see-faculty', icon: <CIcon icon={cilList} customClassName="nav-icon" />, className: 'ms-4' },
+          { component: CNavItem, name: 'See Faculty', to: 'admin/see-faculty', icon: <CIcon icon={cilList} customClassName="nav-icon" />, className: 'ms-4' },
           { component: CNavItem, name: 'Add Faculty', to: '/add-faculty', icon: <CIcon icon={cilPlus} customClassName="nav-icon" />, className: 'ms-4' },
           { component: CNavItem, name: 'Update Faculty', to: '/update-faculty', icon: <CIcon icon={cilPen} customClassName="nav-icon" />, className: 'ms-4' },
         ],
