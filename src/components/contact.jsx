@@ -1,5 +1,4 @@
 import { useState } from "react";
-import emailjs from "emailjs-com";
 import React from "react";
 
 const initialState = {
@@ -10,6 +9,7 @@ const initialState = {
 
 export const Contact = ({ data }) => {
   const [formData, setFormData] = useState(initialState);
+  const [responseMessage, setResponseMessage] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,24 +18,31 @@ export const Contact = ({ data }) => {
 
   const clearState = () => setFormData(initialState);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    emailjs
-      .sendForm(
-        "YOUR_SERVICE_ID",
-        "YOUR_TEMPLATE_ID",
-        e.target,
-        "YOUR_PUBLIC_KEY"
-      )
-      .then(
-        (result) => {
-          console.log("Message sent:", result.text);
-          clearState();
-        },
-        (error) => {
-          console.error("Email error:", error.text);
-        }
-      );
+
+    try {
+      // Adjust the URL to match your backend endpoint
+      const response = await fetch("http://localhost:5001/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log("Message sent:", result.message);
+        setResponseMessage("Message sent successfully!");
+        clearState();
+      } else {
+        console.error("Email error:", result.error);
+        setResponseMessage("Failed to send message. Please try again.");
+      }
+    } catch (error) {
+      console.error("Request error:", error);
+      setResponseMessage("Something went wrong. Please try again later.");
+    }
   };
 
   return (
@@ -98,6 +105,9 @@ export const Contact = ({ data }) => {
                 Send Message
               </button>
             </form>
+            {responseMessage && (
+              <p className="mt-2 text-center">{responseMessage}</p>
+            )}
           </div>
 
           {/* Contact Info */}
@@ -132,17 +142,29 @@ export const Contact = ({ data }) => {
             <div className="social">
               <ul className="list-inline">
                 <li className="list-inline-item">
-                  <a href={data?.facebook || "/"} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={data?.facebook || "/"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <i className="fa fa-facebook"></i>
                   </a>
                 </li>
                 <li className="list-inline-item">
-                  <a href={data?.twitter || "/"} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={data?.twitter || "/"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <i className="fa fa-twitter"></i>
                   </a>
                 </li>
                 <li className="list-inline-item">
-                  <a href={data?.youtube || "/"} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={data?.youtube || "/"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <i className="fa fa-youtube"></i>
                   </a>
                 </li>
@@ -155,7 +177,7 @@ export const Contact = ({ data }) => {
         <div id="footer">
           <div className="container text-center">
             <p>
-              &copy; 2025 PICT TEAM. Design by DBMS Team {" "}
+              &copy; 2025 PICT TEAM. Design by DBMS Team{" "}
               <a href="https://pict.edu" rel="nofollow" target="_blank">
                 PICT
               </a>

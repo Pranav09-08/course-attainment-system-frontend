@@ -1,32 +1,38 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { CCard, CCardBody, CCardHeader, CCardText, CCardTitle, CCol, CRow } from "@coreui/react";
+import { useNavigate } from "react-router-dom";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Form, Button, Dropdown, DropdownButton, InputGroup, FormControl } from 'react-bootstrap';
 
 const Uploadmarks = () => {
-  const [userData, setUserData] = useState([]); 
+  const [userData, setUserData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(""); 
+  const [selectedSemester, setSelectedSemester] = useState(""); 
+  const [searchTerm, setSearchTerm] = useState(""); 
+  const navigate = useNavigate();
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
-  const userRole = storedUser?.user?.role;
+  const { accessToken, user } = storedUser || {};
+  const { id: user_id } = user || {};
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        if (!storedUser) throw new Error("No user found. Please log in.");
-        const { accessToken, user } = storedUser;
-        const { id: user_id } = user;
+       // if (!storedUser) throw new Error("No user found. Please log in.");
+       // if (!accessToken) throw new Error("No authentication token found.");
 
-        const API_URL = `https://teacher-attainment-system-backend.onrender.com/faculty_courses/faculty_course_allot/${user_id}`;
+        const API_URL = `http://localhost:5001/faculty_courses/faculty_course_allot/${user_id}`;
         console.log("Fetching from:", API_URL);
 
-        const response = await axios.get(API_URL, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        const response = await axios.get(API_URL);
+          
+       
 
         console.log("Fetched data:", response.data);
-        setUserData(Array.isArray(response.data) ? response.data : []); 
-
+        setUserData(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching faculty course data:", err);
         setError("Failed to fetch course allotment data!");
@@ -36,38 +42,112 @@ const Uploadmarks = () => {
     };
 
     fetchUserData();
-  }, []);
+  }, [user_id, accessToken]);
+
+  useEffect(() => {
+    let filtered = [...userData];
+    
+    if (selectedYear) {
+      filtered = filtered.filter(course => course.academic_yr === selectedYear);
+    }
+    
+    if (selectedSemester) {
+      filtered = filtered.filter(course => course.sem === selectedSemester);
+    }
+    
+    if (searchTerm) {
+      filtered = filtered.filter(course =>
+        (course.course_name && course.course_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (course.course_id && course.course_id.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+    
+    setFilteredData(filtered);
+  }, [selectedYear, selectedSemester, searchTerm, userData]);
+  
 
   if (loading) return <div className="text-center mt-5">Loading...</div>;
   if (error) return <div className="text-danger text-center mt-5">{error}</div>;
 
-  return (
-    <div className="container mt-5 p-4 border rounded shadow-sm bg-dark">
-      <h2 className="text-center mb-4 text-white">👤 Course Allotment Information</h2>
+  const years = [...new Set(userData.map(course => course.academic_yr))];
+  const semesters = [...new Set(userData.map(course => course.sem))];
 
-      {userData.length > 0 ? (
-        <CRow>
-          {userData.map((course, index) => (
-            <CCol sm={6} md={4} key={index}>
-              <CCard className="shadow border-0 mb-3">
-                <CCardHeader className="bg-primary text-white text-center">
-                  📘 {course.class || "N/A"} - Sem {course.sem || "N/A"}
-                </CCardHeader>
-                <CCardBody>
-                  <CCardTitle className="h5 text-center mb-3">📚 Course Details</CCardTitle>
-                  <CCardText>
-                    <strong>Course ID:</strong> {course.course_id || "N/A"} <br />
-                    <strong>Faculty ID:</strong> {course.faculty_id || "N/A"} <br />
-                    <strong>Department:</strong> {course.dept_id || "N/A"} <br />
-                    <strong>Academic Year:</strong> {course.academic_yr || "N/A"}
-                  </CCardText>
-                </CCardBody>
-              </CCard>
-            </CCol>
+  return (
+    <div className="container py-5">
+      <h2 className="text-3xl font-bold text-white mb-4 text-center">
+        Course Allotment
+      </h2>
+
+      {/* Search Bar */}
+      <div className="d-flex justify-content-center mb-4">
+        <InputGroup className="w-50">
+          <FormControl
+            placeholder="Search by Course Name or ID"
+            aria-label="Search"
+            aria-describedby="basic-addon2"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Button variant="outline-secondary" id="button-addon2">
+            Search
+          </Button>
+        </InputGroup>
+      </div>
+
+      {/* Filter UI */}
+      <div className="d-flex justify-content-center mb-4">
+        <Form.Select 
+          className="w-25 mx-2" 
+          value={selectedYear} 
+          onChange={(e) => setSelectedYear(e.target.value)}>
+          <option value="">Select Academic Year</option>
+          {years.map(year => (
+            <option key={year} value={year}>{year}</option>
           ))}
-        </CRow>
+        </Form.Select>
+
+        <Form.Select 
+          className="w-25 mx-2" 
+          value={selectedSemester} 
+          onChange={(e) => setSelectedSemester(e.target.value)}>
+          <option value="">Select Semester</option>
+          {semesters.map(sem => (
+            <option key={sem} value={sem}>{sem}</option>
+          ))}
+        </Form.Select>
+      </div>
+
+      {filteredData.length === 0 ? (
+        <p className="text-muted text-center">No courses found.</p>
       ) : (
-        <p className="text-center text-muted">No courses found.</p>
+        <div className="row justify-content-center">
+          {filteredData.map((course) => (
+            <div key={course.course_id} className="col-md-6 mb-4">
+              <div className="card shadow-sm" style={{ minHeight: "300px", padding: "15px" }}>
+                <div className="card-body p-3">
+                  <h5 className="card-title text-primary mb-2" style={{ fontSize: "1.2rem", fontWeight: "bold" }}>
+                    Course Details
+                  </h5>
+                  <p className="card-text"><strong>Course Name:</strong> {course.course_name}</p>
+                  <p className="card-text"><strong>Course ID:</strong> {course.course_id}</p>
+                  <p className="card-text"><strong>Class:</strong> {course.class}</p>
+                  <p className="card-text"><strong>Semester:</strong> {course.sem}</p>
+                  <p className="card-text"><strong>Department:</strong> {course.dept_name} | <strong>Academic Year:</strong> {course.academic_yr}</p>
+
+                  <Button 
+                    onClick={() => navigate(`/course-attainment/${course.course_id}/${course.academic_yr}`)} 
+                    variant="outline-primary" 
+                    className="me-3">
+                    View Attainment
+                  </Button>
+                  <Button variant="outline-secondary">
+                    Details
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
