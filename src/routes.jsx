@@ -15,6 +15,8 @@ import Error from './assets/404_error.jpg'
 import CoursesCoordinated from "./pages/coordinator/CoursesCoordinated";
 import SetTarget from './pages/coordinator/SetTarget';
 import SeeFaculty from './pages/admin/SeeFaculty';
+import AddFaculty from './pages/admin/AddFaculty';
+import UpdateFaculty from "./pages/admin/UpdateFaculty";
 
 const AppRoutes = () => {
   return (
@@ -29,6 +31,8 @@ const AppRoutes = () => {
         <Route path="/admin-dashboard" element={<ProtectedRoute roles={["admin"]}><AdminDashBoard /></ProtectedRoute>} />
         <Route path="/admin-dashboard/profile" element={<ProtectedRoute roles={["admin"]}><Profile /></ProtectedRoute>} />
         <Route path="/admin/see-faculty" element={<ProtectedRoute roles={["admin"]}><SeeFaculty /></ProtectedRoute>} />
+        <Route path="/admin/add-faculty" element={<ProtectedRoute roles={["admin"]}><AddFaculty /></ProtectedRoute>} />
+        <Route path="/admin/update-faculty" element={<ProtectedRoute roles={["admin"]}><UpdateFaculty /></ProtectedRoute>} />
       </Route>
 
 
