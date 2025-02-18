@@ -94,7 +94,7 @@ export const getNavigation = (role) => {
   if (role === 'faculty') {
     navigation.push(
       { component: CNavItem, name: 'Profile', to: '/faculty-dashboard/profile?role=faculty', icon: <CIcon icon={cilUser} customClassName="nav-icon" />,},
-      { component: CNavItem, name: 'Add Marks', to: '/add-marks', icon: <CIcon icon={cilPen} customClassName="nav-icon" /> },
+      { component: CNavItem, name: 'Add Marks', to: '/faculty-dashboard/addmarks', icon: <CIcon icon={cilPen} customClassName="nav-icon" /> },
       { component: CNavItem, name: 'Update Marks', to: '/see-subjects-teaching', icon: <CIcon icon={cilSync} customClassName="nav-icon" /> },
       { component: CNavItem, name: 'My Courses', to: '/faculty-dashboard/mycourses', icon: <CIcon icon={cilLibrary} customClassName="nav-icon" /> },
       { component: CNavItem, name: 'Download Attainment', to: '/see-attainment', icon: <CIcon icon={cilCloudDownload} customClassName="nav-icon" /> }

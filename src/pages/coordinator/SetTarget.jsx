@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 
-
 const SetTarget = () => {
     const [courses, setCourses] = useState([]); // Ensure courses is always an array
     const [targets, setTargets] = useState({});

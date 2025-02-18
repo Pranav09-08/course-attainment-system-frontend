@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Form, Button, InputGroup, FormControl, Modal } from 'react-bootstrap';
 
-const Uploadmarks = () => {
+const UploadMarks = () => {
   const [userData, setUserData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,8 +13,10 @@ const Uploadmarks = () => {
   const [selectedSemester, setSelectedSemester] = useState(""); 
   const [searchTerm, setSearchTerm] = useState(""); 
   const [showModal, setShowModal] = useState(false); // State to control modal visibility
-  const [attainmentData, setAttainmentData] = useState(null); // State to store attainment data
-  const [loadingAttainment, setLoadingAttainment] = useState(false); // Loading state for attainment data
+  const [csvFile, setCsvFile] = useState(null); // Store selected CSV file
+  const [selectedMarkType, setSelectedMarkType] = useState(""); // Store selected mark type (UT1, UT2, etc.)
+  const [loadingUpload, setLoadingUpload] = useState(false); // Show loading state during upload
+  const [successMessage, setSuccessMessage] = useState(""); // Success message after upload
 
   const navigate = useNavigate();
   const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -59,36 +61,59 @@ const Uploadmarks = () => {
     setFilteredData(filtered);
   }, [selectedYear, selectedSemester, searchTerm, userData]);
 
-  // Function to handle the "View Attainment" button click
-  const handleViewAttainment = async (course_id, academic_yr) => {
-    try {
-      setLoadingAttainment(true);
-      const response = await axios.get(`/attainment/attainment-data?course_id=${course_id}&academic_yr=${academic_yr}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        }
-      });
-
-      setAttainmentData(response.data);
-      setShowModal(true); // Open the modal when data is fetched
-    } catch (error) {
-      console.error("Error fetching attainment data:", error);
-      setError("Failed to fetch attainment data.");
-    } finally {
-      setLoadingAttainment(false);
-    }
-  };
-
   const years = [...new Set(userData.map(course => course.academic_yr))];
   const semesters = [...new Set(userData.map(course => course.sem))];
 
   if (loading) return <div className="text-center mt-5">Loading...</div>;
   if (error) return <div className="text-danger text-center mt-5">{error}</div>;
 
+  const handleAddMarks = (course_id, academic_yr) => {
+    setShowModal(true); // Show modal on button click
+  };
+
+  const handleMarkTypeChange = (e) => {
+    setSelectedMarkType(e.target.value);
+  };
+
+  const handleCsvChange = (e) => {
+    setCsvFile(e.target.files[0]);
+  };
+
+  const handleUploadCsv = async () => {
+    if (!csvFile || !selectedMarkType) {
+      alert("Please select a mark type and upload a CSV file.");
+      return;
+    }
+  
+    const formData = new FormData();
+    formData.append("csvFile", csvFile);
+    formData.append("markType", selectedMarkType);
+  
+    setLoadingUpload(true);
+  
+    try {
+      const response = await axios.post("http://localhost:5001/marks/upload-marks", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "Authorization": `Bearer ${accessToken}`, // Include the access token here
+        },
+      });
+  
+      setSuccessMessage("Marks successfully updated!");
+    } catch (err) {
+      console.error("Error uploading CSV file:", err);
+      setSuccessMessage("Failed to update marks.");
+    } finally {
+      setLoadingUpload(false);
+      setShowModal(false); // Close modal after upload
+    }
+  };
+  
+
   return (
     <div className="container py-5">
       <h2 className="text-3xl font-bold text-white mb-4 text-center">
-        Course Allotment
+        Add Marks
       </h2>
 
       {/* Search Bar */}
@@ -112,7 +137,7 @@ const Uploadmarks = () => {
         <Form.Select 
           className="w-25 mx-2" 
           value={selectedYear} 
-          onChange={(e) => setSelectedYear(e.target.value)}>
+          onChange={(e) => setSelectedYear(e.target.value)} >
           <option value="">Select Academic Year</option>
           {years.map(year => (
             <option key={year} value={year}>{year}</option>
@@ -122,7 +147,7 @@ const Uploadmarks = () => {
         <Form.Select 
           className="w-25 mx-2" 
           value={selectedSemester} 
-          onChange={(e) => setSelectedSemester(e.target.value)}>
+          onChange={(e) => setSelectedSemester(e.target.value)} >
           <option value="">Select Semester</option>
           {semesters.map(sem => (
             <option key={sem} value={sem}>{sem}</option>
@@ -147,14 +172,12 @@ const Uploadmarks = () => {
                   <p className="card-text"><strong>Semester:</strong> {course.sem}</p>
                   <p className="card-text"><strong>Department:</strong> {course.dept_name} | <strong>Academic Year:</strong> {course.academic_yr}</p>
 
+                  {/* "Add Marks" button */}
                   <Button 
-                    onClick={() => handleViewAttainment(course.course_id, course.academic_yr)} 
+                    onClick={() => handleAddMarks(course.course_id, course.academic_yr)} 
                     variant="outline-primary" 
                     className="me-3">
-                    View Attainment
-                  </Button>
-                  <Button variant="outline-secondary">
-                    Details
+                    Add Marks
                   </Button>
                 </div>
               </div>
@@ -163,32 +186,41 @@ const Uploadmarks = () => {
         </div>
       )}
 
-      {/* Modal for displaying attainment data */}
+      {/* Modal for CSV Upload */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Attainment Data</Modal.Title>
+          <Modal.Title>Upload Marks</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {loadingAttainment ? (
-            <div>Loading attainment data...</div>
-          ) : attainmentData ? (
-            <div>
-              <p><strong>Course ID:</strong> {attainmentData.course_id}</p>
-              <p><strong>Department ID:</strong> {attainmentData.dept_id}</p>
-              <p><strong>Academic Year:</strong> {attainmentData.academic_yr}</p>
-              <p><strong>UT Attainment:</strong> {attainmentData.ut_attainment}</p>
-              <p><strong>Insem Attainment:</strong> {attainmentData.insem_attainment}</p>
-              <p><strong>Endsem Attainment:</strong> {attainmentData.endsem_attainment}</p>
-              <p><strong>Final Attainment:</strong> {attainmentData.final_attainment}</p>
-              <p><strong>Total Attainment:</strong> {attainmentData.total}</p>
-            </div>
-          ) : (
-            <p>No attainment data available.</p>
-          )}
+          <Form.Group controlId="markType">
+            <Form.Label>Select Exam Type</Form.Label>
+            <Form.Control as="select" onChange={handleMarkTypeChange}>
+              <option value="">Select Exam Type</option>
+              <option value="UT1">UT1</option>
+              <option value="UT2">UT2</option>
+              <option value="UT3">UT3</option>
+              <option value="Insem">In-semester</option>
+              <option value="Final">Final Exam</option>
+            </Form.Control>
+          </Form.Group>
+
+          <Form.Group controlId="csvFile">
+
+            <Form.Label>Upload CSV File</Form.Label>
+            <Form.Control type="file" accept=".csv" onChange={handleCsvChange} />
+          </Form.Group>
+
+          {successMessage && <div className="mt-3 text-success">{successMessage}</div>}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={handleUploadCsv} 
+            disabled={loadingUpload}>
+            {loadingUpload ? 'Uploading...' : 'Upload'}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -196,4 +228,4 @@ const Uploadmarks = () => {
   );
 };
 
-export default Uploadmarks;
+export default UploadMarks;
