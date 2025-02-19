@@ -60,16 +60,22 @@ const Uploadmarks = () => {
   }, [selectedYear, selectedSemester, searchTerm, userData]);
 
   // Function to handle the "View Attainment" button click
-  const handleViewAttainment = async (course_id, academic_yr) => {
+  const handleViewAttainment = async (courseId, academic_yr,dept_id) => {
     try {
-      setLoadingAttainment(true);
-      const response = await axios.get(`/attainment/attainment-data?course_id=${course_id}&academic_yr=${academic_yr}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        }
-      });
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+    const token = storedUser?.accessToken;
+    if (!token) {
+      setError("Authentication token is missing.");
+      setLoading(false);
+      return;
+    }
 
-      setAttainmentData(response.data);
+      setLoadingAttainment(true);
+      const response = await  axios
+      .get(`http://localhost:5001/attainment/attainment-data?course_id=${courseId}&academic_yr=${academic_yr}&dept_id=${dept_id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAttainmentData(response.data.attainment);
       setShowModal(true); // Open the modal when data is fetched
     } catch (error) {
       console.error("Error fetching attainment data:", error);
@@ -148,7 +154,7 @@ const Uploadmarks = () => {
                   <p className="card-text"><strong>Department:</strong> {course.dept_name} | <strong>Academic Year:</strong> {course.academic_yr}</p>
 
                   <Button 
-                    onClick={() => handleViewAttainment(course.course_id, course.academic_yr)} 
+                    onClick={() => handleViewAttainment(course.course_id, course.academic_yr,course.dept_id)} 
                     variant="outline-primary" 
                     className="me-3">
                     View Attainment

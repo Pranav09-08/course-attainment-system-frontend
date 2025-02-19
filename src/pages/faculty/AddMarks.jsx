@@ -204,7 +204,7 @@ const UploadMarks = () => {
             </Form.Control>
           </Form.Group>
 
-          <Form.Group controlId="csvFile">
+          <Form.Group controlId="csvFile" className="mt-3">
 
             <Form.Label>Upload CSV File</Form.Label>
             <Form.Control type="file" accept=".csv" onChange={handleCsvChange} />
