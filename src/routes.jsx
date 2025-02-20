@@ -18,6 +18,7 @@ import SetTarget from './pages/coordinator/SetTarget';
 import SeeFaculty from './pages/admin/SeeFaculty';
 import AddFaculty from './pages/admin/AddFaculty';
 import UpdateFaculty from "./pages/admin/UpdateFaculty";
+import UpdateFacultyForm from "./pages/admin/UpdateFacultyForm";
 
 const AppRoutes = () => {
   return (
@@ -34,6 +35,7 @@ const AppRoutes = () => {
         <Route path="/admin/see-faculty" element={<ProtectedRoute roles={["admin"]}><SeeFaculty /></ProtectedRoute>} />
         <Route path="/admin/add-faculty" element={<ProtectedRoute roles={["admin"]}><AddFaculty /></ProtectedRoute>} />
         <Route path="/admin/update-faculty" element={<ProtectedRoute roles={["admin"]}><UpdateFaculty /></ProtectedRoute>} />
+        <Route path="/admin/update-faculty/:facultyId" element={<ProtectedRoute roles={["admin"]}><UpdateFacultyForm /></ProtectedRoute>} />
       </Route>
 
 
