@@ -17,7 +17,7 @@ const UploadMarks = () => {
   const [selectedMarkType, setSelectedMarkType] = useState(""); // Store selected mark type (UT1, UT2, etc.)
   const [loadingUpload, setLoadingUpload] = useState(false); // Show loading state during upload
   const [successMessage, setSuccessMessage] = useState(""); // Success message after upload
-
+  const [selectedCourse, setSelectedCourse] = useState({});
   const navigate = useNavigate();
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const { accessToken, user } = storedUser || {};
@@ -67,9 +67,12 @@ const UploadMarks = () => {
   if (loading) return <div className="text-center mt-5">Loading...</div>;
   if (error) return <div className="text-danger text-center mt-5">{error}</div>;
 
-  const handleAddMarks = (course_id, academic_yr) => {
-    setShowModal(true); // Show modal on button click
+  
+  const handleAddMarks = (course_id, academic_yr, sem) => {
+    setSelectedCourse({ course_id, academic_yr, sem });
+    setShowModal(true);
   };
+  
 
   const handleMarkTypeChange = (e) => {
     setSelectedMarkType(e.target.value);
@@ -80,22 +83,25 @@ const UploadMarks = () => {
   };
 
   const handleUploadCsv = async () => {
-    if (!csvFile || !selectedMarkType) {
+    if (!csvFile || !selectedMarkType || !selectedCourse.course_id) {
       alert("Please select a mark type and upload a CSV file.");
       return;
     }
   
     const formData = new FormData();
-    formData.append("csvFile", csvFile);
+    formData.append("file", csvFile);
     formData.append("markType", selectedMarkType);
+    formData.append("academic_yr", selectedCourse.academic_yr);
+    formData.append("course_id", selectedCourse.course_id);
+    formData.append("sem", selectedCourse.sem);
   
     setLoadingUpload(true);
   
     try {
-      const response = await axios.post("http://localhost:5001/marks/upload-marks", formData, {
+      const response = await axios.post("http://localhost:5001/add_marks/upload_marks", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${accessToken}`, // Include the access token here
+          "Authorization": `Bearer ${accessToken}`,
         },
       });
   
@@ -105,9 +111,11 @@ const UploadMarks = () => {
       setSuccessMessage("Failed to update marks.");
     } finally {
       setLoadingUpload(false);
-      setShowModal(false); // Close modal after upload
+      setShowModal(false);
     }
   };
+  
+  
   
 
   return (
@@ -174,7 +182,7 @@ const UploadMarks = () => {
 
                   {/* "Add Marks" button */}
                   <Button 
-                    onClick={() => handleAddMarks(course.course_id, course.academic_yr)} 
+                    onClick={() => handleAddMarks(course.course_id, course.academic_yr, course.sem)} 
                     variant="outline-primary" 
                     className="me-3">
                     Add Marks
