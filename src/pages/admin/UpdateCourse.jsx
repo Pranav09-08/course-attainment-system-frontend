@@ -115,7 +115,7 @@ const updateCourses = () => {
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const token = storedUser?.accessToken;
 
-      await axios.delete(`http://localhost:5001/admin/course/delete/${course_id}`, {
+      await axios.delete(`http://localhost:5001/admin/course/delete-course/${course_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
