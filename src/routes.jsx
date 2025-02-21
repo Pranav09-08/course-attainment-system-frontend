@@ -17,9 +17,11 @@ import CoursesCoordinated from "./pages/coordinator/CoursesCoordinated";
 import SetTarget from './pages/coordinator/SetTarget';
 import SeeFaculty from './pages/admin/SeeFaculty';
 import AddFaculty from './pages/admin/AddFaculty';
-import UpdateFaculty from "./pages/admin/UpdateFaculty";
-import UpdateFacultyForm from "./pages/admin/UpdateFacultyForm";
-
+import AddCourse from './pages/admin/AddCourse';
+import SeeCourses from './pages/admin/SeeCourses';
+import UpdateCourses from "./pages/admin/UpdateCourse";
+import UpdateFaculty from './pages/admin/UpdateFaculty';
+ 
 const AppRoutes = () => {
   return (
     <Routes>
@@ -35,7 +37,9 @@ const AppRoutes = () => {
         <Route path="/admin/see-faculty" element={<ProtectedRoute roles={["admin"]}><SeeFaculty /></ProtectedRoute>} />
         <Route path="/admin/add-faculty" element={<ProtectedRoute roles={["admin"]}><AddFaculty /></ProtectedRoute>} />
         <Route path="/admin/update-faculty" element={<ProtectedRoute roles={["admin"]}><UpdateFaculty /></ProtectedRoute>} />
-        <Route path="/admin/update-faculty/:facultyId" element={<ProtectedRoute roles={["admin"]}><UpdateFacultyForm /></ProtectedRoute>} />
+        <Route path="/admin/add-course" element={<ProtectedRoute roles={["admin"]}><AddCourse /></ProtectedRoute>} />
+        <Route path="/admin/see-courses" element={<ProtectedRoute roles={["admin"]}><SeeCourses /></ProtectedRoute>} />
+        <Route path="/admin/update-course" element={<ProtectedRoute roles={["admin"]}><UpdateCourses /></ProtectedRoute>} />
       </Route>
 
 
