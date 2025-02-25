@@ -3,6 +3,10 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Form, Button, InputGroup, FormControl, Modal } from 'react-bootstrap';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+
 
 const UploadMarks = () => {
   const [userData, setUserData] = useState([]);
@@ -22,11 +26,12 @@ const UploadMarks = () => {
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const { accessToken, user } = storedUser || {};
   const { id: user_id } = user || {};
-
+  
+  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const API_URL = `http://localhost:5001/faculty_courses/faculty_course_allot/${user_id}`;
+        const API_URL = `http://localhost:5001/marks/faculty_addmarks/${user_id}`;
         const response = await axios.get(API_URL);
         setUserData(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
@@ -68,10 +73,11 @@ const UploadMarks = () => {
   if (error) return <div className="text-danger text-center mt-5">{error}</div>;
 
   
-  const handleAddMarks = (course_id, academic_yr, sem) => {
-    setSelectedCourse({ course_id, academic_yr, sem });
+  const handleAddMarks = (course) => {
+    setSelectedCourse(course);
     setShowModal(true);
   };
+  
   
 
   const handleMarkTypeChange = (e) => {
@@ -81,49 +87,136 @@ const UploadMarks = () => {
   const handleCsvChange = (e) => {
     setCsvFile(e.target.files[0]);
   };
+  
 
   const handleUploadCsv = async () => {
     if (!csvFile || !selectedMarkType || !selectedCourse.course_id) {
-      alert("Please select a mark type and upload a CSV file.");
+      toast.warn("Please select a mark type and upload a CSV file.");
       return;
     }
   
-    const formData = new FormData();
-    formData.append("file", csvFile);
-    formData.append("markType", selectedMarkType);
-    formData.append("academic_yr", selectedCourse.academic_yr);
-    formData.append("course_id", selectedCourse.course_id);
-    formData.append("sem", selectedCourse.sem);
+    const reader = new FileReader();
+    reader.readAsText(csvFile);
   
-    setLoadingUpload(true);
+    reader.onload = async (event) => {
+      const csvText = event.target.result;
+      const rows = csvText.split("\n").map(row => row.trim());
   
-    try {
-      const response = await axios.post("http://localhost:5001/add_marks/upload_marks", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${accessToken}`,
-        },
-      });
+      if (rows.length < 2) {
+        toast.warn("Invalid CSV format. The file must contain at least a header and one data row.");
+        return;
+      }
   
-      setSuccessMessage("Marks successfully updated!");
-    } catch (err) {
-      console.error("Error uploading CSV file:", err);
-      setSuccessMessage("Failed to update marks.");
-    } finally {
-      setLoadingUpload(false);
-      setShowModal(false);
-    }
+      const csvHeaders = rows[0].split(",").map(header => header.trim());
+  
+      // Define required columns based on selectedMarkType
+      const requiredColumnsMap = {
+        "UT1": ["roll_no", "u1_co1", "u1_co2"],
+        "UT2": ["roll_no", "u2_co3", "u2_co4"],
+        "UT3": ["roll_no", "u3_co5", "u3_co6"],
+        "Insem": ["roll_no", "i_co1", "i_co2"],
+        "Final": ["roll_no", "end_sem"]
+      };
+  
+      const requiredColumns = requiredColumnsMap[selectedMarkType] || [];
+  
+      // **Check if CSV contains exactly the required columns**
+      if (csvHeaders.length !== requiredColumns.length || !csvHeaders.every(col => requiredColumns.includes(col))) {
+        toast.warn(`Invalid CSV format. It must contain only these columns for ${selectedMarkType}: ${requiredColumns.join(", ")}`);
+        return;
+      }
+  
+   // **VALIDATION: CHECK MARKS RANGE**
+   let validMarks = []; // Store only valid rows
+   let hasInvalidEntries = false;
+
+   // **Iterate through each row**
+   for (let i = 1; i < rows.length; i++) {
+     if (!rows[i].trim()) continue; // Skip empty lines
+
+     const values = rows[i].split(",").map(value => value.trim());
+     const rowData = Object.fromEntries(csvHeaders.map((col, index) => [col, values[index]]));
+
+     let isRowValid = true; // Assume row is valid
+
+     // **Check each mark in the row**
+     for (const col of requiredColumns) {
+       let mark = rowData[col]?.trim() || ""; // Ensure it's a string
+       let numMark = mark === "AB" ? "AB" : Number(mark);
+
+       // **Mark validity conditions**
+       let isValid =
+         mark === "AB" ||  // "AB" is allowed
+         (!isNaN(numMark) && numMark >= 0 && (col === "end_sem" ? numMark <= 70 : numMark <= 15)); // Numeric marks must be valid
+
+       if (!isValid) {
+         toast.warn(`⚠️ Invalid mark in Row ${i + 1}, Column ${col}: '${mark}'`);
+         hasInvalidEntries = true;
+         isRowValid = false;
+         break; // Stop checking further
+       }
+     }
+
+     if (isRowValid) {
+       validMarks.push(rowData); // Store only valid rows
+     }
+   }
+
+   // **If there are invalid marks, stop the upload**
+   if (hasInvalidEntries) {
+     toast.warn("Some marks are invalid. Please correct them before uploading.");
+     return;
+   }
+
+
+      // **Prepare data for upload**
+      const formData = new FormData();
+      formData.append("file", csvFile);
+      formData.append("markType", selectedMarkType);
+      formData.append("academic_yr", selectedCourse.academic_yr);
+      formData.append("course_id", selectedCourse.course_id);
+      formData.append("sem", selectedCourse.sem);
+      formData.append("class", selectedCourse.class);
+  
+      setLoadingUpload(true);
+  
+      try {
+        const response = await axios.post(
+          "http://localhost:5001/add_marks/upload_marks",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              "Authorization": `Bearer ${accessToken}`,
+            },
+          }
+        );
+  
+        console.log("Server Response:", response.data); // Debugging
+  
+        if (response.data.success) {
+          toast.success("✅ Marks successfully uploaded!");
+        } else {
+          toast.error(`⚠️ ${response.data.message || "Error in uploading data."}`);
+        }
+      } catch (err) {
+        console.error("Error uploading CSV file:", err);
+        toast.error("❌ Server error! Could not upload marks.");
+      } finally {
+        setLoadingUpload(false);
+        setShowModal(false);
+      }
+    };
   };
   
-  
-  
-
   return (
     <div className="container py-5">
       <h2 className="text-3xl font-bold text-white mb-4 text-center">
         Add Marks
       </h2>
-
+ 
+    {/* Toast Notifications */}
+    <ToastContainer position="top-right" autoClose={3000} />
       {/* Search Bar */}
       <div className="d-flex justify-content-center mb-4">
         <InputGroup className="w-50">
@@ -182,7 +275,7 @@ const UploadMarks = () => {
 
                   {/* "Add Marks" button */}
                   <Button 
-                    onClick={() => handleAddMarks(course.course_id, course.academic_yr, course.sem)} 
+                    onClick={() => handleAddMarks(course)} 
                     variant="outline-primary" 
                     className="me-3">
                     Add Marks
