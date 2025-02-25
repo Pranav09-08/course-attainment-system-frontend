@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-
+import { InputGroup, FormControl, Button, Form } from 'react-bootstrap'; // Bootstrap components
 
 const SetTarget = () => {
-    const [courses, setCourses] = useState([]); // Ensure courses is always an array
+    const [courses, setCourses] = useState([]);
     const [targets, setTargets] = useState({});
     const [selectedCourse, setSelectedCourse] = useState(null);
+    const [searchTerm, setSearchTerm] = useState(""); // For search functionality
+    const [selectedYear, setSelectedYear] = useState(""); // For filtering by year
+    const [selectedSemester, setSelectedSemester] = useState(""); // For filtering by semester
+    const [years, setYears] = useState([]); // You can dynamically populate this list based on your data
+    const [semesters, setSemesters] = useState([]); // You can dynamically populate this list based on your data
 
     // Retrieve faculty ID safely from localStorage
-    const storedUser = JSON.parse(localStorage.getItem("user")) || {}; // Prevents null issues
+    const storedUser = JSON.parse(localStorage.getItem("user")) || {};
     const { user = {} } = storedUser;
     const { id: facultyId } = user;
 
@@ -17,31 +22,36 @@ const SetTarget = () => {
             console.error("Faculty ID is missing!");
             return;
         }
-
-        // Retrieve the access token from localStorage
+    
         const storedUser = JSON.parse(localStorage.getItem("user"));
-        const token = storedUser?.accessToken; // Retrieve the accessToken from stored user object
-
+        const token = storedUser?.accessToken;
+    
         if (!token) {
             console.error("No authentication token found.");
-            setError("Authentication token is missing.");
-            setLoading(false);
             return;
         }
-
+    
         axios.get(`http://localhost:5001/set_target/course-coordinator/courses/${facultyId}`, {
             headers: {
-                'Authorization': `Bearer ${token}`  // Send the token as Authorization header
+                'Authorization': `Bearer ${token}`
             }
         })
-            .then(response => {
-                setCourses(Array.isArray(response.data) ? response.data : []);
-            })
-            .catch(error => {
-                console.error("Error fetching courses:", error);
-                setCourses([]); // Ensure empty array if API fails
-            });
+        .then(response => {
+            const fetchedCourses = response.data || [];
+            setCourses(fetchedCourses);
+    
+            // Dynamically set years and semesters based on fetched courses
+            const yearsList = Array.from(new Set(fetchedCourses.map(course => course.academic_yr)));
+            const semestersList = Array.from(new Set(fetchedCourses.map(course => course.sem)));
+    
+            setYears(yearsList);
+            setSemesters(semestersList);
+        })
+        .catch(error => {
+            console.error("Error fetching courses:", error);
+        });
     }, [facultyId]);
+    
 
     const handleTargetChange = (course_id, field, value) => {
         setTargets(prev => ({
@@ -55,7 +65,7 @@ const SetTarget = () => {
 
     const handleSaveTargets = (course_id, dept_id, academic_yr) => {
         const storedUser = JSON.parse(localStorage.getItem("user"));
-        const token = storedUser?.accessToken;  // Retrieve the accessToken
+        const token = storedUser?.accessToken;
 
         if (!token) {
             console.error("No authentication token found.");
@@ -72,14 +82,13 @@ const SetTarget = () => {
             ...courseTargets
         }, {
             headers: {
-                'Authorization': `Bearer ${token}`  // Send the token as Authorization header
+                'Authorization': `Bearer ${token}`
             }
         }).then(() => {
             alert('Targets updated successfully');
             setSelectedCourse(null);
         }).catch(error => console.error("Error updating targets:", error));
     };
-
 
     const openModal = (course) => {
         setSelectedCourse(course);
@@ -89,16 +98,61 @@ const SetTarget = () => {
         setSelectedCourse(null);
     };
 
+    // Filtered courses based on search term and selected year/semester
+    const filteredCourses = courses.filter(course => {
+        return (
+            (course.course_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+             course.course_id.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            (selectedYear ? course.academic_yr === selectedYear : true) &&
+            (selectedSemester ? course.sem === selectedSemester : true)
+        );
+    });
+
     return (
         <div className="p-6 min-h-screen" style={{ background: 'transparent' }}>
-            {/* Centered "My Courses" heading */}
             <h2 className="text-5xl font-bold text-primary mb-6 text-center">My Courses</h2>
 
-            {courses.length === 0 ? (
+            {/* Search and Filter UI */}
+            <div className="d-flex justify-content-center mb-4">
+                <InputGroup className="w-50">
+                    <FormControl
+                        placeholder="Search by Course Name or ID"
+                        aria-label="Search"
+                        aria-describedby="basic-addon2"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <Button variant="outline-secondary" id="button-addon2">Search</Button>
+                </InputGroup>
+            </div>
+
+            <div className="d-flex justify-content-center mb-4">
+                <Form.Select 
+                    className="w-25 mx-2" 
+                    value={selectedYear} 
+                    onChange={(e) => setSelectedYear(e.target.value)}>
+                    <option value="">Select Academic Year</option>
+                    {years.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                    ))}
+                </Form.Select>
+
+                <Form.Select 
+                    className="w-25 mx-2" 
+                    value={selectedSemester} 
+                    onChange={(e) => setSelectedSemester(e.target.value)}>
+                    <option value="">Select Semester</option>
+                    {semesters.map(sem => (
+                        <option key={sem} value={sem}>{sem}</option>
+                    ))}
+                </Form.Select>
+            </div>
+
+            {filteredCourses.length === 0 ? (
                 <p className="text-muted text-center">No courses found.</p>
             ) : (
                 <div className="row justify-content-center">
-                    {courses.map(course => (
+                    {filteredCourses.map(course => (
                         <div key={course.course_id} className="col-md-6 mb-4">
                             <div className="card shadow-sm" style={{ minHeight: '300px', padding: '20px' }}>
                                 <div className="card-body">
