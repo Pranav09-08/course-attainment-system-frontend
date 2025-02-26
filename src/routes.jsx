@@ -23,7 +23,7 @@ import UpdateCourses from "./pages/admin/UpdateCourse";
 import UpdateFaculty from './pages/admin/UpdateFaculty';
 import AddCourseAllotment from './pages/admin/AddCourseAllotment';
 import SeeCourseAllotment from './pages/admin/SeeCourseAllotment';
-import UpdateCourseAllotment from "./pages/admin/UpdateCourseAllotment";
+
  
 const AppRoutes = () => {
   return (
@@ -45,7 +45,6 @@ const AppRoutes = () => {
         <Route path="/admin/update-course" element={<ProtectedRoute roles={["admin"]}><UpdateCourses /></ProtectedRoute>} />
         <Route path="/admin/add-course-allotment" element={<ProtectedRoute roles={["admin"]}><AddCourseAllotment /></ProtectedRoute>} />
         <Route path="/admin/see-course-allotment" element={<ProtectedRoute roles={["admin"]}><SeeCourseAllotment /></ProtectedRoute>} />
-        <Route path="/admin/update-course-allotment" element={<ProtectedRoute roles={["admin"]}><UpdateCourseAllotment /></ProtectedRoute>} />
       </Route>
 
 
