@@ -1,0 +1,45 @@
+{
+    "admin": [
+      {
+        "question": "How to add a faculty member?",
+        "answer": "Go to the 'Add Faculty' section in the Admin Panel, fill in the required details, and submit."
+      },
+      {
+        "question": "How to view faculty details?",
+        "answer": "Navigate to 'View Faculty' in the Admin Panel to see all registered faculty members."
+      },
+      {
+        "question": "How to manage notifications?",
+        "answer": "Currently on hold, but in future, you'll be able to send announcements to all users."
+      }
+    ],
+    "faculty": [
+      {
+        "question": "How to add marks?",
+        "answer": "Go to the 'Add Marks' section, select the subject, class, and year batch, then enter the marks."
+      },
+      {
+        "question": "How to update marks?",
+        "answer": "Go to the 'Update Marks' section, select the student, and modify their marks."
+      },
+      {
+        "question": "How to check attainment?",
+        "answer": "Visit the 'Attainment' page in the Faculty Panel to view the attainment reports."
+      }
+    ],
+    "coordinator": [
+      {
+        "question": "How to calculate attainment?",
+        "answer": "Go to the 'Calculate Attainment' page, select the course, and proceed with the calculation."
+      },
+      {
+        "question": "How to update marks?",
+        "answer": "If necessary, navigate to the 'Update Marks' section and make required changes."
+      },
+      {
+        "question": "How to set course targets?",
+        "answer": "Visit the 'Set Course Target' section and enter the required institute/SPPU-level targets."
+      }
+    ]
+  }
+  

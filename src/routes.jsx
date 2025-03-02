@@ -23,6 +23,7 @@ import UpdateCourses from "./pages/admin/UpdateCourse";
 import UpdateFaculty from './pages/admin/UpdateFaculty';
 import AddCourseAllotment from './pages/admin/AddCourseAllotment';
 import SeeCourseAllotment from './pages/admin/SeeCourseAllotment';
+import HelpPage from "./pages/HelpPage";
 
  
 const AppRoutes = () => {
@@ -31,6 +32,7 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
+
 
       {/* 🔹 Admin Dashboard */}
       {/* Wrap in DashboardLayout */}
@@ -54,6 +56,7 @@ const AppRoutes = () => {
         <Route path="/faculty-dashboard/profile" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><Profile /></ProtectedRoute>} />
         <Route path="/faculty-dashboard/mycourses" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><MyCourses /></ProtectedRoute>} />
         <Route path="/faculty-dashboard/addmarks" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><AddMarks /></ProtectedRoute>} />
+        <Route path="/help" element={<ProtectedRoute roles={["admin", "faculty", "coordinator"]}><HelpPage /></ProtectedRoute>} />
       </Route>
 
       {/* 🔹 Coordinator Dashboard */}
