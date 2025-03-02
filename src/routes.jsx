@@ -24,6 +24,7 @@ import UpdateFaculty from './pages/admin/UpdateFaculty';
 import AddCourseAllotment from './pages/admin/AddCourseAllotment';
 import SeeCourseAllotment from './pages/admin/SeeCourseAllotment';
 import HelpPage from "./pages/HelpPage";
+import DownloadReport from "./pages/coordinator/DownloadReport";
 
  
 const AppRoutes = () => {
@@ -66,6 +67,7 @@ const AppRoutes = () => {
         <Route path="/coordinator-dashboard/attainment/:courseId/:academicYear/:dept_id" element={<ProtectedRoute roles={["coordinator", "admin"]}><CourseAttainment /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/profile" element={<ProtectedRoute roles={["coordinator", "admin"]}><Profile /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/setTarget" element={<ProtectedRoute roles={["coordinator", "admin"]}><SetTarget/></ProtectedRoute>} />
+        <Route path="/coordinator-dashboard/downloadreport" element={<ProtectedRoute roles={["coordinator", "admin"]}><DownloadReport/></ProtectedRoute>} />
       </Route>
 
       {/* 404 Page */}

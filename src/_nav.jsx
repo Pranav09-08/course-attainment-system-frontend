@@ -12,7 +12,6 @@ import {
   cilLibrary,
   cilCloudDownload,
   cilCalculator,
-  cilPhone,
   cilChatBubble,
   cilEnvelopeClosed,
   cilNotes
@@ -116,7 +115,7 @@ export const getNavigation = (role) => {
         items: [
           { component: CNavItem, name: 'Set Target', to: '/coordinator-dashboard/setTarget', icon: <CIcon icon={cilSettings} customClassName="nav-icon" />, className: 'ms-4' },
           { component: CNavItem, name: 'Calculate Attainment', to: '/see-attainment-selected-courses', icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />, className: 'ms-4' },
-          { component: CNavItem, name: 'Download Reports', to: '/see-attainment-selected-courses', icon: <CIcon icon={cilCloudDownload} customClassName="nav-icon" />, className: 'ms-4' },
+          { component: CNavItem, name: 'Download Reports', to: '/coordinator-dashboard/downloadreport', icon: <CIcon icon={cilCloudDownload} customClassName="nav-icon" />, className: 'ms-4' },
         ],
       }
     );
