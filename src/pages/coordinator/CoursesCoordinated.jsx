@@ -163,7 +163,7 @@ const CoursesCoordinated = () => {
                     <strong>Semester:</strong> {course.sem}
                   </p>
                   <p className="card-text">
-                    <strong>Department:</strong> {course.dept_id} |{" "}
+                    <strong>Department:</strong> {course.dept_name} |{" "}
                     <strong>Academic Year:</strong> {course.academic_yr}
                   </p>
 
