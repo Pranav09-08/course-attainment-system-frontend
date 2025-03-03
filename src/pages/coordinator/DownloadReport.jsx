@@ -87,7 +87,7 @@ const DownloadReport = () => {
 
     const handleExcelDownload = async () => {
         try {
-            const response = await fetch(`http://localhost:5001/report/generate-report?courseId=${selectedCourse?.courseId}&deptId=${selectedCourse?.deptId}&academicYear=${selectedCourse?.academicYear}`);
+            const response = await fetch(`http://localhost:5001/report/download-report?courseId=${selectedCourse?.courseId}&deptId=${selectedCourse?.deptId}&academicYear=${selectedCourse?.academicYear}`);
             
             if (!response.ok) {
                 throw new Error('Failed to generate report');
