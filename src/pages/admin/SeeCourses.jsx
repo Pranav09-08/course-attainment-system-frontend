@@ -22,7 +22,7 @@ const AllCourses = () => {
 
       try {
         const response = await axios.get(
-          "http://localhost:5001/admin/course/get-courses",
+          "https://teacher-attainment-system-backend.onrender.com/admin/course/get-courses",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -59,6 +59,7 @@ const AllCourses = () => {
             <tr>
               <th>Course ID</th>
               <th>Course Name</th>
+              <th>Class</th> {/* Added Class Column */}
               <th>Unit Test</th>
               <th>In-Sem</th>
               <th>End-Sem</th>
@@ -70,6 +71,7 @@ const AllCourses = () => {
               <tr key={course.course_id}>
                 <td>{course.course_id}</td>
                 <td>{course.course_name}</td>
+                <td>{course.class}</td> {/* Display Class */}
                 <td>{course.ut}</td>
                 <td>{course.insem}</td>
                 <td>{course.endsem}</td>
