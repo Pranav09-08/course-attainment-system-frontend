@@ -33,6 +33,19 @@ const AddCourseAllotment = () => {
     }
   }, []);
 
+  const getCurrentAcademicYears = () => {
+    const currentYear = new Date().getFullYear();
+    const startYear = currentYear - 5; // 5 years before current year
+    const endYear = currentYear + 5; // 5 years after current year
+
+    let years = [];
+    for (let year = startYear; year <= endYear; year++) {
+      years.push(year);
+    }
+
+    return years;
+  };
+
   useEffect(() => {
     const fetchCourses = async () => {
       setLoading(true);
@@ -192,7 +205,7 @@ const AddCourseAllotment = () => {
 
             <Row>
               <Col>
-<Form.Group className="mb-3">
+                <Form.Group className="mb-3">
                   <Form.Label>Class</Form.Label>
                   <Form.Select
                     name="class"
@@ -288,7 +301,8 @@ const AddCourseAllotment = () => {
                   <Form.Select
                     name="sem"
                     value={formData.sem}
-                    onChange={handleChange}>
+                    onChange={handleChange}
+                  >
                     <option value="">Select Semester</option>
                     <option value="Even">EVEN</option>
                     <option value="Odd">ODD</option>
@@ -305,9 +319,9 @@ const AddCourseAllotment = () => {
                 onChange={handleChange}
               >
                 <option value="">Select Academic Year</option>
-                {[...Array(21)].map((_, i) => (
-                  <option key={i} value={2020 + i}>
-                    {2020 + i}
+                {getCurrentAcademicYears().map((year, index) => (
+                  <option key={index} value={year}>
+                    {year}
                   </option>
                 ))}
               </Form.Select>

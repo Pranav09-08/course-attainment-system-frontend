@@ -27,6 +27,7 @@ import HelpPage from "./pages/HelpPage";
 import DownloadReport from "./pages/coordinator/DownloadReport";
 import SeeCourseCoordinator from './pages/admin/SeeCourseCoordinator';
 import AddCourseCoordinator from './pages/admin/AddCourseCoordinator';
+import UpdateCourseAllotmet from './pages/admin/UpdateCourseAllotment';
 
  
 const AppRoutes = () => {
@@ -52,6 +53,7 @@ const AppRoutes = () => {
         <Route path="/admin/see-course-allotment" element={<ProtectedRoute roles={["admin"]}><SeeCourseAllotment /></ProtectedRoute>} />
         <Route path="/admin/get-course-coordinator" element={<ProtectedRoute roles={["admin"]}><SeeCourseCoordinator /></ProtectedRoute>} />
         <Route path="/admin/add-course-coordinator" element={<ProtectedRoute roles={["admin"]}><AddCourseCoordinator /></ProtectedRoute>} />
+        <Route path="/admin/update-course-allotment" element={<ProtectedRoute roles={["admin"]}><UpdateCourseAllotmet /></ProtectedRoute>} />
       </Route>
 
 

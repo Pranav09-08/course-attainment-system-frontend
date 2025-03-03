@@ -313,21 +313,21 @@ const AddCourseAllotment = () => {
               </Col>
             </Row>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Academic Year</Form.Label>
-              <Form.Select
-                name="academic_yr"
-                value={formData.academic_yr}
-                onChange={handleChange}
-              >
-                <option value="">Select Academic Year</option>
-                {getCurrentAcademicYears().map((year, index) => (
-                  <option key={index} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Academic Year</Form.Label>
+                <Form.Select
+                  name="academic_yr"
+                  value={formData.academic_yr}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Academic Year</option>
+                  {getCurrentAcademicYears().map((year, index) => (
+                    <option key={index} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
 
             <Button
               variant="primary"
