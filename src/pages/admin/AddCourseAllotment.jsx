@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Form, Button, Card, Spinner, Alert, Container, Row, Col } from "react-bootstrap";
+import {
+  Form,
+  Button,
+  Card,
+  Spinner,
+  Alert,
+  Container,
+  Row,
+  Col,
+} from "react-bootstrap";
 
 const AddCourseAllotment = () => {
   const [courses, setCourses] = useState([]);
@@ -38,9 +47,12 @@ const AddCourseAllotment = () => {
       }
 
       try {
-        const response = await axios.get("http://localhost:5001/admin/course/get-courses", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          "https://teacher-attainment-system-backend.onrender.com/admin/course/get-courses",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (Array.isArray(response.data) && response.data.length > 0) {
           setCourses(response.data);
@@ -70,7 +82,7 @@ const AddCourseAllotment = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:5001/profile/faculty/department/${formData.dept_id}`,
+          `https://teacher-attainment-system-backend.onrender.com/profile/faculty/department/${formData.dept_id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -110,9 +122,13 @@ const AddCourseAllotment = () => {
     };
 
     try {
-      await axios.post("http://localhost:5001/admin/allotment/add-course-allotment", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.post(
+        "https://teacher-attainment-system-backend.onrender.com/admin/allotment/add-course-allotment",
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       alert("✅ Course Allotment Successful!");
       setFormData({
@@ -124,7 +140,10 @@ const AddCourseAllotment = () => {
         dept_id: storedUser?.user?.id || "",
       });
     } catch (error) {
-      setError(error.response?.data?.details || "Error allotting course. Please try again.");
+      setError(
+        error.response?.data?.details ||
+          "Error allotting course. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -141,7 +160,11 @@ const AddCourseAllotment = () => {
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
               <Form.Label>Select Course</Form.Label>
-              <Form.Select name="course_id" value={formData.course_id} onChange={handleChange}>
+              <Form.Select
+                name="course_id"
+                value={formData.course_id}
+                onChange={handleChange}
+              >
                 <option value="">Select Course</option>
                 {courses.map((course) => (
                   <option key={course.course_id} value={course.course_id}>
@@ -153,7 +176,11 @@ const AddCourseAllotment = () => {
 
             <Form.Group className="mb-3">
               <Form.Label>Select Faculty</Form.Label>
-              <Form.Select name="faculty_id" value={formData.faculty_id} onChange={handleChange}>
+              <Form.Select
+                name="faculty_id"
+                value={formData.faculty_id}
+                onChange={handleChange}
+              >
                 <option value="">Select Faculty</option>
                 {faculty.map((fac) => (
                   <option key={fac.faculty_id} value={fac.faculty_id}>
@@ -165,29 +192,106 @@ const AddCourseAllotment = () => {
 
             <Row>
               <Col>
-                <Form.Group className="mb-3">
+<Form.Group className="mb-3">
                   <Form.Label>Class</Form.Label>
-                  <Form.Select name="class" value={formData.class} onChange={handleChange}>
+                  <Form.Select
+                    name="class"
+                    value={formData.class}
+                    onChange={handleChange}
+                  >
                     <option value="">Select Class</option>
-                    {[...Array(11)].map((_, i) => (
-                      <option key={i} value={`SE${i + 1}`}>{`SE${i + 1}`}</option>
-                    ))}
-                    {[...Array(11)].map((_, i) => (
-                      <option key={i + 11} value={`TE${i + 1}`}>{`TE${i + 1}`}</option>
-                    ))}
-                    {[...Array(11)].map((_, i) => (
-                      <option key={i + 22} value={`BE${i + 1}`}>{`BE${i + 1}`}</option>
-                    ))}
+
+                    {/* FE Class */}
+                    <option value="FE">FE</option>
+
+                    {/* SE, TE, BE Classes based on dept_id */}
+                    {formData.dept_id === 1 &&
+                      [...Array(4)].map((_, i) => (
+                        <option key={`SE${i + 1}`} value={`SE${i + 1}`}>
+                          {`SE${i + 1}`}
+                        </option>
+                      ))}
+                    {formData.dept_id === 2 &&
+                      [...Array(4)].map((_, i) => (
+                        <option key={`SE${i + 5}`} value={`SE${i + 5}`}>
+                          {`SE${i + 5}`}
+                        </option>
+                      ))}
+                    {formData.dept_id === 3 &&
+                      [...Array(3)].map((_, i) => (
+                        <option key={`SE${i + 9}`} value={`SE${i + 9}`}>
+                          {`SE${i + 9}`}
+                        </option>
+                      ))}
+                    {formData.dept_id === 4 && (
+                      <option value="SE12">SE12</option>
+                    )}
+                    {formData.dept_id === 5 && (
+                      <option value="SE13">SE13</option>
+                    )}
+
+                    {formData.dept_id === 1 &&
+                      [...Array(4)].map((_, i) => (
+                        <option key={`TE${i + 1}`} value={`TE${i + 1}`}>
+                          {`TE${i + 1}`}
+                        </option>
+                      ))}
+                    {formData.dept_id === 2 &&
+                      [...Array(4)].map((_, i) => (
+                        <option key={`TE${i + 5}`} value={`TE${i + 5}`}>
+                          {`TE${i + 5}`}
+                        </option>
+                      ))}
+                    {formData.dept_id === 3 &&
+                      [...Array(3)].map((_, i) => (
+                        <option key={`TE${i + 9}`} value={`TE${i + 9}`}>
+                          {`TE${i + 9}`}
+                        </option>
+                      ))}
+                    {formData.dept_id === 4 && (
+                      <option value="TE12">TE12</option>
+                    )}
+                    {formData.dept_id === 5 && (
+                      <option value="TE13">TE13</option>
+                    )}
+
+                    {formData.dept_id === 1 &&
+                      [...Array(4)].map((_, i) => (
+                        <option key={`BE${i + 1}`} value={`BE${i + 1}`}>
+                          {`BE${i + 1}`}
+                        </option>
+                      ))}
+                    {formData.dept_id === 2 &&
+                      [...Array(4)].map((_, i) => (
+                        <option key={`BE${i + 5}`} value={`BE${i + 5}`}>
+                          {`BE${i + 5}`}
+                        </option>
+                      ))}
+                    {formData.dept_id === 3 &&
+                      [...Array(3)].map((_, i) => (
+                        <option key={`BE${i + 9}`} value={`BE${i + 9}`}>
+                          {`BE${i + 9}`}
+                        </option>
+                      ))}
+                    {formData.dept_id === 4 && (
+                      <option value="BE12">BE12</option>
+                    )}
+                    {formData.dept_id === 5 && (
+                      <option value="BE13">BE13</option>
+                    )}
                   </Form.Select>
                 </Form.Group>
               </Col>
               <Col>
                 <Form.Group className="mb-3">
                   <Form.Label>Semester</Form.Label>
-                  <Form.Select name="sem" value={formData.sem} onChange={handleChange}>
+                  <Form.Select
+                    name="sem"
+                    value={formData.sem}
+                    onChange={handleChange}>
                     <option value="">Select Semester</option>
-                    <option value="Even">Even</option>
-                    <option value="Odd">Odd</option>
+                    <option value="Even">EVEN</option>
+                    <option value="Odd">ODD</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -195,15 +299,26 @@ const AddCourseAllotment = () => {
 
             <Form.Group className="mb-3">
               <Form.Label>Academic Year</Form.Label>
-              <Form.Select name="academic_yr" value={formData.academic_yr} onChange={handleChange}>
+              <Form.Select
+                name="academic_yr"
+                value={formData.academic_yr}
+                onChange={handleChange}
+              >
                 <option value="">Select Academic Year</option>
                 {[...Array(21)].map((_, i) => (
-                  <option key={i} value={2020 + i}>{2020 + i}</option>
+                  <option key={i} value={2020 + i}>
+                    {2020 + i}
+                  </option>
                 ))}
               </Form.Select>
             </Form.Group>
 
-            <Button variant="primary" type="submit" className="w-100" disabled={loading}>
+            <Button
+              variant="primary"
+              type="submit"
+              className="w-100"
+              disabled={loading}
+            >
               {loading ? <Spinner animation="border" size="sm" /> : "Submit"}
             </Button>
           </Form>

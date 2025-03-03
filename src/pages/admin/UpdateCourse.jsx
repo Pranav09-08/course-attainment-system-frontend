@@ -10,6 +10,7 @@ const updateCourses = () => {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     course_name: "",
+    class: "FE",  // Default value
     ut: "",
     insem: "",
     endsem: "",
@@ -35,7 +36,7 @@ const updateCourses = () => {
     }
 
     try {
-      const response = await axios.get("http://localhost:5001/admin/course/get-courses", {
+      const response = await axios.get("https://teacher-attainment-system-backend.onrender.com/admin/course/get-courses", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -59,7 +60,8 @@ const updateCourses = () => {
     setSelectedCourse(course);
     setFormData({
       course_name: course.course_name,
-      ut: course.ut || "", 
+      class: course.class || "FE", // Default to FE if missing
+      ut: course.ut || "",
       insem: course.insem || "",
       endsem: course.endsem || "",
       finalsem: course.finalsem || "",
@@ -67,12 +69,12 @@ const updateCourses = () => {
     setShowModal(true);
   };
 
-  // 🔹 Handle Input Changes (Ensuring Numbers Are Stored Correctly)
+  // 🔹 Handle Input Changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ 
       ...formData, 
-      [name]: name === "course_name" ? value : parseInt(value, 10) || 0  // Convert to int, default to 0
+      [name]: name === "course_name" || name === "class" ? value : parseInt(value, 10) || 0  // Convert numbers
     });
   };
 
@@ -83,6 +85,7 @@ const updateCourses = () => {
     // Ensure numbers are properly converted before sending
     const updatedData = {
       course_name: formData.course_name,
+      class: formData.class,
       ut: parseInt(formData.ut, 10) || 0,
       insem: parseInt(formData.insem, 10) || 0,
       endsem: parseInt(formData.endsem, 10) || 0,
@@ -93,7 +96,7 @@ const updateCourses = () => {
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const token = storedUser?.accessToken;
 
-      await axios.put(`http://localhost:5001/admin/course/update-course/${selectedCourse.course_id}`, updatedData, {
+      await axios.put(`https://teacher-attainment-system-backend.onrender.com/admin/course/update-course/${selectedCourse.course_id}`, updatedData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -115,7 +118,7 @@ const updateCourses = () => {
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const token = storedUser?.accessToken;
 
-      await axios.delete(`http://localhost:5001/admin/course/delete-course/${course_id}`, {
+      await axios.delete(`https://teacher-attainment-system-backend.onrender.com/admin/course/delete-course/${course_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -140,6 +143,7 @@ const updateCourses = () => {
             <tr>
               <th>Course ID</th>
               <th>Course Name</th>
+              <th>Class</th>
               <th>Unit Test</th>
               <th>In-Sem</th>
               <th>End-Sem</th>
@@ -152,6 +156,7 @@ const updateCourses = () => {
               <tr key={course.course_id}>
                 <td>{course.course_id}</td>
                 <td>{course.course_name}</td>
+                <td>{course.class}</td>
                 <td>{course.ut}</td>
                 <td>{course.insem}</td>
                 <td>{course.endsem}</td>
@@ -188,6 +193,18 @@ const updateCourses = () => {
                 onChange={handleChange}
               />
             </Form.Group>
+
+            {/* 🔹 Class Dropdown */}
+            <Form.Group>
+              <Form.Label>Class</Form.Label>
+              <Form.Control as="select" name="class" value={formData.class} onChange={handleChange}>
+                <option value="FE">FE</option>
+                <option value="SE">SE</option>
+                <option value="TE">TE</option>
+                <option value="BE">BE</option>
+              </Form.Control>
+            </Form.Group>
+
             {["ut", "insem", "endsem", "finalsem"].map((field) => (
               <Form.Group key={field}>
                 <Form.Label>{field.toUpperCase()}</Form.Label>

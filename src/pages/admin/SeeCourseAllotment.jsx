@@ -22,7 +22,7 @@ const AllottedCourses = () => {
       }
 
       try {
-        const response = await axios.get("http://localhost:5001/admin/allotment/get-allotted-courses", {
+        const response = await axios.get("https://teacher-attainment-system-backend.onrender.com/admin/allotment/get-allotted-courses", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
