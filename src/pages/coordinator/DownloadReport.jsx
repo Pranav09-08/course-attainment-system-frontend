@@ -49,50 +49,53 @@ const DownloadReport = () => {
 
     const handleDownloadReport = async (courseId, academicYear, deptId) => {
         console.log("Downloading report for courseId:", courseId, "and academicYear:", academicYear);
-
+    
         const reportUrl = `http://localhost:5001/report/download-report?courseId=${courseId}&deptId=${deptId}&academicYear=${academicYear}`;
-
+    
         try {
             const response = await axios.get(reportUrl, { responseType: "arraybuffer" });
             const file = new Blob([response.data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
             const reader = new FileReader();
-
+    
             reader.onload = () => {
                 const wb = XLSX.read(reader.result, { type: "binary" });
-
-                const targetSheet = wb.Sheets["Target"];
-                const targetJson = XLSX.utils.sheet_to_json(targetSheet);
-
-                const marksSheet = wb.Sheets["Marks"];
-                const marksJson = XLSX.utils.sheet_to_json(marksSheet);
-
-                setTargetData(targetJson);
-                setMarksData(marksJson);
-
+    
+                // Since there is now only one sheet, we will read it and separate the data into two parts
+                const fullSheet = wb.Sheets["Course Report"];
+                const fullData = XLSX.utils.sheet_to_json(fullSheet);
+    
+                // Split the fullData into target and marks data
+                const targetData = fullData.slice(0, 3);  // First three rows are target data
+                const marksData = fullData.slice(4);  // The rest are marks data
+    
+                setTargetData(targetData);
+                setMarksData(marksData);
+    
                 setSelectedCourse({
                     courseId,
                     academicYear,
                     deptId,
                     courseName: courses.find((course) => course.course_id === courseId)?.course_name,
                 });
-
+    
                 setShowModal(true);
             };
-
+    
             reader.readAsBinaryString(file);
         } catch (error) {
             console.error("Error fetching report:", error);
         }
     };
+    
 
     const handleExcelDownload = async () => {
         try {
             const response = await fetch(`http://localhost:5001/report/download-report?courseId=${selectedCourse?.courseId}&deptId=${selectedCourse?.deptId}&academicYear=${selectedCourse?.academicYear}`);
-            
+
             if (!response.ok) {
                 throw new Error('Failed to generate report');
             }
-            
+
             const fileBlob = await response.blob();
             const url = window.URL.createObjectURL(fileBlob);
             const link = document.createElement('a');
@@ -100,15 +103,15 @@ const DownloadReport = () => {
             link.download = `${selectedCourse?.courseName}_Download_Report.xlsx`;
             document.body.appendChild(link);
             link.click();
-            
+
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
         } catch (error) {
             console.error('Error downloading the report:', error);
         }
-     };
-     
-    
+    };
+
+
 
     const filteredCourses = courses.filter((course) => {
         const matchesSearch =
@@ -250,7 +253,7 @@ const DownloadReport = () => {
                                     <td>{row["I_CO1"]}</td> {/* Updated to I_CO1 */}
                                     <td>{row["I_CO2"]}</td> {/* Updated to I_CO2 */}
                                     <td>{row["endsem"]}</td> {/* Updated to endsem */}
-                                    <td>{row["final"]}</td> {/* Updated to final */}
+                                    <td>{row["finalsem"]}</td> {/* Updated to final */}
                                 </tr>
                             ))}
                         </tbody>
