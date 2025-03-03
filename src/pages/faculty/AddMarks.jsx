@@ -22,7 +22,6 @@ const UploadMarks = () => {
   const [loadingUpload, setLoadingUpload] = useState(false); // Show loading state during upload
   const [successMessage, setSuccessMessage] = useState(""); // Success message after upload
   const [selectedCourse, setSelectedCourse] = useState({});
-  const navigate = useNavigate();
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const { accessToken, user } = storedUser || {};
   const { id: user_id } = user || {};
@@ -125,7 +124,7 @@ const UploadMarks = () => {
         toast.warn(`Invalid CSV format. It must contain only these columns for ${selectedMarkType}: ${requiredColumns.join(", ")}`);
         return;
       }
-  
+  /*
    // **VALIDATION: CHECK MARKS RANGE**
    let validMarks = []; // Store only valid rows
    let hasInvalidEntries = false;
@@ -166,7 +165,7 @@ const UploadMarks = () => {
    if (hasInvalidEntries) {
      toast.warn("Some marks are invalid. Please correct them before uploading.");
      return;
-   }
+   }*/
 
 
       // **Prepare data for upload**
@@ -177,6 +176,7 @@ const UploadMarks = () => {
       formData.append("course_id", selectedCourse.course_id);
       formData.append("sem", selectedCourse.sem);
       formData.append("class", selectedCourse.class);
+      formData.append("dept_id",selectedCourse.dept_id);
   
       setLoadingUpload(true);
   
