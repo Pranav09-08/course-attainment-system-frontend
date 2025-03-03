@@ -65,7 +65,9 @@ const AppRoutes = () => {
         <Route path="/faculty-dashboard/profile" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><Profile /></ProtectedRoute>} />
         <Route path="/faculty-dashboard/mycourses" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><MyCourses /></ProtectedRoute>} />
         <Route path="/faculty-dashboard/addmarks" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><AddMarks /></ProtectedRoute>} />
-      </Route>
+        <Route path="/faculty-dashboard/updatemarks" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><UpdateMarks /></ProtectedRoute>} />
+        <Route path="/faculty-dashboard/update-marks-form" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><UpdateMarksForm /></ProtectedRoute>} />
+        </Route>
 
       {/* 🔹 Coordinator Dashboard */}
       <Route element={<DashboardLayout />}>
