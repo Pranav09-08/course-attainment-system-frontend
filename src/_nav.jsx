@@ -12,7 +12,6 @@ import {
   cilLibrary,
   cilCloudDownload,
   cilCalculator,
-  cilPhone,
   cilChatBubble,
   cilEnvelopeClosed,
   cilNotes
@@ -53,8 +52,8 @@ export const getNavigation = (role) => {
         name: 'Course Coordinator',
         icon: <CIcon icon={cilBook} customClassName="nav-icon" />,
         items: [
-          { component: CNavItem, name: 'Add Coordinator', to: '/add-course-allotment', icon: <CIcon icon={cilUserPlus} customClassName="nav-icon" />, className: 'ms-4' },
-          { component: CNavItem, name: 'See Coordinators', to: '/see-course-allotment', icon: <CIcon icon={cilPeople} customClassName="nav-icon" />, className: 'ms-4' },
+          { component: CNavItem, name: 'Add Coordinator', to: '/admin/add-course-coordinator', icon: <CIcon icon={cilUserPlus} customClassName="nav-icon" />, className: 'ms-4' },
+          { component: CNavItem, name: 'See Coordinators', to: '/admin/get-course-coordinator', icon: <CIcon icon={cilPeople} customClassName="nav-icon" />, className: 'ms-4' },
           { component: CNavItem, name: 'Update Coordinator', to: '/see-course-coordinators', icon: <CIcon icon={cilSync} customClassName="nav-icon" />, className: 'ms-4' },
         ],
       },
@@ -116,7 +115,7 @@ export const getNavigation = (role) => {
         items: [
           { component: CNavItem, name: 'Set Target', to: '/coordinator-dashboard/setTarget', icon: <CIcon icon={cilSettings} customClassName="nav-icon" />, className: 'ms-4' },
           { component: CNavItem, name: 'Calculate Attainment', to: '/see-attainment-selected-courses', icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />, className: 'ms-4' },
-          { component: CNavItem, name: 'Download Reports', to: '/see-attainment-selected-courses', icon: <CIcon icon={cilCloudDownload} customClassName="nav-icon" />, className: 'ms-4' },
+          { component: CNavItem, name: 'Download Reports', to: '/coordinator-dashboard/downloadreport', icon: <CIcon icon={cilCloudDownload} customClassName="nav-icon" />, className: 'ms-4' },
         ],
       }
     );

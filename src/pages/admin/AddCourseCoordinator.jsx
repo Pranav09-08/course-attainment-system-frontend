@@ -23,16 +23,6 @@ const AddCourseAllotment = () => {
     dept_id: "",
   });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser?.user) {
-      setFormData((prev) => ({ ...prev, dept_id: storedUser.user.id }));
-    }
-  }, []);
-
   const getCurrentAcademicYears = () => {
     const currentYear = new Date().getFullYear();
     const startYear = currentYear - 5; // 5 years before current year
@@ -45,6 +35,16 @@ const AddCourseAllotment = () => {
 
     return years;
   };
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser?.user) {
+      setFormData((prev) => ({ ...prev, dept_id: storedUser.user.id }));
+    }
+  }, []);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -136,14 +136,14 @@ const AddCourseAllotment = () => {
 
     try {
       await axios.post(
-        "https://teacher-attainment-system-backend.onrender.com/admin/allotment/add-course-allotment",
+        "https://teacher-attainment-system-backend.onrender.com/admin/coordinator/add-course-coordinator",
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      alert("✅ Course Allotment Successful!");
+      alert("✅ Course Coordinator Allotted Successfully!");
       setFormData({
         course_id: "",
         faculty_id: "",
@@ -155,7 +155,7 @@ const AddCourseAllotment = () => {
     } catch (error) {
       setError(
         error.response?.data?.details ||
-          "Error allotting course. Please try again."
+          "Error allotting course-coordinator. Please try again."
       );
     } finally {
       setLoading(false);
@@ -166,7 +166,9 @@ const AddCourseAllotment = () => {
     <Container className="d-flex justify-content-center mt-4">
       <Card style={{ width: "40rem" }} className="shadow-lg p-4">
         <Card.Body>
-          <Card.Title className="text-center mb-3">📚 Allot Course</Card.Title>
+          <Card.Title className="text-center mb-3">
+            📚Allot Course Coordinators
+          </Card.Title>
 
           {error && <Alert variant="danger">{error}</Alert>}
 
@@ -311,21 +313,21 @@ const AddCourseAllotment = () => {
               </Col>
             </Row>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Academic Year</Form.Label>
-              <Form.Select
-                name="academic_yr"
-                value={formData.academic_yr}
-                onChange={handleChange}
-              >
-                <option value="">Select Academic Year</option>
-                {getCurrentAcademicYears().map((year, index) => (
-                  <option key={index} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Academic Year</Form.Label>
+                <Form.Select
+                  name="academic_yr"
+                  value={formData.academic_yr}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Academic Year</option>
+                  {getCurrentAcademicYears().map((year, index) => (
+                    <option key={index} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
 
             <Button
               variant="primary"

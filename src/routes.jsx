@@ -25,6 +25,11 @@ import UpdateCourses from "./pages/admin/UpdateCourse";
 import UpdateFaculty from './pages/admin/UpdateFaculty';
 import AddCourseAllotment from './pages/admin/AddCourseAllotment';
 import SeeCourseAllotment from './pages/admin/SeeCourseAllotment';
+import HelpPage from "./pages/HelpPage";
+import DownloadReport from "./pages/coordinator/DownloadReport";
+import SeeCourseCoordinator from './pages/admin/SeeCourseCoordinator';
+import AddCourseCoordinator from './pages/admin/AddCourseCoordinator';
+import UpdateCourseAllotmet from './pages/admin/UpdateCourseAllotment';
 
  
 const AppRoutes = () => {
@@ -33,6 +38,7 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
+
 
       {/* 🔹 Admin Dashboard */}
       {/* Wrap in DashboardLayout */}
@@ -47,6 +53,9 @@ const AppRoutes = () => {
         <Route path="/admin/update-course" element={<ProtectedRoute roles={["admin"]}><UpdateCourses /></ProtectedRoute>} />
         <Route path="/admin/add-course-allotment" element={<ProtectedRoute roles={["admin"]}><AddCourseAllotment /></ProtectedRoute>} />
         <Route path="/admin/see-course-allotment" element={<ProtectedRoute roles={["admin"]}><SeeCourseAllotment /></ProtectedRoute>} />
+        <Route path="/admin/get-course-coordinator" element={<ProtectedRoute roles={["admin"]}><SeeCourseCoordinator /></ProtectedRoute>} />
+        <Route path="/admin/add-course-coordinator" element={<ProtectedRoute roles={["admin"]}><AddCourseCoordinator /></ProtectedRoute>} />
+        <Route path="/admin/update-course-allotment" element={<ProtectedRoute roles={["admin"]}><UpdateCourseAllotmet /></ProtectedRoute>} />
       </Route>
 
 
@@ -56,9 +65,6 @@ const AppRoutes = () => {
         <Route path="/faculty-dashboard/profile" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><Profile /></ProtectedRoute>} />
         <Route path="/faculty-dashboard/mycourses" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><MyCourses /></ProtectedRoute>} />
         <Route path="/faculty-dashboard/addmarks" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><AddMarks /></ProtectedRoute>} />
-        <Route path="/faculty-dashboard/updatemarks" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><UpdateMarks /></ProtectedRoute>} />
-        <Route path="/faculty-dashboard/update-marks-form" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><UpdateMarksForm /></ProtectedRoute>} />
-    
       </Route>
 
       {/* 🔹 Coordinator Dashboard */}
@@ -68,6 +74,7 @@ const AppRoutes = () => {
         <Route path="/coordinator-dashboard/attainment/:courseId/:academicYear/:dept_id" element={<ProtectedRoute roles={["coordinator", "admin"]}><CourseAttainment /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/profile" element={<ProtectedRoute roles={["coordinator", "admin"]}><Profile /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/setTarget" element={<ProtectedRoute roles={["coordinator", "admin"]}><SetTarget/></ProtectedRoute>} />
+        <Route path="/coordinator-dashboard/downloadreport" element={<ProtectedRoute roles={["coordinator", "admin"]}><DownloadReport/></ProtectedRoute>} />
       </Route>
 
       {/* 404 Page */}

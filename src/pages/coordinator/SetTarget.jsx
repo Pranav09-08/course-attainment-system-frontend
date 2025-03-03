@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { InputGroup, FormControl, Button, Form } from 'react-bootstrap'; // Bootstrap components
 
+
 const SetTarget = () => {
     const [courses, setCourses] = useState([]);
     const [targets, setTargets] = useState({});
@@ -31,7 +32,7 @@ const SetTarget = () => {
             return;
         }
     
-        axios.get(`http://localhost:5001/set_target/course-coordinator/courses/${facultyId}`, {
+        axios.get(`https://teacher-attainment-system-backend.onrender.com/set_target/course-coordinator/courses/${facultyId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -172,7 +173,7 @@ const SetTarget = () => {
                                         <strong>Semester:</strong> {course.sem}
                                     </p>
                                     <p className="card-text">
-                                        <strong>Department:</strong> {course.dept_id} | <strong>Academic Year:</strong> {course.academic_yr}
+                                        <strong>Department:</strong> {course.dept_name} | <strong>Academic Year:</strong> {course.academic_yr}
                                     </p>
 
                                     <button
