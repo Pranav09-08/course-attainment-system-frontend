@@ -43,6 +43,7 @@ const AppRoutes = () => {
       {/* 🔹 Admin Dashboard */}
       {/* Wrap in DashboardLayout */}
       <Route element={<DashboardLayout />}>
+      <Route path="/help" element={<HelpPage />} />
         <Route path="/admin-dashboard" element={<ProtectedRoute roles={["admin"]}><AdminDashBoard /></ProtectedRoute>} />
         <Route path="/admin-dashboard/profile" element={<ProtectedRoute roles={["admin"]}><Profile /></ProtectedRoute>} />
         <Route path="/admin/see-faculty" element={<ProtectedRoute roles={["admin"]}><SeeFaculty /></ProtectedRoute>} />
@@ -61,16 +62,18 @@ const AppRoutes = () => {
 
       {/* 🔹 Faculty Dashboard */}
       <Route element={<DashboardLayout />}>
+      <Route path="/help" element={<HelpPage />} />
         <Route path="/faculty-dashboard" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><FacultyDashboard /></ProtectedRoute>} />
         <Route path="/faculty-dashboard/profile" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><Profile /></ProtectedRoute>} />
         <Route path="/faculty-dashboard/mycourses" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><MyCourses /></ProtectedRoute>} />
         <Route path="/faculty-dashboard/addmarks" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><AddMarks /></ProtectedRoute>} />
         <Route path="/faculty-dashboard/updatemarks" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><UpdateMarks /></ProtectedRoute>} />
         <Route path="/faculty-dashboard/update-marks-form" element={<ProtectedRoute roles={["faculty", "coordinator", "admin"]}><UpdateMarksForm /></ProtectedRoute>} />
-        </Route>
+      </Route>
 
       {/* 🔹 Coordinator Dashboard */}
       <Route element={<DashboardLayout />}>
+      <Route path="/help" element={<HelpPage />} />
         <Route path="/coordinator-dashboard" element={<ProtectedRoute roles={["coordinator", "admin"]}><CoordinatorDashboard /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/mycourses" element={<ProtectedRoute roles={["coordinator", "admin"]}><CoursesCoordinated /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/attainment/:courseId/:academicYear/:dept_id" element={<ProtectedRoute roles={["coordinator", "admin"]}><CourseAttainment /></ProtectedRoute>} />

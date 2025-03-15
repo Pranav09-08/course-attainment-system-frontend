@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Form, InputGroup, FormControl, Button, Table, Modal } from "react-bootstrap";
-import * as XLSX from "xlsx";
 
 const DownloadReport = () => {
     const [courses, setCourses] = useState([]);
@@ -13,7 +12,6 @@ const DownloadReport = () => {
     const [marksData, setMarksData] = useState([]);
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [showModal, setShowModal] = useState(false);
-    const [reportReady, setReportReady] = useState(false);
     const navigate = useNavigate();
 
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -50,68 +48,78 @@ const DownloadReport = () => {
     const handleDownloadReport = async (courseId, academicYear, deptId) => {
         console.log("Downloading report for courseId:", courseId, "and academicYear:", academicYear);
     
-        const reportUrl = `http://localhost:5001/report/download-report?courseId=${courseId}&deptId=${deptId}&academicYear=${academicYear}`;
+        const reportUrl = `http://localhost:5001/report/generate-report?courseId=${courseId}&deptId=${deptId}&academicYear=${academicYear}`;
     
         try {
-            const response = await axios.get(reportUrl, { responseType: "arraybuffer" });
-            const file = new Blob([response.data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-            const reader = new FileReader();
+            const response = await axios.get(reportUrl);
     
-            reader.onload = () => {
-                const wb = XLSX.read(reader.result, { type: "binary" });
+            // Log the entire response for debugging
+            console.log("Backend Response:", response.data);
     
-                // Since there is now only one sheet, we will read it and separate the data into two parts
-                const fullSheet = wb.Sheets["Course Report"];
-                const fullData = XLSX.utils.sheet_to_json(fullSheet);
+            // Extract target and marks data from the response
+            const { target, marks } = response.data.data;
     
-                // Split the fullData into target and marks data
-                const targetData = fullData.slice(0, 3);  // First three rows are target data
-                const marksData = fullData.slice(4);  // The rest are marks data
+            console.log("Target Data:", target);
+            console.log("Marks Data:", marks);
     
-                setTargetData(targetData);
-                setMarksData(marksData);
+            // Update state for target data
+            setTargetData([
+                { Target: "Level 3", "Unit Test": target.target1, SPPU: target.sppu1 },
+                { Target: "Level 2", "Unit Test": target.target2, SPPU: target.sppu2 },
+                { Target: "Level 1", "Unit Test": target.target3, SPPU: target.sppu3 },
+            ]);
     
-                setSelectedCourse({
-                    courseId,
-                    academicYear,
-                    deptId,
-                    courseName: courses.find((course) => course.course_id === courseId)?.course_name,
-                });
+            // Update state for marks data
+            setMarksData(marks);
     
-                setShowModal(true);
-            };
+            // Update selected course state
+            setSelectedCourse({
+                courseId,
+                academicYear,
+                deptId,
+                courseName: courses.find((course) => course.course_id === courseId)?.course_name,
+            });
     
-            reader.readAsBinaryString(file);
+            // Show the modal
+            setShowModal(true);
         } catch (error) {
             console.error("Error fetching report:", error);
         }
     };
-    
 
     const handleExcelDownload = async () => {
+        const reportUrl = `http://localhost:5001/report/download-report?courseId=${selectedCourse?.courseId}&deptId=${selectedCourse?.deptId}&academicYear=${selectedCourse?.academicYear}`;
+    
         try {
-            const response = await fetch(`http://localhost:5001/report/download-report?courseId=${selectedCourse?.courseId}&deptId=${selectedCourse?.deptId}&academicYear=${selectedCourse?.academicYear}`);
-
-            if (!response.ok) {
-                throw new Error('Failed to generate report');
+            const response = await axios.get(reportUrl, { responseType: "blob" });
+    
+            // Check if the response is successful
+            if (response.status !== 200) {
+                throw new Error("Failed to generate report");
             }
-
-            const fileBlob = await response.blob();
+    
+            // Create a Blob from the response data
+            const fileBlob = new Blob([response.data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    
+            // Create a temporary URL for the Blob
             const url = window.URL.createObjectURL(fileBlob);
-            const link = document.createElement('a');
+    
+            // Create a link element to trigger the download
+            const link = document.createElement("a");
             link.href = url;
             link.download = `${selectedCourse?.courseName}_Download_Report.xlsx`;
             document.body.appendChild(link);
+    
+            // Trigger the download
             link.click();
-
+    
+            // Clean up
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
         } catch (error) {
-            console.error('Error downloading the report:', error);
+            console.error("Error downloading the report:", error);
         }
     };
-
-
 
     const filteredCourses = courses.filter((course) => {
         const matchesSearch =
@@ -137,7 +145,9 @@ const DownloadReport = () => {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                    <Button variant="outline-secondary" id="button-addon2">Search</Button>
+                    <Button variant="outline-secondary" id="button-addon2">
+                        Search
+                    </Button>
                 </InputGroup>
             </div>
 
@@ -149,7 +159,9 @@ const DownloadReport = () => {
                 >
                     <option value="">Select Academic Year</option>
                     {uniqueYears.map((year) => (
-                        <option key={year} value={year}>{year}</option>
+                        <option key={year} value={year}>
+                            {year}
+                        </option>
                     ))}
                 </Form.Select>
 
@@ -160,7 +172,9 @@ const DownloadReport = () => {
                 >
                     <option value="">Select Semester</option>
                     {uniqueSems.map((sem) => (
-                        <option key={sem} value={sem}>{sem}</option>
+                        <option key={sem} value={sem}>
+                            {sem}
+                        </option>
                     ))}
                 </Form.Select>
             </div>
@@ -173,12 +187,24 @@ const DownloadReport = () => {
                         <div key={course.course_id} className="col-md-6 mb-4">
                             <div className="card shadow-sm" style={{ minHeight: "300px", padding: "15px" }}>
                                 <div className="card-body p-3">
-                                    <h5 className="card-title text-primary mb-2" style={{ fontSize: "1.2rem", fontWeight: "bold" }}>Course Details</h5>
-                                    <p className="card-text"><strong>Course Name:</strong> {course.course_name}</p>
-                                    <p className="card-text"><strong>Course ID:</strong> {course.course_id}</p>
-                                    <p className="card-text"><strong>Class:</strong> {course.class}</p>
-                                    <p className="card-text"><strong>Semester:</strong> {course.sem}</p>
-                                    <p className="card-text"><strong>Department:</strong> {course.dept_name} | <strong>Academic Year:</strong> {course.academic_yr}</p>
+                                    <h5 className="card-title text-primary mb-2" style={{ fontSize: "1.2rem", fontWeight: "bold" }}>
+                                        Course Details
+                                    </h5>
+                                    <p className="card-text">
+                                        <strong>Course Name:</strong> {course.course_name}
+                                    </p>
+                                    <p className="card-text">
+                                        <strong>Course ID:</strong> {course.course_id}
+                                    </p>
+                                    <p className="card-text">
+                                        <strong>Class:</strong> {course.class}
+                                    </p>
+                                    <p className="card-text">
+                                        <strong>Semester:</strong> {course.sem}
+                                    </p>
+                                    <p className="card-text">
+                                        <strong>Department:</strong> {course.dept_name} | <strong>Academic Year:</strong> {course.academic_yr}
+                                    </p>
 
                                     <button
                                         onClick={() => handleDownloadReport(course.course_id, course.academic_yr, course.dept_id)}
@@ -226,14 +252,14 @@ const DownloadReport = () => {
                                 <th>Sr. No.</th>
                                 <th>Roll No.</th>
                                 <th>Name</th>
-                                <th>U1 CO1</th>
-                                <th>U1 CO2</th>
-                                <th>U2 CO3</th>
-                                <th>U2 CO4</th>
-                                <th>U3 CO5</th>
-                                <th>U3 CO6</th>
-                                <th>Insem CO1</th>
-                                <th>Insem CO2</th>
+                                <th>CO1</th>
+                                <th>CO2</th>
+                                <th>CO3</th>
+                                <th>CO4</th>
+                                <th>CO5</th>
+                                <th>CO6</th>
+                                <th>I_CO1</th>
+                                <th>I_CO2</th>
                                 <th>End Sem</th>
                                 <th>Final Sem</th>
                             </tr>
@@ -242,22 +268,21 @@ const DownloadReport = () => {
                             {marksData.map((row, index) => (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
-                                    <td>{row["Roll_No"]}</td>
-                                    <td>{row["Name"]}</td>
-                                    <td>{row["CO1"]}</td> {/* Updated to CO1 */}
-                                    <td>{row["CO2"]}</td> {/* Updated to CO2 */}
-                                    <td>{row["CO3"]}</td> {/* Updated to CO3 */}
-                                    <td>{row["CO4"]}</td> {/* Updated to CO4 */}
-                                    <td>{row["CO5"]}</td> {/* Updated to CO5 */}
-                                    <td>{row["CO6"]}</td> {/* Updated to CO6 */}
-                                    <td>{row["I_CO1"]}</td> {/* Updated to I_CO1 */}
-                                    <td>{row["I_CO2"]}</td> {/* Updated to I_CO2 */}
-                                    <td>{row["endsem"]}</td> {/* Updated to endsem */}
-                                    <td>{row["finalsem"]}</td> {/* Updated to final */}
+                                    <td>{row.rollNo}</td>
+                                    <td>{row.studentName}</td>
+                                    <td>{row.co1}</td>
+                                    <td>{row.co2}</td>
+                                    <td>{row.co3}</td>
+                                    <td>{row.co4}</td>
+                                    <td>{row.co5}</td>
+                                    <td>{row.co6}</td>
+                                    <td>{row.ico1}</td>
+                                    <td>{row.ico2}</td>
+                                    <td>{row.endSem}</td>
+                                    <td>{row.finalSem}</td>
                                 </tr>
                             ))}
                         </tbody>
-
                     </Table>
                     <button onClick={handleExcelDownload} className="btn btn-success">
                         Download Excel Report
