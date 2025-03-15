@@ -1,32 +1,32 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Form, Button, InputGroup, FormControl, Modal } from 'react-bootstrap';
+import { Form, Button, InputGroup, FormControl, Modal, Table } from 'react-bootstrap';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-
 
 const UploadMarks = () => {
   const [userData, setUserData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedYear, setSelectedYear] = useState(""); 
-  const [selectedSemester, setSelectedSemester] = useState(""); 
-  const [searchTerm, setSearchTerm] = useState(""); 
-  const [showModal, setShowModal] = useState(false); // State to control modal visibility
-  const [csvFile, setCsvFile] = useState(null); // Store selected CSV file
-  const [selectedMarkType, setSelectedMarkType] = useState(""); // Store selected mark type (UT1, UT2, etc.)
-  const [loadingUpload, setLoadingUpload] = useState(false); // Show loading state during upload
-  const [successMessage, setSuccessMessage] = useState(""); // Success message after upload
+  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
+  const [selectedMarkType, setSelectedMarkType] = useState("");
+  const [loadingUpload, setLoadingUpload] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [selectedCourse, setSelectedCourse] = useState({});
+  const [showDownloadButton, setShowDownloadButton] = useState(false);
+  const [students, setStudents] = useState([]);
+  const [csvContent, setCsvContent] = useState("");
+  const [csvRows, setCsvRows] = useState([]); // State to store CSV rows for table display
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const { accessToken, user } = storedUser || {};
   const { id: user_id } = user || {};
-  
-  
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -46,22 +46,22 @@ const UploadMarks = () => {
 
   useEffect(() => {
     let filtered = [...userData];
-    
+
     if (selectedYear) {
       filtered = filtered.filter(course => course.academic_yr === selectedYear);
     }
-    
+
     if (selectedSemester) {
       filtered = filtered.filter(course => course.sem === selectedSemester);
     }
-    
+
     if (searchTerm) {
       filtered = filtered.filter(course =>
         (course.course_name && course.course_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (course.course_id && course.course_id.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
-    
+
     setFilteredData(filtered);
   }, [selectedYear, selectedSemester, searchTerm, userData]);
 
@@ -71,104 +71,124 @@ const UploadMarks = () => {
   if (loading) return <div className="text-center mt-5">Loading...</div>;
   if (error) return <div className="text-danger text-center mt-5">{error}</div>;
 
-  
-  const handleAddMarks = (course) => {
-    setSelectedCourse(course);
-    setShowModal(true);
+  const handleAddMarks = async (course) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5001/get_student/students",
+        course,
+        {
+          headers: {
+            "Authorization": `Bearer ${accessToken}`,
+          },
+        }
+      );
+      console.log("API Response:", response.data);
+      setSelectedCourse(course);
+      setStudents(response.data);
+      setShowModal(true);
+    } catch (error) {
+      console.error("Error sending course data:", error);
+      toast.error("Failed to fetch student data for the selected course.");
+    }
   };
-  
-  
 
   const handleMarkTypeChange = (e) => {
-    setSelectedMarkType(e.target.value);
+    const selectedType = e.target.value;
+    setSelectedMarkType(selectedType);
+    setShowDownloadButton(!!selectedType);
   };
 
   const handleCsvChange = (e) => {
-    setCsvFile(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      setCsvFile(file);
+
+      // Read and display CSV content
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target.result;
+        setCsvContent(content);
+
+        // Parse CSV content into rows and columns
+        const rows = content.split("\n").map(row => row.split(","));
+        setCsvRows(rows);
+      };
+      reader.readAsText(file);
+    }
   };
-  
+
+  const handleDownloadTemplate = () => {
+    if (!students || students.length === 0) {
+      toast.warn("No student data available to generate the CSV template.");
+      return;
+    }
+
+    const columnsMap = {
+      "UT1": ["roll_no", "name", "u1_co1", "u1_co2"],
+      "UT2": ["roll_no", "name", "u2_co3", "u2_co4"],
+      "UT3": ["roll_no", "name", "u3_co5", "u3_co6"],
+      "Insem": ["roll_no", "name", "i_co1", "i_co2"],
+      "Final": ["roll_no", "name", "end_sem"]
+    };
+
+    const columns = columnsMap[selectedMarkType] || [];
+    const headerRow = columns.join(",");
+
+    const studentRows = students.map(student => {
+      const row = columns.map(col => {
+        if (col === "roll_no") return student.roll_no;
+        if (col === "name") return student.name;
+        return "";
+      });
+      return row.join(",");
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headerRow, ...studentRows].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${selectedMarkType}_template.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleUploadCsv = async () => {
     if (!csvFile || !selectedMarkType || !selectedCourse.course_id) {
       toast.warn("Please select a mark type and upload a CSV file.");
       return;
     }
-  
+
     const reader = new FileReader();
     reader.readAsText(csvFile);
-  
+
     reader.onload = async (event) => {
       const csvText = event.target.result;
       const rows = csvText.split("\n").map(row => row.trim());
-  
+
       if (rows.length < 2) {
         toast.warn("Invalid CSV format. The file must contain at least a header and one data row.");
         return;
       }
-  
+
       const csvHeaders = rows[0].split(",").map(header => header.trim());
-  
-      // Define required columns based on selectedMarkType
+
       const requiredColumnsMap = {
-        "UT1": ["roll_no", "u1_co1", "u1_co2"],
-        "UT2": ["roll_no", "u2_co3", "u2_co4"],
-        "UT3": ["roll_no", "u3_co5", "u3_co6"],
-        "Insem": ["roll_no", "i_co1", "i_co2"],
-        "Final": ["roll_no", "end_sem"]
+        "UT1": ["roll_no", "name", "u1_co1", "u1_co2"],
+        "UT2": ["roll_no", "name", "u2_co3", "u2_co4"],
+        "UT3": ["roll_no", "name", "u3_co5", "u3_co6"],
+        "Insem": ["roll_no", "name", "i_co1", "i_co2"],
+        "Final": ["roll_no", "name", "end_sem"]
       };
-  
+
       const requiredColumns = requiredColumnsMap[selectedMarkType] || [];
-  
-      // **Check if CSV contains exactly the required columns**
+
       if (csvHeaders.length !== requiredColumns.length || !csvHeaders.every(col => requiredColumns.includes(col))) {
         toast.warn(`Invalid CSV format. It must contain only these columns for ${selectedMarkType}: ${requiredColumns.join(", ")}`);
         return;
       }
-  /*
-   // **VALIDATION: CHECK MARKS RANGE**
-   let validMarks = []; // Store only valid rows
-   let hasInvalidEntries = false;
 
-   // **Iterate through each row**
-   for (let i = 1; i < rows.length; i++) {
-     if (!rows[i].trim()) continue; // Skip empty lines
-
-     const values = rows[i].split(",").map(value => value.trim());
-     const rowData = Object.fromEntries(csvHeaders.map((col, index) => [col, values[index]]));
-
-     let isRowValid = true; // Assume row is valid
-
-     // **Check each mark in the row**
-     for (const col of requiredColumns) {
-       let mark = rowData[col]?.trim() || ""; // Ensure it's a string
-       let numMark = mark === "AB" ? "AB" : Number(mark);
-
-       // **Mark validity conditions**
-       let isValid =
-         mark === "AB" ||  // "AB" is allowed
-         (!isNaN(numMark) && numMark >= 0 && (col === "end_sem" ? numMark <= 70 : numMark <= 15)); // Numeric marks must be valid
-
-       if (!isValid) {
-         toast.warn(`⚠️ Invalid mark in Row ${i + 1}, Column ${col}: '${mark}'`);
-         hasInvalidEntries = true;
-         isRowValid = false;
-         break; // Stop checking further
-       }
-     }
-
-     if (isRowValid) {
-       validMarks.push(rowData); // Store only valid rows
-     }
-   }
-
-   // **If there are invalid marks, stop the upload**
-   if (hasInvalidEntries) {
-     toast.warn("Some marks are invalid. Please correct them before uploading.");
-     return;
-   }*/
-
-
-      // **Prepare data for upload**
       const formData = new FormData();
       formData.append("file", csvFile);
       formData.append("markType", selectedMarkType);
@@ -176,10 +196,10 @@ const UploadMarks = () => {
       formData.append("course_id", selectedCourse.course_id);
       formData.append("sem", selectedCourse.sem);
       formData.append("class", selectedCourse.class);
-      formData.append("dept_id",selectedCourse.dept_id);
-  
+      formData.append("dept_id", selectedCourse.dept_id);
+
       setLoadingUpload(true);
-  
+
       try {
         const response = await axios.post(
           "http://localhost:5001/add_marks/upload_marks",
@@ -191,9 +211,7 @@ const UploadMarks = () => {
             },
           }
         );
-  
-        console.log("Server Response:", response.data); // Debugging
-  
+
         if (response.data.success) {
           toast.success("✅ Marks successfully uploaded!");
         } else {
@@ -208,16 +226,15 @@ const UploadMarks = () => {
       }
     };
   };
-  
+
   return (
     <div className="container py-5">
       <h2 className="text-3xl font-bold text-white mb-4 text-center">
         Add Marks
       </h2>
- 
-    {/* Toast Notifications */}
-    <ToastContainer position="top-right" autoClose={3000} />
-      {/* Search Bar */}
+
+      <ToastContainer position="top-right" autoClose={3000} />
+
       <div className="d-flex justify-content-center mb-4">
         <InputGroup className="w-50">
           <FormControl
@@ -233,11 +250,10 @@ const UploadMarks = () => {
         </InputGroup>
       </div>
 
-      {/* Filter UI */}
       <div className="d-flex justify-content-center mb-4">
-        <Form.Select 
-          className="w-25 mx-2" 
-          value={selectedYear} 
+        <Form.Select
+          className="w-25 mx-2"
+          value={selectedYear}
           onChange={(e) => setSelectedYear(e.target.value)} >
           <option value="">Select Academic Year</option>
           {years.map(year => (
@@ -245,9 +261,9 @@ const UploadMarks = () => {
           ))}
         </Form.Select>
 
-        <Form.Select 
-          className="w-25 mx-2" 
-          value={selectedSemester} 
+        <Form.Select
+          className="w-25 mx-2"
+          value={selectedSemester}
           onChange={(e) => setSelectedSemester(e.target.value)} >
           <option value="">Select Semester</option>
           {semesters.map(sem => (
@@ -273,10 +289,9 @@ const UploadMarks = () => {
                   <p className="card-text"><strong>Semester:</strong> {course.sem}</p>
                   <p className="card-text"><strong>Department:</strong> {course.dept_name} | <strong>Academic Year:</strong> {course.academic_yr}</p>
 
-                  {/* "Add Marks" button */}
-                  <Button 
-                    onClick={() => handleAddMarks(course)} 
-                    variant="outline-primary" 
+                  <Button
+                    onClick={() => handleAddMarks(course)}
+                    variant="outline-primary"
                     className="me-3">
                     Add Marks
                   </Button>
@@ -287,13 +302,12 @@ const UploadMarks = () => {
         </div>
       )}
 
-      {/* Modal for CSV Upload */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Upload Marks</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <Form.Group controlId="markType">
+        <Modal.Body style={{ maxHeight: "70vh", overflowY: "auto" }}>
+          <Form.Group controlId="markType" className="mb-4">
             <Form.Label>Select Exam Type</Form.Label>
             <Form.Control as="select" onChange={handleMarkTypeChange}>
               <option value="">Select Exam Type</option>
@@ -305,11 +319,44 @@ const UploadMarks = () => {
             </Form.Control>
           </Form.Group>
 
-          <Form.Group controlId="csvFile" className="mt-3">
+          {showDownloadButton && (
+            <Button
+              variant="success"
+              className="mb-4"
+              onClick={handleDownloadTemplate}
+            >
+              Download CSV Template for {selectedMarkType}
+            </Button>
+          )}
 
+          <Form.Group controlId="csvFile" className="mb-4">
             <Form.Label>Upload CSV File</Form.Label>
             <Form.Control type="file" accept=".csv" onChange={handleCsvChange} />
           </Form.Group>
+
+          {csvRows.length > 0 && (
+            <div className="mb-4">
+              <h6>CSV Preview:</h6>
+              <Table striped bordered hover responsive>
+                <thead>
+                  <tr>
+                    {csvRows[0].map((header, index) => (
+                      <th key={index} style={{ color: "white", fontSize: "14px" }}>{header}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {csvRows.slice(1).map((row, rowIndex) => (
+                    <tr key={rowIndex}>
+                      {row.map((cell, cellIndex) => (
+                        <td key={cellIndex} style={{ color: "white", fontSize: "14px" }}>{cell}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          )}
 
           {successMessage && <div className="mt-3 text-success">{successMessage}</div>}
         </Modal.Body>
@@ -317,9 +364,9 @@ const UploadMarks = () => {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
           </Button>
-          <Button 
-            variant="primary" 
-            onClick={handleUploadCsv} 
+          <Button
+            variant="primary"
+            onClick={handleUploadCsv}
             disabled={loadingUpload}>
             {loadingUpload ? 'Uploading...' : 'Upload'}
           </Button>
