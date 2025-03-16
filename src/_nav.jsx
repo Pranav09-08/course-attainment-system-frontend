@@ -54,7 +54,7 @@ export const getNavigation = (role) => {
         items: [
           { component: CNavItem, name: 'Add Coordinator', to: '/admin/add-course-coordinator', icon: <CIcon icon={cilUserPlus} customClassName="nav-icon" />, className: 'ms-4' },
           { component: CNavItem, name: 'See Coordinators', to: '/admin/get-course-coordinator', icon: <CIcon icon={cilPeople} customClassName="nav-icon" />, className: 'ms-4' },
-          { component: CNavItem, name: 'Update Coordinator', to: '/see-course-coordinators', icon: <CIcon icon={cilSync} customClassName="nav-icon" />, className: 'ms-4' },
+          { component: CNavItem, name: 'Update Coordinator', to: '/admin/update-course-coordinator', icon: <CIcon icon={cilSync} customClassName="nav-icon" />, className: 'ms-4' },
         ],
       },
       {

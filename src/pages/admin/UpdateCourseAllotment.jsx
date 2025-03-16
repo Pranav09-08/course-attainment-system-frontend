@@ -23,6 +23,7 @@ const UpdateCourseAllotment = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedSem, setSelectedSem] = useState("");
+  const [facultyList, setFacultyList] = useState([]);
 
   useEffect(() => {
     fetchAllotments();
@@ -64,18 +65,83 @@ const UpdateCourseAllotment = () => {
 
   const handleUpdateClick = (allotment) => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    const deptId = storedUser?.user?.dept_id;
+    const deptId = storedUser?.user?.id; // Use `id` instead of `dept_id`
 
-    setSelectedAllotment({ ...allotment, dept_id: deptId });
-    setShowModal(true);
+    console.log("Selected Allotment:", { ...allotment, dept_id: deptId }); // Debugging
+
+    setSelectedAllotment({ ...allotment, dept_id: deptId }); // Set `dept_id` in state
+    fetchFaculties(); // Fetch faculties for the department
+    setShowModal(true); // Open the modal
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setSelectedAllotment((prev) => ({ ...prev, [name]: value }));
+  const fetchFaculties = async () => {
+    console.log(
+      "Fetching faculties for department ID:",
+      selectedAllotment?.dept_id
+    ); // Debugging
+
+    if (!selectedAllotment?.dept_id) {
+      console.error("Department ID is missing in selectedAllotment"); // Debugging
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const token = storedUser?.accessToken;
+
+    if (!token) {
+      setError("Unauthorized: Please log in again.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `https://teacher-attainment-system-backend.onrender.com/profile/faculty/department/${selectedAllotment.dept_id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("Faculties API Response:", response.data); // Debugging
+
+      if (Array.isArray(response.data)) {
+        setFacultyList(response.data);
+      } else {
+        console.error("Unexpected API response format:", response.data); // Debugging
+        setFacultyList([]);
+        setError("No faculty members found.");
+      }
+    } catch (err) {
+      console.error("Error fetching faculties:", err);
+      setError("Failed to fetch faculty list. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleUpdate = async () => {
+  const handleFacultyChange = (e) => {
+    const selectedFacultyId = e.target.value;
+    const selectedFaculty = facultyList.find(
+      (faculty) => faculty.faculty_id === parseInt(selectedFacultyId)
+    );
+
+    setSelectedAllotment((prev) => ({
+      ...prev,
+      faculty_id: selectedFaculty?.faculty_id || "",
+      faculty_name: selectedFaculty?.name || "", // Use `name` instead of `faculty_name`
+    }));
+  };
+
+  const handleDeleteClick = async (allotment) => {
+    const isConfirmed = window.confirm(
+      "Are you sure you want to delete this course allotment?"
+    );
+
+    if (!isConfirmed) {
+      return; // Abort if the user clicks "Cancel"
+    }
+
     setLoading(true);
     setError("");
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -88,22 +154,71 @@ const UpdateCourseAllotment = () => {
     }
 
     try {
-      const updatedAllotment = {
-        ...selectedAllotment,
-        dept_id: storedUser?.user?.dept_id,
-      };
+      const { course_id, academic_yr, sem } = allotment;
 
-      await axios.put(
-        `https://teacher-attainment-system-backend.onrender.com/admin/allotment/update-course-allotment/${selectedAllotment.id}`,
-        updatedAllotment,
+      // Make the API call
+      const response = await axios.delete(
+        `https://teacher-attainment-system-backend.onrender.com/admin/allotment/delete-course-allotment/${course_id}/${academic_yr}/${sem}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert("✅ Course Allotment Updated Successfully!");
-      setShowModal(false);
-      fetchAllotments();
+      console.log("✅ Course allotment deleted successfully:", response.data);
+      alert("✅ Course Allotment Deleted Successfully!");
+      fetchAllotments(); // Refresh the list of allotted courses
     } catch (error) {
-      setError("Error updating allotment. Please try again.");
+      console.error(
+        "❌ Error deleting course allotment:",
+        error.response?.data?.error || error.message
+      );
+      setError(
+        error.response?.data?.error || "Failed to delete course allotment"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    // Show confirmation dialog
+    const isConfirmed = window.confirm(
+      "Are you sure you want to update the faculty for this course allotment?"
+    );
+
+    if (!isConfirmed) {
+      return; // Abort if the user clicks "Cancel"
+    }
+
+    setLoading(true);
+    setError("");
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const token = storedUser?.accessToken;
+
+    if (!token) {
+      setError("Unauthorized: Please log in again.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { course_id, academic_yr, sem, faculty_id } = selectedAllotment;
+
+      // Make the API call
+      const response = await axios.put(
+        `https://teacher-attainment-system-backend.onrender.com/admin/allotment/update-course-allotment/${course_id}/${academic_yr}/${sem}`,
+        { faculty_id }, // Send only faculty_id in the request body
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("✅ Faculty updated successfully:", response.data);
+      alert("✅ Course Allotment Updated Successfully!");
+      setShowModal(false); // Close the modal
+      fetchAllotments(); // Refresh the list of allotted courses
+    } catch (error) {
+      console.error(
+        "❌ Error updating faculty:",
+        error.response?.data?.error || error.message
+      );
+      setError(error.response?.data?.error || "Failed to update faculty");
     } finally {
       setLoading(false);
     }
@@ -196,15 +311,25 @@ const UpdateCourseAllotment = () => {
                   <Card.Text>
                     <strong>Course ID:</strong> {allotment.course_id} <br />
                     <strong>Faculty ID:</strong> {allotment.faculty_id} <br />
+                    <strong>Faculty Name:</strong> {allotment.faculty_name}{" "}
+                    <br />
                     <strong>Class:</strong> {allotment.class} <br />
                     <strong>Semester:</strong> {allotment.sem} <br />
                     <strong>Academic Year:</strong> {allotment.academic_yr}
                   </Card.Text>
+
                   <Button
                     variant="primary"
                     onClick={() => handleUpdateClick(allotment)}
                   >
                     Update
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => handleDeleteClick(allotment)}
+                    className="ms-2" // Add margin to separate from the "Update" button
+                  >
+                    Delete
                   </Button>
                 </Card.Body>
               </Card>
@@ -222,93 +347,21 @@ const UpdateCourseAllotment = () => {
           <Modal.Body>
             <Form>
               <Form.Group className="mb-3">
-                <Form.Label>Class</Form.Label>
+                <Form.Label>Faculty</Form.Label>
                 <Form.Select
-                  name="class"
-                  value={selectedAllotment.class}
-                  onChange={handleChange}
+                  name="faculty_id"
+                  value={selectedAllotment.faculty_id}
+                  onChange={handleFacultyChange}
                 >
-                  {/* FE Class */}
-                  <option value="FE">FE</option>
-
-                  {/* SE, TE, BE Classes based on dept_id */}
-                  {FormData.dept_id === 1 &&
-                    [...Array(4)].map((_, i) => (
-                      <option key={`SE${i + 1}`} value={`SE${i + 1}`}>
-                        {`SE${i + 1}`}
-                      </option>
-                    ))}
-                  {selectedAllotment.dept_id === 2 &&
-                    [...Array(4)].map((_, i) => (
-                      <option key={`SE${i + 5}`} value={`SE${i + 5}`}>
-                        {`SE${i + 5}`}
-                      </option>
-                    ))}
-                  {selectedAllotment.dept_id === 3 &&
-                    [...Array(3)].map((_, i) => (
-                      <option key={`SE${i + 9}`} value={`SE${i + 9}`}>
-                        {`SE${i + 9}`}
-                      </option>
-                    ))}
-                  {selectedAllotment.dept_id === 4 && (
-                    <option value="SE12">SE12</option>
-                  )}
-                  {selectedAllotment.dept_id === 5 && (
-                    <option value="SE13">SE13</option>
-                  )}
-
-                  {selectedAllotment.dept_id === 1 &&
-                    [...Array(4)].map((_, i) => (
-                      <option key={`TE${i + 1}`} value={`TE${i + 1}`}>
-                        {`TE${i + 1}`}
-                      </option>
-                    ))}
-                  {selectedAllotment.dept_id === 2 &&
-                    [...Array(4)].map((_, i) => (
-                      <option key={`TE${i + 5}`} value={`TE${i + 5}`}>
-                        {`TE${i + 5}`}
-                      </option>
-                    ))}
-                  {selectedAllotment.dept_id === 3 &&
-                    [...Array(3)].map((_, i) => (
-                      <option key={`TE${i + 9}`} value={`TE${i + 9}`}>
-                        {`TE${i + 9}`}
-                      </option>
-                    ))}
-                  {selectedAllotment.dept_id === 4 && (
-                    <option value="TE12">TE12</option>
-                  )}
-                  {selectedAllotment.dept_id === 5 && (
-                    <option value="TE13">TE13</option>
-                  )}
-
-                  {selectedAllotment.dept_id === 1 &&
-                    [...Array(4)].map((_, i) => (
-                      <option key={`BE${i + 1}`} value={`BE${i + 1}`}>
-                        {`BE${i + 1}`}
-                      </option>
-                    ))}
-                  {selectedAllotment.dept_id === 2 &&
-                    [...Array(4)].map((_, i) => (
-                      <option key={`BE${i + 5}`} value={`BE${i + 5}`}>
-                        {`BE${i + 5}`}
-                      </option>
-                    ))}
-                  {selectedAllotment.dept_id === 3 &&
-                    [...Array(3)].map((_, i) => (
-                      <option key={`BE${i + 9}`} value={`BE${i + 9}`}>
-                        {`BE${i + 9}`}
-                      </option>
-                    ))}
-                  {selectedAllotment.dept_id === 4 && (
-                    <option value="BE12">BE12</option>
-                  )}
-                  {selectedAllotment.dept_id === 5 && (
-                    <option value="BE13">BE13</option>
-                  )}
+                  <option value="">Select Faculty</option>
+                  {facultyList.map((faculty) => (
+                    <option key={faculty.faculty_id} value={faculty.faculty_id}>
+                      {faculty.faculty_id} - {faculty.name}{" "}
+                      {/* Include faculty name */}
+                    </option>
+                  ))}
                 </Form.Select>
               </Form.Group>
-
               <Button
                 variant="primary"
                 onClick={handleUpdate}
