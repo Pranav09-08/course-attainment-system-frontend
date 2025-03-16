@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Form, InputGroup, FormControl, Button, Table, Modal } from "react-bootstrap";
+import { Form, InputGroup, FormControl, Button, Table, Modal,Alert } from "react-bootstrap";
 
 const DownloadReport = () => {
     const [courses, setCourses] = useState([]);
@@ -13,10 +13,21 @@ const DownloadReport = () => {
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
+    const [errorMessage, setErrorMessage] = useState(""); // Store error messages
 
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const { user } = storedUser;
     const { id: facultyId } = user;
+
+    useEffect(() => {
+        if (errorMessage) {
+            const timer = setTimeout(() => {
+                setErrorMessage("");
+            }, 10000); // 12 seconds (adjust within 10-15s as needed)
+    
+            return () => clearTimeout(timer);
+        }
+    }, [errorMessage]);
 
     useEffect(() => {
         console.log("Fetching courses for faculty ID:", facultyId);
@@ -42,6 +53,7 @@ const DownloadReport = () => {
             })
             .catch((error) => {
                 console.error("Error fetching courses:", error.response ? error.response.data : error.message);
+                setErrorMessage("Report doesn't exist for that course. Please try again later.");
             });
     }, [facultyId]);
 
@@ -84,6 +96,7 @@ const DownloadReport = () => {
             setShowModal(true);
         } catch (error) {
             console.error("Error fetching report:", error);
+            setErrorMessage("Report doesn't exist for that course. Please try again later.");
         }
     };
 
@@ -136,6 +149,8 @@ const DownloadReport = () => {
     return (
         <div className="max-w-6xl mx-auto p-6">
             <h2 className="text-3xl font-bold text-white mb-6 text-center">Download Report</h2>
+             {/* Error Message Alert */}
+             {errorMessage && <Alert variant="danger" onClose={() => setErrorMessage("")} dismissible>{errorMessage}</Alert>}
 
             <div className="d-flex justify-content-center mb-4">
                 <InputGroup className="w-50">
