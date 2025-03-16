@@ -30,6 +30,9 @@ import DownloadReport from "./pages/coordinator/DownloadReport";
 import SeeCourseCoordinator from './pages/admin/SeeCourseCoordinator';
 import AddCourseCoordinator from './pages/admin/AddCourseCoordinator';
 import UpdateCourseAllotmet from './pages/admin/UpdateCourseAllotment';
+import AddStudents from "./pages/admin/AddStudents";
+import SeeStudents from "./pages/admin/SeeStudents";
+import UpdateCourseCoordinator from './pages/admin/UpdateCourseCoordinator';
 
  
 const AppRoutes = () => {
@@ -57,6 +60,9 @@ const AppRoutes = () => {
         <Route path="/admin/get-course-coordinator" element={<ProtectedRoute roles={["admin"]}><SeeCourseCoordinator /></ProtectedRoute>} />
         <Route path="/admin/add-course-coordinator" element={<ProtectedRoute roles={["admin"]}><AddCourseCoordinator /></ProtectedRoute>} />
         <Route path="/admin/update-course-allotment" element={<ProtectedRoute roles={["admin"]}><UpdateCourseAllotmet /></ProtectedRoute>} />
+        <Route path="/admin/add-students" element={<ProtectedRoute roles={["admin"]}><AddStudents /></ProtectedRoute>} />
+        <Route path="/admin/see-students" element={<ProtectedRoute roles={["admin"]}><SeeStudents /></ProtectedRoute>} />
+        <Route path="/admin/update-course-coordinator" element={<ProtectedRoute roles={["admin"]}><UpdateCourseCoordinator /></ProtectedRoute>} />
       </Route>
 
 
