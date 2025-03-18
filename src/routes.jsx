@@ -33,6 +33,7 @@ import UpdateCourseAllotmet from './pages/admin/UpdateCourseAllotment';
 import AddStudents from "./pages/admin/AddStudents";
 import SeeStudents from "./pages/admin/SeeStudents";
 import UpdateCourseCoordinator from './pages/admin/UpdateCourseCoordinator';
+import UpdateStudent from './pages/admin/UpdateStudent';
 
  
 const AppRoutes = () => {
@@ -63,6 +64,7 @@ const AppRoutes = () => {
         <Route path="/admin/add-students" element={<ProtectedRoute roles={["admin"]}><AddStudents /></ProtectedRoute>} />
         <Route path="/admin/see-students" element={<ProtectedRoute roles={["admin"]}><SeeStudents /></ProtectedRoute>} />
         <Route path="/admin/update-course-coordinator" element={<ProtectedRoute roles={["admin"]}><UpdateCourseCoordinator /></ProtectedRoute>} />
+        <Route path="/admin/update-student" element={<ProtectedRoute roles={["admin"]}><UpdateStudent /></ProtectedRoute>} />
       </Route>
 
 
