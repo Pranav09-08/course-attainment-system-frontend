@@ -24,7 +24,7 @@ const Uploadmarks = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const API_URL = `http://localhost:5001/faculty_courses/faculty_course_allot/${user_id}`;
+        const API_URL = `https://teacher-attainment-system-backend.onrender.com/faculty_courses/faculty_course_allot/${user_id}`;
         const response = await axios.get(API_URL);
         setUserData(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
@@ -72,7 +72,7 @@ const Uploadmarks = () => {
 
       setLoadingAttainment(true);
       const response = await  axios
-      .get(`http://localhost:5001/attainment/attainment-data?course_id=${courseId}&academic_yr=${academic_yr}&dept_id=${dept_id}`, {
+      .get(`https://teacher-attainment-system-backend.onrender.com/attainment/attainment-data?course_id=${courseId}&academic_yr=${academic_yr}&dept_id=${dept_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setAttainmentData(response.data.attainment);

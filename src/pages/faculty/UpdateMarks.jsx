@@ -22,7 +22,7 @@ const UpdateMarks = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const API_URL = `http://localhost:5001/marks/faculty_addmarks/${user_id}`;
+        const API_URL = `https://teacher-attainment-system-backend.onrender.com/marks/faculty_addmarks/${user_id}`;
         const response = await axios.get(API_URL);
         setUserData(Array.isArray(response.data) ? response.data : []);
       } catch (err) {

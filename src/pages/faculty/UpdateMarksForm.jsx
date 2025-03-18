@@ -35,7 +35,7 @@ const UpdateMarksForm = () => {
   const fetchStudents = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:5001/get_student/students",
+        "https://teacher-attainment-system-backend.onrender.com/get_student/students",
         {
           class: course.class,
           dept_id: course.dept_id,
@@ -54,7 +54,7 @@ const UpdateMarksForm = () => {
   const fetchStudentMarks = async (roll_no) => {
     try {
       const response = await axios.get(
-        `http://localhost:5001/update/marks/get_marks/${roll_no}/${course.course_id}/${course.dept_id}/${course.academic_yr}`
+        `https://teacher-attainment-system-backend.onrender.com/update/marks/get_marks/${roll_no}/${course.course_id}/${course.dept_id}/${course.academic_yr}`
       );
       if (response.data) {
         setMarks(response.data);
@@ -106,7 +106,7 @@ const UpdateMarksForm = () => {
     // Update marks
     try {
       await axios.post(
-        `http://localhost:5001/update/marks/update_marks/${selectedStudent.roll_no}/${course.course_id}/${course.dept_id}/${course.academic_yr}`,
+        `https://teacher-attainment-system-backend.onrender.com/update/marks/update_marks/${selectedStudent.roll_no}/${course.course_id}/${course.dept_id}/${course.academic_yr}`,
         marks
       );
       toast.success("Marks updated successfully!");

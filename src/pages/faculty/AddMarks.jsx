@@ -30,7 +30,7 @@ const UploadMarks = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const API_URL = `http://localhost:5001/marks/faculty_addmarks/${user_id}`;
+        const API_URL = `https://teacher-attainment-system-backend.onrender.com/marks/faculty_addmarks/${user_id}`;
         const response = await axios.get(API_URL);
         setUserData(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
@@ -74,7 +74,7 @@ const UploadMarks = () => {
   const handleAddMarks = async (course) => {
     try {
       const response = await axios.post(
-        "http://localhost:5001/get_student/students",
+        "https://teacher-attainment-system-backend.onrender.com/get_student/students",
         course,
         {
           headers: {
@@ -202,7 +202,7 @@ const UploadMarks = () => {
 
       try {
         const response = await axios.post(
-          "http://localhost:5001/add_marks/upload_marks",
+          "https://teacher-attainment-system-backend.onrender.com/add_marks/upload_marks",
           formData,
           {
             headers: {

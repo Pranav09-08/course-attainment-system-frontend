@@ -16,7 +16,7 @@ const Uploadmarks = () => {
         const { accessToken, user } = storedUser;
         const { id: user_id } = user;
 
-        const API_URL = `http://localhost:5001/faculty_courses/faculty_course_allot/${user_id}`;
+        const API_URL = `https://teacher-attainment-system-backend.onrender.com/faculty_courses/faculty_course_allot/${user_id}`;
         console.log("Fetching from:", API_URL);
 
         const response = await axios.get(API_URL, {
