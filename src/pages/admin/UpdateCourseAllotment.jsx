@@ -63,23 +63,28 @@ const UpdateCourseAllotment = () => {
     }
   };
 
-  const handleUpdateClick = (allotment) => {
+  const handleUpdateClick = async (allotment) => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const deptId = storedUser?.user?.id; // Use `id` instead of `dept_id`
 
     console.log("Selected Allotment:", { ...allotment, dept_id: deptId }); // Debugging
 
     setSelectedAllotment({ ...allotment, dept_id: deptId }); // Set `dept_id` in state
-    fetchFaculties(); // Fetch faculties for the department
-    setShowModal(true); // Open the modal
+
+    // Fetch faculties before opening the modal
+    setLoading(true);
+    try {
+      await fetchFaculties(); // Wait for faculties to be fetched
+      setShowModal(true); // Open the modal after fetching faculties
+    } catch (error) {
+      console.error("Error fetching faculties:", error);
+      setError("Failed to fetch faculty list. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchFaculties = async () => {
-    console.log(
-      "Fetching faculties for department ID:",
-      selectedAllotment?.dept_id
-    ); // Debugging
-
     if (!selectedAllotment?.dept_id) {
       console.error("Department ID is missing in selectedAllotment"); // Debugging
       return;
@@ -339,7 +344,7 @@ const UpdateCourseAllotment = () => {
       )}
 
       {/* Update Modal */}
-      {selectedAllotment && (
+      {selectedAllotment && facultyList.length > 0 && (
         <Modal show={showModal} onHide={() => setShowModal(false)}>
           <Modal.Header closeButton>
             <Modal.Title>Update Course Allotment</Modal.Title>

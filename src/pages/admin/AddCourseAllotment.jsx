@@ -304,8 +304,8 @@ const AddCourseAllotment = () => {
                     onChange={handleChange}
                   >
                     <option value="">Select Semester</option>
-                    <option value="Even">EVEN</option>
-                    <option value="Odd">ODD</option>
+                    <option value="EVEN">EVEN</option>
+                    <option value="ODD">ODD</option>
                   </Form.Select>
                 </Form.Group>
               </Col>

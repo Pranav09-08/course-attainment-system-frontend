@@ -45,7 +45,7 @@ const UpdateStudent = () => {
   const fetchStudents = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:5001/admin/student/get-students?dept_id=${department_id}`
+        `https://teacher-attainment-system-backend.onrender.com/admin/student/get-students?dept_id=${department_id}`
       );
       const studentsData = response.data;
 
@@ -141,7 +141,7 @@ const UpdateStudent = () => {
   const handleUpdateStudent = async () => {
     try {
       const response = await axios.put(
-        `http://localhost:5001/admin/student/update-student/${selectedStudent.roll_no}`,
+        `https://teacher-attainment-system-backend.onrender.com/admin/student/update-student/${selectedStudent.roll_no}`,
         { ...selectedStudent, dept_id: department_id }
       );
       console.log("Student updated:", response.data);

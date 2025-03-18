@@ -196,7 +196,7 @@ const CourseCoordinators = () => {
 
       // Make the API call
       const response = await axios.put(
-        `http://localhost:5001/admin/coordinator/update-course-coordinator/${course_id}/${academic_yr}/${sem}`,
+        `https://teacher-attainment-system-backend.onrender.com/admin/coordinator/update-course-coordinator/${course_id}/${academic_yr}/${sem}`,
         { faculty_id }, // Send only faculty_id in the request body
         { headers: { Authorization: `Bearer ${token}` } }
       );
