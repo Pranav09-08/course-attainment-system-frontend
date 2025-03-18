@@ -60,7 +60,7 @@ const DownloadReport = () => {
     const handleDownloadReport = async (courseId, academicYear, deptId) => {
         console.log("Downloading report for courseId:", courseId, "and academicYear:", academicYear);
     
-        const reportUrl = `http://localhost:5001/report/generate-report?courseId=${courseId}&deptId=${deptId}&academicYear=${academicYear}`;
+        const reportUrl = `https://teacher-attainment-system-backend.onrender.com/report/generate-report?courseId=${courseId}&deptId=${deptId}&academicYear=${academicYear}`;
     
         try {
             const response = await axios.get(reportUrl);
@@ -101,7 +101,7 @@ const DownloadReport = () => {
     };
 
     const handleExcelDownload = async () => {
-        const reportUrl = `http://localhost:5001/report/download-report?courseId=${selectedCourse?.courseId}&deptId=${selectedCourse?.deptId}&academicYear=${selectedCourse?.academicYear}`;
+        const reportUrl = `https://teacher-attainment-system-backend.onrender.com/report/download-report?courseId=${selectedCourse?.courseId}&deptId=${selectedCourse?.deptId}&academicYear=${selectedCourse?.academicYear}`;
     
         try {
             const response = await axios.get(reportUrl, { responseType: "blob" });
