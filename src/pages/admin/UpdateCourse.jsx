@@ -4,10 +4,12 @@ import { Modal, Button, Form, Table, Alert, Spinner } from "react-bootstrap";
 
 const updateCourses = () => {
   const [courses, setCourses] = useState([]);
+  const [filteredCourses, setFilteredCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(""); // State for search term
   const [formData, setFormData] = useState({
     course_name: "",
     class: "FE",  // Default value
@@ -44,6 +46,7 @@ const updateCourses = () => {
 
       if (Array.isArray(response.data) && response.data.length > 0) {
         setCourses(response.data);
+        setFilteredCourses(response.data); // Initialize filtered list with all courses
       } else {
         setError("No courses found.");
       }
@@ -109,6 +112,21 @@ const updateCourses = () => {
     }
   };
 
+  // Handle search input change
+  const handleSearch = (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+
+    // Filter courses based on search term
+    const filtered = courses.filter(
+      (course) =>
+        course.course_id.toString().includes(term) || // Search by course_id
+        course.course_name.toLowerCase().includes(term.toLowerCase()) // Search by course_name
+    );
+
+    setFilteredCourses(filtered);
+  };
+
   // 🔹 Delete Course
   const handleDelete = async (course_id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this course?");
@@ -124,6 +142,7 @@ const updateCourses = () => {
 
       alert("Course deleted successfully!");
       setCourses(courses.filter((course) => course.course_id !== course_id));
+      setFilteredCourses(filteredCourses.filter((course) => course.course_id !== course_id)); // Update filtered list
     } catch (error) {
       console.error("❌ Delete Error:", error.response?.data || error.message);
       alert("Failed to delete course.");
@@ -134,10 +153,32 @@ const updateCourses = () => {
     <div className="container mt-5">
       <h2 className="text-center mb-4">All Courses</h2>
 
+      {/* Search Bar */}
+      <div className="row mb-4">
+        <div className="col-md-6 mx-auto">
+          <div className="input-group">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search by Course ID or Course Name"
+              value={searchTerm}
+              onChange={handleSearch}
+            />
+            <button
+              className="btn btn-outline-secondary"
+              type="button"
+              onClick={() => setSearchTerm("")}
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      </div>
+
       {loading && <p className="text-center"><Spinner animation="border" /></p>}
       {error && <Alert variant="danger" className="text-center">{error}</Alert>}
 
-      {!loading && courses.length > 0 ? (
+      {!loading && filteredCourses.length > 0 ? (
         <Table striped bordered hover responsive>
           <thead className="table-dark">
             <tr>
@@ -152,7 +193,7 @@ const updateCourses = () => {
             </tr>
           </thead>
           <tbody>
-            {courses.map((course) => (
+            {filteredCourses.map((course) => (
               <tr key={course.course_id}>
                 <td>{course.course_id}</td>
                 <td>{course.course_name}</td>

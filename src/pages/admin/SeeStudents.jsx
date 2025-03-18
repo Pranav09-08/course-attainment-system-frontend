@@ -28,7 +28,7 @@ const SeeStudents = () => {
     const fetchStudents = async () => {
         try {
             const response = await axios.get(
-                `http://localhost:5001/admin/student/get-students?dept_id=${department_id}`
+                `https://teacher-attainment-system-backend.onrender.com/admin/student/get-students?dept_id=${department_id}`
             );
             const studentsData = response.data;
 
