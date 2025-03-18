@@ -29,6 +29,13 @@ const UpdateCourseAllotment = () => {
     fetchAllotments();
   }, []);
 
+  // Fetch faculties when selectedAllotment changes
+  useEffect(() => {
+    if (selectedAllotment?.dept_id) {
+      fetchFaculties();
+    }
+  }, [selectedAllotment]);
+
   const fetchAllotments = async () => {
     setLoading(true);
     setError("");
@@ -63,28 +70,22 @@ const UpdateCourseAllotment = () => {
     }
   };
 
-  const handleUpdateClick = async (allotment) => {
+  const handleUpdateClick = (allotment) => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const deptId = storedUser?.user?.id; // Use `id` instead of `dept_id`
 
     console.log("Selected Allotment:", { ...allotment, dept_id: deptId }); // Debugging
 
     setSelectedAllotment({ ...allotment, dept_id: deptId }); // Set `dept_id` in state
-
-    // Fetch faculties before opening the modal
-    setLoading(true);
-    try {
-      await fetchFaculties(); // Wait for faculties to be fetched
-      setShowModal(true); // Open the modal after fetching faculties
-    } catch (error) {
-      console.error("Error fetching faculties:", error);
-      setError("Failed to fetch faculty list. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    setShowModal(true); // Open the modal
   };
 
   const fetchFaculties = async () => {
+    console.log(
+      "Fetching faculties for department ID:",
+      selectedAllotment?.dept_id
+    ); // Debugging
+
     if (!selectedAllotment?.dept_id) {
       console.error("Department ID is missing in selectedAllotment"); // Debugging
       return;
@@ -248,7 +249,7 @@ const UpdateCourseAllotment = () => {
 
   return (
     <Container className="mt-4">
-      <h2 className="text-center text-primary mb-4">📌 Allotted Courses</h2>
+      <h2 className="text-center text-primary mb-4">📌Update Allotted Courses</h2>
 
       {/* Search Bar */}
       <div className="d-flex justify-content-center mb-4">
@@ -307,14 +308,15 @@ const UpdateCourseAllotment = () => {
         <Row className="g-4">
           {filteredCourses.map((allotment) => (
             <Col md={6} lg={4} key={allotment.id}>
-              <Card className="shadow-lg p-3">
-                <Card.Body>
+              <Card className="shadow-lg p-3 h-100"> {/* Add h-100 for equal height */}
+                <Card.Body >
                   <h5 className="text-primary font-weight-bold mb-2">
                     {allotment.course_name}
                   </h5>
                   <hr />
-                  <Card.Text>
+                  <Card.Text className="flex-grow-1"> 
                     <strong>Course ID:</strong> {allotment.course_id} <br />
+                    <strong>Course Name:</strong> {allotment.course_name} <br />
                     <strong>Faculty ID:</strong> {allotment.faculty_id} <br />
                     <strong>Faculty Name:</strong> {allotment.faculty_name}{" "}
                     <br />
@@ -344,7 +346,7 @@ const UpdateCourseAllotment = () => {
       )}
 
       {/* Update Modal */}
-      {selectedAllotment && facultyList.length > 0 && (
+      {selectedAllotment && (
         <Modal show={showModal} onHide={() => setShowModal(false)}>
           <Modal.Header closeButton>
             <Modal.Title>Update Course Allotment</Modal.Title>

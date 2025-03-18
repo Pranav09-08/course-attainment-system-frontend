@@ -136,14 +136,15 @@ const AllottedCourses = () => {
         <Row className="g-4">
           {filteredCourses.map((course) => (
             <Col md={6} lg={4} key={course.course_id}>
-              <Card className="shadow-lg p-3">
-                <Card.Body>
+              <Card className="shadow-lg p-3 h-100"> {/* Add h-100 for equal height */}
+                <Card.Body className="d-flex flex-column"> {/* Flexbox for consistent height */}
                   <h5 className="text-primary font-weight-bold mb-2">
                     {course.course_name}
                   </h5>
                   <hr />
-                  <Card.Text>
+                  <Card.Text className="flex-grow-1"> {/* Flex-grow for equal height */}
                     <strong>Course ID:</strong> {course.course_id} <br />
+                    <strong>Course Name:</strong> {course.course_name} <br />
                     <strong>Faculty ID:</strong> {course.faculty_id} <br />
                     <strong>Faculty Name:</strong> {course.faculty_name} <br />
                     <strong>Class:</strong> {course.class} <br />

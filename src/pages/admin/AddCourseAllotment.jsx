@@ -34,16 +34,15 @@ const AddCourseAllotment = () => {
   }, []);
 
   const getCurrentAcademicYears = () => {
-    const currentYear = new Date().getFullYear();
-    const startYear = currentYear - 5; // 5 years before current year
-    const endYear = currentYear + 5; // 5 years after current year
+    const currentYear = new Date().getFullYear(); // Get the current year
+    const years = [];
 
-    let years = [];
-    for (let year = startYear; year <= endYear; year++) {
-      years.push(year);
+    // Add the current year and the previous 5 years
+    for (let i = 0; i <= 5; i++) {
+      years.push(currentYear - i);
     }
 
-    return years;
+    return years.reverse(); // Reverse to show the oldest year first
   };
 
   useEffect(() => {
@@ -213,7 +212,6 @@ const AddCourseAllotment = () => {
                     onChange={handleChange}
                   >
                     <option value="">Select Class</option>
-
                     {/* FE Class */}
                     <option value="FE">FE</option>
 

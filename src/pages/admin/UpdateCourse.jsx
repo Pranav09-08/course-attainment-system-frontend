@@ -2,22 +2,24 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Modal, Button, Form, Table, Alert, Spinner } from "react-bootstrap";
 
-const updateCourses = () => {
+const UpdateCourses = () => {
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(""); // State for search term
+  const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
+    course_id: "",
     course_name: "",
-    class: "FE",  // Default value
+    class: "FE", // Default value
     ut: "",
     insem: "",
     endsem: "",
     finalsem: "",
   });
+  const [errors, setErrors] = useState({}); // State for validation errors
 
   useEffect(() => {
     fetchCourses();
@@ -38,15 +40,24 @@ const updateCourses = () => {
     }
 
     try {
-      const response = await axios.get("https://teacher-attainment-system-backend.onrender.com/admin/course/get-courses", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "https://teacher-attainment-system-backend.onrender.com/admin/course/get-courses",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       console.log("📢 API Response:", response.data);
 
       if (Array.isArray(response.data) && response.data.length > 0) {
-        setCourses(response.data);
-        setFilteredCourses(response.data); // Initialize filtered list with all courses
+        // Sort courses by class: SE -> TE -> BE
+        const sortedCourses = response.data.sort((a, b) => {
+          const classOrder = { SE: 1, TE: 2, BE: 3 };
+          return classOrder[a.class] - classOrder[b.class];
+        });
+
+        setCourses(sortedCourses);
+        setFilteredCourses(sortedCourses); // Initialize filtered list with sorted courses
       } else {
         setError("No courses found.");
       }
@@ -62,6 +73,7 @@ const updateCourses = () => {
   const handleUpdateClick = (course) => {
     setSelectedCourse(course);
     setFormData({
+      course_id: course.course_id,
       course_name: course.course_name,
       class: course.class || "FE", // Default to FE if missing
       ut: course.ut || "",
@@ -69,24 +81,115 @@ const updateCourses = () => {
       endsem: course.endsem || "",
       finalsem: course.finalsem || "",
     });
+    setErrors({}); // Clear previous errors
     setShowModal(true);
   };
 
   // 🔹 Handle Input Changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ 
-      ...formData, 
-      [name]: name === "course_name" || name === "class" ? value : parseInt(value, 10) || 0  // Convert numbers
+
+    // Validate input on change
+    validateField(name, value);
+
+    // Update form data
+    setFormData((prevData) => {
+      const updatedData = {
+        ...prevData,
+        [name]: value,
+      };
+
+      // Calculate finalsem if insem or endsem changes
+      if (name === "insem" || name === "endsem") {
+        const insem = parseInt(updatedData.insem, 10) || 0;
+        const endsem = parseInt(updatedData.endsem, 10) || 0;
+        updatedData.finalsem = insem + endsem;
+      }
+
+      return updatedData;
     });
+  };
+
+  // 🔹 Validate a single field
+  const validateField = (name, value) => {
+    let errorMessage = "";
+
+    switch (name) {
+      case "course_id":
+        if (!value.trim()) {
+          errorMessage = "Course ID is required.";
+        } else if (!/^[A-Za-z0-9]+$/.test(value)) {
+          errorMessage = "Course ID should contain only alphabets and numbers.";
+        }
+        break;
+
+      case "course_name":
+        if (!value.trim()) {
+          errorMessage = "Course Name is required.";
+        } else if (!/^[A-Za-z\s]+$/.test(value)) {
+          errorMessage = "Course Name should contain only alphabets and spaces.";
+        }
+        break;
+
+      case "ut":
+      case "insem":
+      case "endsem":
+        if (!/^\d*$/.test(value)) {
+          errorMessage = "Only positive integers are allowed.";
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: errorMessage,
+    }));
+  };
+
+  // 🔹 Validate the entire form
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validate Course ID
+    if (!formData.course_id.trim()) {
+      newErrors.course_id = "Course ID is required.";
+    } else if (!/^[A-Za-z0-9]+$/.test(formData.course_id)) {
+      newErrors.course_id = "Course ID should contain only alphabets and numbers.";
+    }
+
+    // Validate Course Name
+    if (!formData.course_name.trim()) {
+      newErrors.course_name = "Course Name is required.";
+    } else if (!/^[A-Za-z\s]+$/.test(formData.course_name)) {
+      newErrors.course_name = "Course Name should contain only alphabets and spaces.";
+    }
+
+    // Validate Unit Test, In-Semester, and End-Semester Marks
+    ["ut", "insem", "endsem"].forEach((field) => {
+      if (!/^\d+$/.test(formData[field])) {
+        newErrors[field] = "Only positive integers are allowed.";
+      }
+    });
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // Return true if no errors
   };
 
   // 🔹 Update Course API
   const handleUpdateSubmit = async () => {
     if (!selectedCourse) return;
 
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
+
     // Ensure numbers are properly converted before sending
     const updatedData = {
+      course_id: formData.course_id,
       course_name: formData.course_name,
       class: formData.class,
       ut: parseInt(formData.ut, 10) || 0,
@@ -99,9 +202,13 @@ const updateCourses = () => {
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const token = storedUser?.accessToken;
 
-      await axios.put(`https://teacher-attainment-system-backend.onrender.com/admin/course/update-course/${selectedCourse.course_id}`, updatedData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.put(
+        `https://teacher-attainment-system-backend.onrender.com/admin/course/update-course/${selectedCourse.course_id}`,
+        updatedData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       alert("Course updated successfully!");
       setShowModal(false);
@@ -124,7 +231,13 @@ const updateCourses = () => {
         course.course_name.toLowerCase().includes(term.toLowerCase()) // Search by course_name
     );
 
-    setFilteredCourses(filtered);
+    // Sort filtered courses by class: SE -> TE -> BE
+    const sortedFilteredCourses = filtered.sort((a, b) => {
+      const classOrder = { SE: 1, TE: 2, BE: 3 };
+      return classOrder[a.class] - classOrder[b.class];
+    });
+
+    setFilteredCourses(sortedFilteredCourses);
   };
 
   // 🔹 Delete Course
@@ -136,9 +249,12 @@ const updateCourses = () => {
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const token = storedUser?.accessToken;
 
-      await axios.delete(`https://teacher-attainment-system-backend.onrender.com/admin/course/delete-course/${course_id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(
+        `https://teacher-attainment-system-backend.onrender.com/admin/course/delete-course/${course_id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       alert("Course deleted successfully!");
       setCourses(courses.filter((course) => course.course_id !== course_id));
@@ -175,7 +291,11 @@ const updateCourses = () => {
         </div>
       </div>
 
-      {loading && <p className="text-center"><Spinner animation="border" /></p>}
+      {loading && (
+        <p className="text-center">
+          <Spinner animation="border" />
+        </p>
+      )}
       {error && <Alert variant="danger" className="text-center">{error}</Alert>}
 
       {!loading && filteredCourses.length > 0 ? (
@@ -225,6 +345,22 @@ const updateCourses = () => {
         </Modal.Header>
         <Modal.Body>
           <Form>
+            {/* Course ID */}
+            <Form.Group>
+              <Form.Label>Course ID</Form.Label>
+              <Form.Control
+                type="text"
+                name="course_id"
+                value={formData.course_id}
+                onChange={handleChange}
+                isInvalid={!!errors.course_id}
+              />
+              <Form.Control.Feedback type="invalid">
+                {errors.course_id}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            {/* Course Name */}
             <Form.Group>
               <Form.Label>Course Name</Form.Label>
               <Form.Control
@@ -232,13 +368,22 @@ const updateCourses = () => {
                 name="course_name"
                 value={formData.course_name}
                 onChange={handleChange}
+                isInvalid={!!errors.course_name}
               />
+              <Form.Control.Feedback type="invalid">
+                {errors.course_name}
+              </Form.Control.Feedback>
             </Form.Group>
 
-            {/* 🔹 Class Dropdown */}
+            {/* Class Dropdown */}
             <Form.Group>
               <Form.Label>Class</Form.Label>
-              <Form.Control as="select" name="class" value={formData.class} onChange={handleChange}>
+              <Form.Control
+                as="select"
+                name="class"
+                value={formData.class}
+                onChange={handleChange}
+              >
                 <option value="FE">FE</option>
                 <option value="SE">SE</option>
                 <option value="TE">TE</option>
@@ -246,7 +391,8 @@ const updateCourses = () => {
               </Form.Control>
             </Form.Group>
 
-            {["ut", "insem", "endsem", "finalsem"].map((field) => (
+            {/* Unit Test, In-Semester, End-Semester */}
+            {["ut", "insem", "endsem"].map((field) => (
               <Form.Group key={field}>
                 <Form.Label>{field.toUpperCase()}</Form.Label>
                 <Form.Control
@@ -254,9 +400,24 @@ const updateCourses = () => {
                   name={field}
                   value={formData[field]}
                   onChange={handleChange}
+                  isInvalid={!!errors[field]}
                 />
+                <Form.Control.Feedback type="invalid">
+                  {errors[field]}
+                </Form.Control.Feedback>
               </Form.Group>
             ))}
+
+            {/* Final Semester (Read-only) */}
+            <Form.Group>
+              <Form.Label>Final Semester</Form.Label>
+              <Form.Control
+                type="text"
+                name="finalsem"
+                value={formData.finalsem}
+                readOnly // Make it uneditable
+              />
+            </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -272,4 +433,4 @@ const updateCourses = () => {
   );
 };
 
-export default updateCourses;
+export default UpdateCourses;

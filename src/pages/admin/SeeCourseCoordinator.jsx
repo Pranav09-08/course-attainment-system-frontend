@@ -50,7 +50,7 @@ const AllottedCourses = () => {
     <Container className="d-flex justify-content-center mt-4">
       <Card style={{ width: "60rem" }} className="shadow-lg p-4">
         <Card.Body>
-          <Card.Title className="text-center mb-3">📚 Allotted Courses</Card.Title>
+          <Card.Title className="text-center mb-3">📚 Allotted Course Coordinators</Card.Title>
 
           {/* ✅ Show Error Message */}
           {error && <Alert variant="danger">{error}</Alert>}

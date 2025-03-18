@@ -5,57 +5,80 @@ const AddCourse = () => {
   const [course, setCourse] = useState({
     course_id: "",
     course_name: "",
-    class: "", // Added class field
+    class: "",
     ut: "",
     insem: "",
     endsem: "",
-    finalsem: "", // This will be calculated automatically
+    finalsem: "",
   });
 
   const [errors, setErrors] = useState({});
 
+  // Validation function
   const validate = () => {
+    const newErrors = {};
+
+    // Validate Course ID
     if (!course.course_id.trim()) {
-      alert("Enter Course ID");
-      return false;
+      newErrors.course_id = "Course ID is required.";
+    } else if (!/^[A-Za-z0-9]+$/.test(course.course_id)) {
+      newErrors.course_id = "Course ID should contain only alphabets and numbers.";
     }
 
+    // Validate Course Name
     if (!course.course_name.trim()) {
-      alert("Enter Course Name");
-      return false;
+      newErrors.course_name = "Course Name is required.";
+    } else if (!/^[A-Za-z\s]+$/.test(course.course_name)) {
+      newErrors.course_name = "Course Name should contain only alphabets and spaces.";
     }
 
-    const nameRegex = /^[A-Za-z\s]+$/;
-    if (!nameRegex.test(course.course_name)) {
-      alert("Course Name should contain only letters.");
-      return false;
-    }
-
+    // Validate Class
     if (!course.class) {
-      alert("Select a class (FE, SE, TE, BE).");
-      return false;
+      newErrors.class = "Class is required.";
+    } else if (!["FE", "SE", "TE", "BE"].includes(course.class)) {
+      newErrors.class = "Invalid class selected.";
     }
 
-    if (course.ut === "" || isNaN(course.ut)) {
-      alert("Enter valid Unit Test marks.");
-      return false;
+    // Validate Unit Test Marks
+    if (!course.ut) {
+      newErrors.ut = "Unit Test marks are required.";
+    } else if (!/^\d+$/.test(course.ut) || parseInt(course.ut, 10) < 0) {
+      newErrors.ut = "Unit Test marks must be a valid positive integer.";
     }
 
-    if (course.insem === "" || isNaN(course.insem)) {
-      alert("Enter valid In-Semester marks.");
-      return false;
+    // Validate In-Semester Marks
+    if (!course.insem) {
+      newErrors.insem = "In-Semester marks are required.";
+    } else if (!/^\d+$/.test(course.insem) || parseInt(course.insem, 10) < 0) {
+      newErrors.insem = "In-Semester marks must be a valid positive integer.";
     }
 
-    if (course.endsem === "" || isNaN(course.endsem)) {
-      alert("Enter valid End-Semester marks.");
-      return false;
+    // Validate End-Semester Marks
+    if (!course.endsem) {
+      newErrors.endsem = "End-Semester marks are required.";
+    } else if (!/^\d+$/.test(course.endsem) || parseInt(course.endsem, 10) < 0) {
+      newErrors.endsem = "End-Semester marks must be a valid positive integer.";
     }
 
-    return true;
+    // Set errors and return validation result
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // Return true if no errors
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Prevent non-numeric input for ut, insem, and endsem
+    if (["ut", "insem", "endsem"].includes(name)) {
+      if (!/^\d*$/.test(value)) {
+        // Only allow digits (positive integers)
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [name]: "Only positive integers are allowed.",
+        }));
+        return; // Do not update state if input is invalid
+      }
+    }
 
     setCourse((prevCourse) => {
       let updatedCourse = { ...prevCourse, [name]: value };
@@ -69,11 +92,15 @@ const AddCourse = () => {
 
       return updatedCourse;
     });
+
+    // Clear error for the field being edited
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate form before submission
     if (!validate()) {
       return;
     }
@@ -90,11 +117,11 @@ const AddCourse = () => {
       const formattedData = {
         course_id: course.course_id,
         course_name: course.course_name,
-        class: course.class, // Send class to backend
+        class: course.class,
         ut: parseInt(course.ut, 10),
         insem: parseInt(course.insem, 10),
         endsem: parseInt(course.endsem, 10),
-        finalsem: parseInt(course.finalsem, 10), // Send calculated finalsem
+        finalsem: parseInt(course.finalsem, 10),
       };
 
       await axios.post(
@@ -115,7 +142,7 @@ const AddCourse = () => {
         endsem: "",
         finalsem: "",
       });
-
+      setErrors({}); // Clear errors after successful submission
     } catch (error) {
       console.error("Error adding course:", error.response?.data || error.message);
       alert(error.response?.data?.error || "Failed to add course. Please try again.");
@@ -132,6 +159,7 @@ const AddCourse = () => {
             </div>
             <div className="card-body">
               <form onSubmit={handleSubmit}>
+                {/* Course ID */}
                 <div className="mb-3">
                   <label htmlFor="course_id" className="form-label">Course ID</label>
                   <input
@@ -141,11 +169,15 @@ const AddCourse = () => {
                     placeholder="Enter Course ID"
                     value={course.course_id}
                     onChange={handleChange}
-                    className="form-control"
+                    className={`form-control ${errors.course_id ? "is-invalid" : ""}`}
                     required
                   />
+                  {errors.course_id && (
+                    <div className="invalid-feedback">{errors.course_id}</div>
+                  )}
                 </div>
 
+                {/* Course Name */}
                 <div className="mb-3">
                   <label htmlFor="course_name" className="form-label">Course Name</label>
                   <input
@@ -155,11 +187,15 @@ const AddCourse = () => {
                     placeholder="Enter Course Name"
                     value={course.course_name}
                     onChange={handleChange}
-                    className="form-control"
+                    className={`form-control ${errors.course_name ? "is-invalid" : ""}`}
                     required
                   />
+                  {errors.course_name && (
+                    <div className="invalid-feedback">{errors.course_name}</div>
+                  )}
                 </div>
 
+                {/* Class */}
                 <div className="mb-3">
                   <label htmlFor="class" className="form-label">Class</label>
                   <select
@@ -167,7 +203,7 @@ const AddCourse = () => {
                     id="class"
                     value={course.class}
                     onChange={handleChange}
-                    className="form-control"
+                    className={`form-control ${errors.class ? "is-invalid" : ""}`}
                     required
                   >
                     <option value="">Select Class</option>
@@ -176,50 +212,66 @@ const AddCourse = () => {
                     <option value="TE">TE</option>
                     <option value="BE">BE</option>
                   </select>
+                  {errors.class && (
+                    <div className="invalid-feedback">{errors.class}</div>
+                  )}
                 </div>
 
+                {/* Unit Test Marks */}
                 <div className="mb-3">
                   <label htmlFor="ut" className="form-label">Unit Test Marks</label>
                   <input
-                    type="number"
+                    type="text"
                     name="ut"
                     id="ut"
                     placeholder="Enter Unit Test Marks"
                     value={course.ut}
                     onChange={handleChange}
-                    className="form-control"
+                    className={`form-control ${errors.ut ? "is-invalid" : ""}`}
                     required
                   />
+                  {errors.ut && (
+                    <div className="invalid-feedback">{errors.ut}</div>
+                  )}
                 </div>
 
+                {/* In-Semester Marks */}
                 <div className="mb-3">
                   <label htmlFor="insem" className="form-label">In-Semester Marks</label>
                   <input
-                    type="number"
+                    type="text"
                     name="insem"
                     id="insem"
                     placeholder="Enter In-Semester Marks"
                     value={course.insem}
                     onChange={handleChange}
-                    className="form-control"
+                    className={`form-control ${errors.insem ? "is-invalid" : ""}`}
                     required
                   />
+                  {errors.insem && (
+                    <div className="invalid-feedback">{errors.insem}</div>
+                  )}
                 </div>
 
+                {/* End-Semester Marks */}
                 <div className="mb-3">
                   <label htmlFor="endsem" className="form-label">End-Semester Marks</label>
                   <input
-                    type="number"
+                    type="text"
                     name="endsem"
                     id="endsem"
                     placeholder="Enter End-Semester Marks"
                     value={course.endsem}
                     onChange={handleChange}
-                    className="form-control"
+                    className={`form-control ${errors.endsem ? "is-invalid" : ""}`}
                     required
                   />
+                  {errors.endsem && (
+                    <div className="invalid-feedback">{errors.endsem}</div>
+                  )}
                 </div>
 
+                {/* Final Semester Marks (Read-only) */}
                 <div className="mb-3">
                   <label htmlFor="finalsem" className="form-label">Final Semester Marks</label>
                   <input
@@ -228,10 +280,11 @@ const AddCourse = () => {
                     id="finalsem"
                     value={course.finalsem}
                     className="form-control"
-                    readOnly // Makes it uneditable
+                    readOnly
                   />
                 </div>
 
+                {/* Submit Button */}
                 <div className="text-center">
                   <button type="submit" className="btn btn-primary w-100">
                     Add Course

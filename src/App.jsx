@@ -9,6 +9,9 @@ import { useDispatch } from "react-redux";
 import '@coreui/coreui/dist/css/coreui.min.css';
 import '@coreui/icons/css/all.min.css';
 import "bootstrap/dist/css/bootstrap.min.css";
+import "@fortawesome/react-fontawesome";
+import "@fortawesome/free-solid-svg-icons";
+import "@fortawesome/free-brands-svg-icons";
 
 const App = () => {
   const navigate = useNavigate();

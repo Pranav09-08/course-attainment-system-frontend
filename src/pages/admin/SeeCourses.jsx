@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Table, Spinner, Alert, InputGroup, Form, Button, Container } from "react-bootstrap";
 
 const AllCourses = () => {
   const [courses, setCourses] = useState([]); // Original courses list
@@ -33,8 +34,14 @@ const AllCourses = () => {
         console.log("📢 API Response:", response.data); // Debugging
 
         if (Array.isArray(response.data) && response.data.length > 0) {
-          setCourses(response.data);
-          setFilteredCourses(response.data); // Initialize filtered list with all courses
+          // Sort courses by class: SE -> TE -> BE
+          const sortedCourses = response.data.sort((a, b) => {
+            const classOrder = { SE: 1, TE: 2, BE: 3 };
+            return classOrder[a.class] - classOrder[b.class];
+          });
+
+          setCourses(sortedCourses);
+          setFilteredCourses(sortedCourses); // Initialize filtered list with sorted courses
         } else {
           setError("No courses found.");
         }
@@ -65,36 +72,48 @@ const AllCourses = () => {
   };
 
   return (
-    <div className="container mt-5">
+    <Container className="mt-5">
       <h2 className="text-center mb-4">All Courses</h2>
 
       {/* Search Bar */}
       <div className="row mb-4">
         <div className="col-md-6 mx-auto">
-          <div className="input-group">
-            <input
+          <InputGroup>
+            <Form.Control
               type="text"
-              className="form-control"
               placeholder="Search by Course ID or Course Name"
               value={searchTerm}
               onChange={handleSearch}
             />
-            <button
-              className="btn btn-outline-secondary"
-              type="button"
+            <Button
+              variant="outline-secondary"
               onClick={() => setSearchTerm("")}
             >
               Clear
-            </button>
-          </div>
+            </Button>
+          </InputGroup>
         </div>
       </div>
 
-      {loading && <p className="text-center">Loading courses...</p>}
-      {error && <p className="text-danger text-center">{error}</p>}
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center">
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      )}
 
+      {/* Error Message */}
+      {error && (
+        <Alert variant="danger" className="text-center">
+          {error}
+        </Alert>
+      )}
+
+      {/* Courses Table */}
       {!loading && filteredCourses.length > 0 ? (
-        <table className="table table-striped table-bordered">
+        <Table striped bordered hover responsive className="shadow">
           <thead className="table-dark">
             <tr>
               <th>Course ID</th>
@@ -119,11 +138,13 @@ const AllCourses = () => {
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       ) : (
-        !loading && <p className="text-center text-muted">No courses found.</p>
+        !loading && (
+          <p className="text-center text-muted">No courses found.</p>
+        )
       )}
-    </div>
+    </Container>
   );
 };
 
