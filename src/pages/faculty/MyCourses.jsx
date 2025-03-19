@@ -106,7 +106,7 @@ const Uploadmarks = () => {
         return;
       }
 
-      const url = `http://localhost:5001/get_student/marks?class=${studentClass}&dept_id=${dept_id}&academic_yr=${academic_yr}&course_id=${courseId}`;
+      const url = `https://teacher-attainment-system-backend.onrender.com/get_student/marks?class=${studentClass}&dept_id=${dept_id}&academic_yr=${academic_yr}&course_id=${courseId}`;
       const response = await axios.get(url);
 
       if (response.data && response.data.length > 0) {
