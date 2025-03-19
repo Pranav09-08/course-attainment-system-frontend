@@ -137,7 +137,7 @@ export const getNavigation = (role) => {
         {
           component: CNavItem,
           name: 'Contact',
-          to: '/contact',
+          to: '/contactus',
           icon: <CIcon icon={cilEnvelopeClosed} customClassName="nav-icon" />,
           className: 'ms-4',
         },

@@ -35,7 +35,8 @@ const UploadMarks = () => {
         setUserData(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching faculty course data:", err);
-        setError("Failed to fetch course allotment data!");
+   
+        alert("Failed to fetch course allotment data! Please try again later."); // Show alert
       } finally {
         setLoading(false);
       }
@@ -69,7 +70,6 @@ const UploadMarks = () => {
   const semesters = [...new Set(userData.map(course => course.sem))];
 
   if (loading) return <div className="text-center mt-5">Loading...</div>;
-  if (error) return <div className="text-danger text-center mt-5">{error}</div>;
 
   const handleAddMarks = async (course) => {
     try {
@@ -82,7 +82,7 @@ const UploadMarks = () => {
           },
         }
       );
-      console.log("API Response:", response.data);
+      
       setSelectedCourse(course);
       setStudents(response.data);
       setShowModal(true);
