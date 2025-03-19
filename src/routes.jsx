@@ -37,6 +37,8 @@ import UpdateStudent from './pages/admin/UpdateStudent';
 import AboutUs from './pages/AboutUs';
 import CalculateAttainment from "./pages/coordinator/CalculateAttainment";
 import ShowMarksTarget from "./pages/coordinator/ShowMarksTarget";
+import ReportAnalysis from "./pages/admin/ReportAnalysis";
+import AttainmentAnalysis from "./pages/admin/AttainmentAnalysis";
 
 
  
@@ -69,6 +71,8 @@ const AppRoutes = () => {
         <Route path="/admin/see-students" element={<ProtectedRoute roles={["admin"]}><SeeStudents /></ProtectedRoute>} />
         <Route path="/admin/update-course-coordinator" element={<ProtectedRoute roles={["admin"]}><UpdateCourseCoordinator /></ProtectedRoute>} />
         <Route path="/admin/update-student" element={<ProtectedRoute roles={["admin"]}><UpdateStudent /></ProtectedRoute>} />
+        <Route path="/admin/report-analysis" element={<ProtectedRoute roles={["admin"]}><ReportAnalysis /></ProtectedRoute>} />
+        <Route path="/admin/attainment-analysis/:courseId/:academicYear" element={<ProtectedRoute roles={["admin"]}><AttainmentAnalysis /></ProtectedRoute>} />
         <Route path="/about-us" element={<AboutUs />} /> 
       </Route>
 

@@ -83,7 +83,7 @@ export const getNavigation = (role) => {
         icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
         items: [
           { component: CNavItem, name: 'Attainment Overview', to: '/see-attainment-all-courses', icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />, className: 'ms-4' },
-          { component: CNavItem, name: 'Report and Analysis', to: '/see-attainment-selected-courses', icon: <CIcon icon={cilGraph} customClassName="nav-icon" />, className: 'ms-4' },
+          { component: CNavItem, name: 'Report and Analysis', to: '/admin/report-analysis', icon: <CIcon icon={cilGraph} customClassName="nav-icon" />, className: 'ms-4' },
         ],
       }
     );
