@@ -76,7 +76,7 @@ const ContactUs = () => {
       };
 
       // Send data to the backend API
-      const response = await fetch("http://localhost:5001/contact", {
+      const response = await fetch("https://teacher-attainment-system-backend.onrender.com/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
