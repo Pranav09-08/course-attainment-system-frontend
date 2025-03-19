@@ -34,6 +34,8 @@ import AddStudents from "./pages/admin/AddStudents";
 import SeeStudents from "./pages/admin/SeeStudents";
 import UpdateCourseCoordinator from './pages/admin/UpdateCourseCoordinator';
 import UpdateStudent from './pages/admin/UpdateStudent';
+import CalculateAttainment from "./pages/coordinator/CalculateAttainment";
+import ShowMarksTarget from "./pages/coordinator/ShowMarksTarget";
 
  
 const AppRoutes = () => {
@@ -85,8 +87,10 @@ const AppRoutes = () => {
         <Route path="/coordinator-dashboard" element={<ProtectedRoute roles={["coordinator", "admin"]}><CoordinatorDashboard /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/mycourses" element={<ProtectedRoute roles={["coordinator", "admin"]}><CoursesCoordinated /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/attainment/:courseId/:academicYear/:dept_id" element={<ProtectedRoute roles={["coordinator", "admin"]}><CourseAttainment /></ProtectedRoute>} />
+        <Route path="/coordinator-dashboard/showmarks/:courseId/:academicYear/:dept_id" element={<ProtectedRoute roles={["coordinator", "admin"]}><ShowMarksTarget /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/profile" element={<ProtectedRoute roles={["coordinator", "admin"]}><Profile /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/setTarget" element={<ProtectedRoute roles={["coordinator", "admin"]}><SetTarget/></ProtectedRoute>} />
+        <Route path="/coordinator-dashboard/calculate-attainment" element={<ProtectedRoute roles={["coordinator", "admin"]}><CalculateAttainment/></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/downloadreport" element={<ProtectedRoute roles={["coordinator", "admin"]}><DownloadReport/></ProtectedRoute>} />
       </Route>
 
