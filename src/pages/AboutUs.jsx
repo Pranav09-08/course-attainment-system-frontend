@@ -3,6 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin, faGithub } from '@fortawesome/free-brands-svg-icons';
 
+import Dipali from '../assets/Dipali.jpg';
+import Pranav from '../assets/Pranav.jpg';
+import Jagruti from '../assets/Jagruti.jpg';
+
 const AboutUs = () => {
   // Inline styles
   const styles = {
@@ -11,7 +15,7 @@ const AboutUs = () => {
       margin: '0 auto',
       padding: '40px 20px',
       fontFamily: '"Poppins", sans-serif',
-      backgroundColor: '#1a1a1a', // Dark background
+      backgroundColor: '#1D222B', // Dark background
       color: '#f4f4f4', // Light text
       lineHeight: '1.8',
     },
@@ -35,7 +39,7 @@ const AboutUs = () => {
     projectInfo: {
       backgroundColor: '#2c3e50',
       borderRadius: '12px',
-      border: '2px solid #3498db', // Border added
+      border: '2px solid #505AC9', // Border added
       padding: '30px',
       margin: '40px 0',
       transition: 'transform 0.3s ease, box-shadow 0.3s ease',
@@ -54,7 +58,7 @@ const AboutUs = () => {
     teamMember: {
       backgroundColor: '#2c3e50',
       borderRadius: '12px',
-      border: '2px solid #3498db', // Border added
+      border: '2px solid #505AC9', // Border added
       padding: '25px',
       width: '280px',
       textAlign: 'center',
@@ -66,7 +70,7 @@ const AboutUs = () => {
       boxShadow: '0 8px 24px rgba(52, 152, 219, 0.6)',
     },
     teamMemberImage: {
-      borderRadius: '50%',
+      borderRadius: '30%',
       width: '120px',
       height: '120px',
       marginBottom: '20px',
@@ -109,29 +113,29 @@ const AboutUs = () => {
     {
       name: 'Dipali Deore',
       role: 'Frontend Developer | UI/UX Designer',
-      bio: 'John is passionate about creating beautiful and responsive user interfaces.',
+      bio: 'Responsible for designing and developing the user interface, ensuring a seamless and responsive user experience while integrating the frontend with backend APIs.',
       email: 'deepalideore2005@gmail.com',
       linkedin: 'https://www.linkedin.com/in/dipali-deore-72a34230b?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app',
-      github: 'https://github.com/johndoe',
-      image: 'https://via.placeholder.com/120',
+      github: 'https://github.com/DipaliDeore',
+      image: Dipali,
     },
     {
       name: 'Pranav Mahale',
       role: 'Backend Developer | Database Specialist',
-      bio: 'Jane specializes in building robust and scalable backend systems.',
-      email: 'jane.smith@example.com',
-      linkedin: 'https://linkedin.com/in/janesmith',
-      github: 'https://github.com/janesmith',
-      image: 'https://via.placeholder.com/120',
+      bio: 'Handles server-side logic, database management, and API development, ensuring secure data communication and system efficiency.',
+      email: 'pranavmahale08@gmail.com',
+      linkedin: 'https://www.linkedin.com/in/pranav-mahale-b122aa258/',
+      github: 'https://github.com/Pranav09-08',
+      image: Pranav,
     },
     {
       name: 'Jagruti Kaulkar',
       role: 'Full Stack Developer | Project Manager',
-      bio: 'Alice ensures the project runs smoothly and integrates all components seamlessly.',
-      email: 'alice.johnson@example.com',
-      linkedin: 'https://linkedin.com/in/alicejohnson',
-      github: 'https://github.com/alicejohnson',
-      image: 'https://via.placeholder.com/120',
+      bio: 'Oversees the overall progress, coordinates the team, manages deployments, and ensures proper documentation and smooth execution of the project.',
+      email: 'jagrutikaulkar0@gmail.com',
+      linkedin: 'https://www.linkedin.com/in/jagruti-kaulkar-41b167346/',
+      github: 'https://github.com/jagrutikaulkar',
+      image: Jagruti,
     },
   ];
 
@@ -145,17 +149,9 @@ const AboutUs = () => {
         onMouseEnter={(e) => (e.currentTarget.style.transform = styles.projectInfoHover.transform)}
         onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
       >
-        <h2 style={styles.subHeading}>Our Project : Course Attainment System</h2>
         <p>
-          The Course Attainment System is a web-based platform designed to help educators and students track and manage course progress, grades, and learning outcomes efficiently. Our system provides a user-friendly interface, real-time updates, and secure access to ensure a seamless experience.
+        Welcome to the Course Attainment System, a project developed to enhance the tracking and evaluation of student learning outcomes. Our team has worked diligently to build a robust, efficient, and user-friendly platform that streamlines course performance assessment for educators and institutions.we have built a system that enables faculty members to track course outcomes effectively, analyze student performance, and generate insightful reports.
         </p>
-        <h3 style={styles.subHeading}>Key Features:</h3>
-        <ul>
-          <li>Real-time progress tracking</li>
-          <li>Secure user authentication</li>
-          <li>Interactive dashboards</li>
-          <li>Customizable reports</li>
-        </ul>
       </div>
 
       {/* Team Members */}
