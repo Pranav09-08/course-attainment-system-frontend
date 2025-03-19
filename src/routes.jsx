@@ -34,12 +34,10 @@ import AddStudents from "./pages/admin/AddStudents";
 import SeeStudents from "./pages/admin/SeeStudents";
 import UpdateCourseCoordinator from './pages/admin/UpdateCourseCoordinator';
 import UpdateStudent from './pages/admin/UpdateStudent';
-<<<<<<< HEAD
 import AboutUs from './pages/AboutUs';
-=======
 import CalculateAttainment from "./pages/coordinator/CalculateAttainment";
 import ShowMarksTarget from "./pages/coordinator/ShowMarksTarget";
->>>>>>> 70f4f25 (Calculate Attainment)
+
 
  
 const AppRoutes = () => {
