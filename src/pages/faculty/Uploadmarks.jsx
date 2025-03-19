@@ -4,7 +4,6 @@ import axios from "axios";
 const Uploadmarks = () => {
   const [userData, setUserData] = useState([]); // ✅ Initialize as an array
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const userRole = storedUser?.user?.role;
@@ -23,12 +22,12 @@ const Uploadmarks = () => {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
 
-        console.log("Fetched data:", response.data);
+        
         setUserData(Array.isArray(response.data) ? response.data : []); // ✅ Ensure it's an array
 
       } catch (err) {
         console.error("Error fetching faculty course data:", err);
-        setError("Failed to fetch course allotment data!");
+        alert("Failed to fetch course allotment data! Please try again later."); // Show alert
       } finally {
         setLoading(false);
       }
@@ -38,7 +37,6 @@ const Uploadmarks = () => {
   }, []);
 
   if (loading) return <div className="text-center mt-5">Loading...</div>;
-  if (error) return <div className="text-danger text-center mt-5">{error}</div>;
 
   return (
     <div className="container mt-5 p-4 border rounded shadow-sm bg-light">

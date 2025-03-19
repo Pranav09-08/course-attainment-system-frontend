@@ -1,15 +1,19 @@
 import { useState } from "react";
 import React from "react";
+import { FaSpinner } from "react-icons/fa";
 
 const initialState = {
   name: "",
   email: "",
+  phone: "",
+  address: "",
   message: "",
 };
 
 export const Contact = ({ data }) => {
   const [formData, setFormData] = useState(initialState);
-  const [responseMessage, setResponseMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast] = useState(null); // toast state
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,12 +22,28 @@ export const Contact = ({ data }) => {
 
   const clearState = () => setFormData(initialState);
 
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!formData.name || !formData.email || !formData.message) {
+      showToast("Please fill in all required fields.", "error");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      showToast("Please enter a valid email address.", "error");
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
-      // Adjust the URL to match your backend endpoint
-      const response = await fetch("http://localhost:5001/contact", {
+      const response = await fetch("https://teacher-attainment-system-backend.onrender.com/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -33,21 +53,33 @@ export const Contact = ({ data }) => {
 
       if (response.ok) {
         console.log("Message sent:", result.message);
-        setResponseMessage("Message sent successfully!");
+        showToast("Message sent successfully!");
         clearState();
       } else {
         console.error("Email error:", result.error);
-        setResponseMessage("Failed to send message. Please try again.");
+        showToast("Failed to send message. Please try again.", "error");
       }
     } catch (error) {
       console.error("Request error:", error);
-      setResponseMessage("Something went wrong. Please try again later.");
+      showToast("Something went wrong. Please try again later.", "error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div id="contact">
       <div className="container">
+        {toast && (
+          <div
+            className={`alert ${
+              toast.type === "error" ? "alert-danger" : "alert-success"
+            }`}
+          >
+            {toast.message}
+          </div>
+        )}
+
         <div className="row justify-content-center">
           {/* Contact Form */}
           <div className="col-md-8">
@@ -67,7 +99,7 @@ export const Contact = ({ data }) => {
                       id="name"
                       name="name"
                       className="form-control"
-                      placeholder="Name"
+                      placeholder="Name *"
                       required
                       value={formData.name}
                       onChange={handleChange}
@@ -81,9 +113,37 @@ export const Contact = ({ data }) => {
                       id="email"
                       name="email"
                       className="form-control"
-                      placeholder="Email"
+                      placeholder="Email *"
                       required
                       value={formData.email}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-6">
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      id="phone"
+                      name="phone"
+                      className="form-control"
+                      placeholder="Phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      id="address"
+                      name="address"
+                      className="form-control"
+                      placeholder="Address"
+                      value={formData.address}
                       onChange={handleChange}
                     />
                   </div>
@@ -95,19 +155,26 @@ export const Contact = ({ data }) => {
                   id="message"
                   className="form-control"
                   rows="4"
-                  placeholder="Message"
+                  placeholder="Message *"
                   required
                   value={formData.message}
                   onChange={handleChange}
                 ></textarea>
               </div>
-              <button type="submit" className="btn btn-custom btn-lg btn-block">
-                Send Message
+              <button
+                type="submit"
+                className="btn btn-custom btn-lg btn-block"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <FaSpinner className="spinner" /> Sending...
+                  </>
+                ) : (
+                  "Send Message"
+                )}
               </button>
             </form>
-            {responseMessage && (
-              <p className="mt-2 text-center">{responseMessage}</p>
-            )}
           </div>
 
           {/* Contact Info */}
