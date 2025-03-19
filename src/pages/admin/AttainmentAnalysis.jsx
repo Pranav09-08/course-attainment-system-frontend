@@ -16,7 +16,7 @@ const AttainmentAnalysis = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`http://localhost:5001/admin/course-attainment-analysis/${courseId}`);
+                const response = await axios.get(`https://teacher-attainment-system-backend.onrender.com/admin/course-attainment-analysis/${courseId}`);
                 if (response.data && response.data.length > 0) {
                     // Check if any attainment data is missing (e.g., total, or other relevant fields)
                     const missingData = response.data.some(item => 
