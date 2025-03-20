@@ -163,7 +163,7 @@ const UpdateCourses = () => {
     // Validate Course Name
     if (!formData.course_name.trim()) {
       newErrors.course_name = "Course Name is required.";
-    } else if (!/^[A-Za-z\s]+$/.test(formData.course_name)) {
+    } else if (!/^[A-Za-z0-9]+$/.test(formData.course_name)) {
       newErrors.course_name = "Course Name should contain only alphabets and spaces.";
     }
 
@@ -345,19 +345,15 @@ const UpdateCourses = () => {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            {/* Course ID */}
+            {/* Course ID (Read-only) */}
             <Form.Group>
               <Form.Label>Course ID</Form.Label>
               <Form.Control
                 type="text"
                 name="course_id"
                 value={formData.course_id}
-                onChange={handleChange}
-                isInvalid={!!errors.course_id}
+                readOnly // Make it non-editable
               />
-              <Form.Control.Feedback type="invalid">
-                {errors.course_id}
-              </Form.Control.Feedback>
             </Form.Group>
 
             {/* Course Name */}

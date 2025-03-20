@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Container, Card, Table, Spinner, Alert } from "react-bootstrap";
 
-const AllottedCourses = () => {
+const AllottedCourseCoordinator = () => {
   const [allottedCourses, setAllottedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -33,7 +33,7 @@ const AllottedCourses = () => {
         if (Array.isArray(response.data) && response.data.length > 0) {
           setAllottedCourses(response.data);
         } else {
-          throw new Error("No course allotments found.");
+          throw new Error("No Allotted CourseCoordinator found.");
         }
       } catch (err) {
         console.error("❌ API Fetch Error:", err);
@@ -88,7 +88,7 @@ const AllottedCourses = () => {
               </tbody>
             </Table>
           ) : (
-            <Alert variant="info">No course allotments found.</Alert>
+            <Alert variant="info">No Allotted CourseCoordinator found.</Alert>
           )}
         </Card.Body>
       </Card>
@@ -96,4 +96,4 @@ const AllottedCourses = () => {
   );
 };
 
-export default AllottedCourses;
+export default AllottedCourseCoordinator;

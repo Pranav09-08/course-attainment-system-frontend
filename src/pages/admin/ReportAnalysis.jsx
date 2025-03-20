@@ -29,18 +29,19 @@ const ReportAnalysis = () => {
       setLoading(true);
       setError("");
 
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      const token = storedUser?.accessToken;
-
-      if (!token) {
-        setError("Unauthorized: Please log in again.");
-        setLoading(false);
-        return;
-      }
-
       try {
+        // ✅ Get User Data from LocalStorage
+        const storedUser = JSON.parse(localStorage.getItem("user")) || {};
+        const token = storedUser?.accessToken;
+        const dept_id = storedUser?.user?.id; // Extract dept_id from localStorage
+
+        if (!token || !dept_id) {
+          throw new Error("Unauthorized: Please log in again.");
+        }
+
+        // ✅ API Request
         const response = await axios.get(
-          "https://teacher-attainment-system-backend.onrender.com/admin/allotment/get-allotted-courses",
+          `http://localhost:5001/admin/allotment/get-allotted-courses/${dept_id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -49,10 +50,11 @@ const ReportAnalysis = () => {
         if (response.data?.data.length > 0) {
           setAllottedCourses(response.data.data);
         } else {
-          setError("No course allotments found.");
+          throw new Error("No course allotments found.");
         }
       } catch (err) {
-        setError("Failed to fetch course allotments. Please try again.");
+        console.error("❌ API Fetch Error:", err);
+        setError(err.response?.data?.msg || err.message || "Failed to fetch course allotments. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -61,12 +63,19 @@ const ReportAnalysis = () => {
     fetchAllottedCourses();
   }, []);
 
-  const uniqueYears = [
-    ...new Set(allottedCourses.map((course) => course.academic_yr)),
-  ];
-  const uniqueSems = [...new Set(allottedCourses.map((course) => course.sem))];
+  // Filter unique courses based on course_id
+  const uniqueCourses = Array.from(
+    new Set(allottedCourses.map((course) => course.course_id))
+  ).map((course_id) => {
+    return allottedCourses.find((course) => course.course_id === course_id);
+  });
 
-  const filteredCourses = allottedCourses.filter((course) => {
+  const uniqueYears = [
+    ...new Set(uniqueCourses.map((course) => course.academic_yr)),
+  ];
+  const uniqueSems = [...new Set(uniqueCourses.map((course) => course.sem))];
+
+  const filteredCourses = uniqueCourses.filter((course) => {
     return (
       (searchTerm === "" ||
         course.course_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -150,10 +159,6 @@ const ReportAnalysis = () => {
                   <Card.Text>
                     <strong>Course ID:</strong> {course.course_id} <br />
                     <strong>Course Name:</strong> {course.course_name} <br />
-                    <strong>Faculty ID:</strong> {course.faculty_id} <br />
-                    <strong>Faculty Name:</strong> {course.faculty_name} <br />
-                    <strong>Class:</strong> {course.class} <br />
-                    <strong>Semester:</strong> {course.sem} <br />
                     <strong>Academic Year:</strong> {course.academic_yr}
                   </Card.Text>
                 </Card.Body>
