@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Form, InputGroup, FormControl, Button } from "react-bootstrap";
+import { Form, InputGroup, FormControl, Button, Modal,Row,Col,Card } from "react-bootstrap";
 
 const CalculateAttainment = () => {
   const [courses, setCourses] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedSem, setSelectedSem] = useState("");
+  const [showModal, setShowModal] = useState(false); // Modal state
+  const [facultyDetails, setFacultyDetails] = useState([]); // Faculty details state
+  const [selectedCourseId, setSelectedCourseId] = useState(null); // Track selected course
   const navigate = useNavigate();
 
   const storedUser = JSON.parse(localStorage.getItem("user")); // Retrieve user details
@@ -49,6 +52,33 @@ const CalculateAttainment = () => {
         console.error("Error fetching courses:", error.response ? error.response.data : error.message);
       });
   }, [facultyId]);
+
+  // Function to handle fetching faculty details when clicking on the "Details" button
+  const handleShowFacultyDetails = (courseId, academic_yr, dept_id) => {
+    setSelectedCourseId(courseId);
+
+    axios
+      .get(
+        `http://localhost:5001/attainment/get-faculty?courseId=${courseId}&deptId=${dept_id}&academicYr=${academic_yr}`
+      )
+      .then((response) => {
+        console.log("Faculty Details API Response:", response);
+        if (response.data && response.data.length > 0) {
+          setFacultyDetails(response.data);
+          setShowModal(true); // Show the modal with faculty details
+        } else {
+          console.error("No faculty found for the selected course.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching faculty details:", error.response ? error.response.data : error.message);
+      });
+  };
+
+
+  // Function to close the modal
+  const handleCloseModal = () => setShowModal(false);
+
 
   const handleViewAttainment = (courseId, academicYear, deptId) => {
     console.log(
@@ -173,9 +203,12 @@ const CalculateAttainment = () => {
                     }
                     className="btn btn-outline-primary w-100 mb-2"
                   >
-                    View Attainment
+                    Calculate Attainment
                   </button>
-                  <button className="btn btn-outline-secondary w-100">
+                  <button
+                    onClick={() => handleShowFacultyDetails(course.course_id, course.academic_yr, course.dept_id)}
+                    className="btn btn-outline-secondary w-100"
+                  >
                     Details
                   </button>
                 </div>
@@ -184,6 +217,45 @@ const CalculateAttainment = () => {
           ))}
         </div>
       )}
+      {/* Modal for Faculty Details */}
+      <Modal show={showModal} onHide={handleCloseModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Faculty Details</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {facultyDetails.length === 0 ? (
+            <p className="text-center">No faculty data available for this course.</p>
+          ) : (
+            <div className="container">
+              {facultyDetails.map((faculty) => (
+                <Row key={faculty.faculty_id} className="mb-3">
+                  <Col md={12}>
+                    <Card className="shadow-sm">
+                      <Card.Body>
+                        <h5 className="card-title">{faculty.name}</h5>
+                        <p className="card-text">
+                          <strong>Email:</strong> {faculty.email}
+                        </p>
+                        <p className="card-text">
+                          <strong>Mobile:</strong> {faculty.mobile_no}
+                        </p>
+                        <p className="card-text">
+                          <strong>Class:</strong> {faculty.class}
+                        </p>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                </Row>
+              ))}
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
