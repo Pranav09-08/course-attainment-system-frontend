@@ -41,7 +41,7 @@ const ReportAnalysis = () => {
 
         // ✅ API Request
         const response = await axios.get(
-          `http://localhost:5001/admin/allotment/get-allotted-courses/${dept_id}`,
+          `https://teacher-attainment-system-backend.onrender.com/admin/allotment/get-allotted-courses/${dept_id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

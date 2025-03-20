@@ -39,9 +39,10 @@ const UpdateCourseAllotment = () => {
   const fetchAllotments = async () => {
     setLoading(true);
     setError("");
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    const token = storedUser?.accessToken;
-
+    const storedUser = JSON.parse(localStorage.getItem("user")) || {};
+        const token = storedUser?.accessToken;
+        const dept_id = storedUser?.user?.id;
+        
     if (!token) {
       setError("Unauthorized: Please log in again.");
       setLoading(false);
@@ -50,7 +51,7 @@ const UpdateCourseAllotment = () => {
 
     try {
       const response = await axios.get(
-        "https://teacher-attainment-system-backend.onrender.com/admin/allotment/get-allotted-courses",
+        `https://teacher-attainment-system-backend.onrender.com/admin/allotment/get-allotted-courses/${dept_id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
