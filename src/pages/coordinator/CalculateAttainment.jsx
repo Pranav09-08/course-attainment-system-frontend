@@ -59,7 +59,7 @@ const CalculateAttainment = () => {
 
     axios
       .get(
-        `http://localhost:5001/attainment/get-faculty?courseId=${courseId}&deptId=${dept_id}&academicYr=${academic_yr}`
+        `https://teacher-attainment-system-backend.onrender.com/attainment/get-faculty?courseId=${courseId}&deptId=${dept_id}&academicYr=${academic_yr}`
       )
       .then((response) => {
         console.log("Faculty Details API Response:", response);

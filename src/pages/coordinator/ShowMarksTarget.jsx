@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify"; // Import ToastContainer and toast
+import "react-toastify/dist/ReactToastify.css"; // Import the toastify styles
 
 const ShowMarksTarget = () => {
   const { courseId, dept_id, academicYear } = useParams();
@@ -26,42 +28,55 @@ const ShowMarksTarget = () => {
           `https://teacher-attainment-system-backend.onrender.com/report/show-marktarget?courseId=${courseId}&deptId=${dept_id}&academicYear=${academicYear}`
         );
 
-        // Log the entire response for debugging
         console.log("Backend Response:", response.data);
 
-        // Extract target and marks data from the response
         const { target, marks } = response.data.data;
 
-        console.log("Target Data:", target);
-
-        // Convert target data to an array if it's an object
         const targetData = target
           ? Object.keys(target)
-              .filter((key) => key.startsWith('target') || key.startsWith('sppu')) // Only select relevant keys
+              .filter((key) => key.startsWith("target") || key.startsWith("sppu"))
               .reduce((acc, key, index, arr) => {
                 const targetKey = arr[index % 2 === 0 ? index : index - 1];
                 const sppuKey = arr[index % 2 === 1 ? index : index + 1];
                 if (index % 2 === 0) {
                   acc.push({
-                    target: target[targetKey], // target1, target2, etc.
-                    sppu: target[sppuKey],     // sppu1, sppu2, etc.
+                    target: target[targetKey],
+                    sppu: target[sppuKey],
                   });
                 }
                 return acc;
               }, [])
           : [];
 
-        console.log("Marks Data:", marks);
-
-        // Ensure marks is an array before setting state
         const marksData = Array.isArray(marks) ? marks : [];
 
-        // Set state with the fetched data
         setMarksData(marksData);
         setTargetData(targetData);
+
+        // Show success toast notification
+        toast.success("Data fetched successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "colored",
+        });
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("Failed to fetch marks and target data");
+
+        // Show error toast notification
+        toast.error("Failed to fetch data. Please try again.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "colored",
+        });
       } finally {
         setLoading(false);
       }
@@ -74,31 +89,48 @@ const ShowMarksTarget = () => {
     setAttainmentLoading(true);
 
     try {
-      // Prepare the request payload
       const payload = {
         course_id: courseId,
         academic_yr: academicYear,
         dept_id: dept_id,
-        modified_by: "admin", // Replace with the actual user or fetch from context
+        modified_by: "admin",
       };
 
-      // Log the payload for debugging
       console.log("Sending Payload:", payload);
 
-      // Send a POST request to the API
       const response = await axios.post(
         "https://teacher-attainment-system-backend.onrender.com/attainment/update-level-targets",
         payload
       );
 
-      // Log the response for debugging
       console.log("API Response:", response.data);
 
-      // Set the attainment data
       setAttainmentData(response.data.message);
+
+      // Show success toast notification
+      toast.success("Attainment calculated successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
     } catch (error) {
       console.error("Error calculating attainment:", error);
       setAttainmentData("Failed to calculate attainment");
+
+      // Show error toast notification
+      toast.error("Failed to calculate attainment.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
     } finally {
       setAttainmentLoading(false);
     }
@@ -112,7 +144,9 @@ const ShowMarksTarget = () => {
     <div className="container mt-5">
       <h2 className="text-center text-primary">Marks and Target Data</h2>
 
-      {/* Target Data Table */}
+      {/* Toast Container for showing toast messages */}
+      <ToastContainer />
+
       <div className="table-responsive mt-4">
         <h4 className="text-center">Target Data</h4>
         <table className="table table-bordered text-center bg-white shadow-lg mx-auto">
@@ -138,7 +172,6 @@ const ShowMarksTarget = () => {
         </table>
       </div>
 
-      {/* Marks Data Table */}
       <div className="table-responsive mt-4">
         <h4 className="text-center">Marks Data</h4>
         <table className="table table-bordered text-center bg-white shadow-lg mx-auto">
@@ -181,7 +214,6 @@ const ShowMarksTarget = () => {
         </table>
       </div>
 
-      {/* Calculate Attainment Button */}
       <div className="text-center mt-4">
         <button
           onClick={calculateAttainment}
@@ -191,11 +223,6 @@ const ShowMarksTarget = () => {
           {attainmentLoading ? "Calculating..." : "Calculate Attainment"}
         </button>
 
-        {attainmentData && (
-          <div className="mt-3 text-white">
-            <strong>{attainmentData}</strong>
-          </div>
-        )}
       </div>
     </div>
   );
