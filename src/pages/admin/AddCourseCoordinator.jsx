@@ -35,7 +35,6 @@ const AddCourseAllotment = () => {
     return years.reverse(); // Reverse to show the oldest year first
   };
 
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -215,85 +214,10 @@ const AddCourseAllotment = () => {
                     onChange={handleChange}
                   >
                     <option value="">Select Class</option>
-
-                    {/* FE Class */}
                     <option value="FE">FE</option>
-
-                    {/* SE, TE, BE Classes based on dept_id */}
-                    {formData.dept_id === 1 &&
-                      [...Array(4)].map((_, i) => (
-                        <option key={`SE${i + 1}`} value={`SE${i + 1}`}>
-                          {`SE${i + 1}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 2 &&
-                      [...Array(4)].map((_, i) => (
-                        <option key={`SE${i + 5}`} value={`SE${i + 5}`}>
-                          {`SE${i + 5}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 3 &&
-                      [...Array(3)].map((_, i) => (
-                        <option key={`SE${i + 9}`} value={`SE${i + 9}`}>
-                          {`SE${i + 9}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 4 && (
-                      <option value="SE12">SE12</option>
-                    )}
-                    {formData.dept_id === 5 && (
-                      <option value="SE13">SE13</option>
-                    )}
-
-                    {formData.dept_id === 1 &&
-                      [...Array(4)].map((_, i) => (
-                        <option key={`TE${i + 1}`} value={`TE${i + 1}`}>
-                          {`TE${i + 1}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 2 &&
-                      [...Array(4)].map((_, i) => (
-                        <option key={`TE${i + 5}`} value={`TE${i + 5}`}>
-                          {`TE${i + 5}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 3 &&
-                      [...Array(3)].map((_, i) => (
-                        <option key={`TE${i + 9}`} value={`TE${i + 9}`}>
-                          {`TE${i + 9}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 4 && (
-                      <option value="TE12">TE12</option>
-                    )}
-                    {formData.dept_id === 5 && (
-                      <option value="TE13">TE13</option>
-                    )}
-
-                    {formData.dept_id === 1 &&
-                      [...Array(4)].map((_, i) => (
-                        <option key={`BE${i + 1}`} value={`BE${i + 1}`}>
-                          {`BE${i + 1}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 2 &&
-                      [...Array(4)].map((_, i) => (
-                        <option key={`BE${i + 5}`} value={`BE${i + 5}`}>
-                          {`BE${i + 5}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 3 &&
-                      [...Array(3)].map((_, i) => (
-                        <option key={`BE${i + 9}`} value={`BE${i + 9}`}>
-                          {`BE${i + 9}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 4 && (
-                      <option value="BE12">BE12</option>
-                    )}
-                    {formData.dept_id === 5 && (
-                      <option value="BE13">BE13</option>
-                    )}
+                    <option value="SE">SE</option>
+                    <option value="TE">TE</option>
+                    <option value="BE">BE</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -313,21 +237,21 @@ const AddCourseAllotment = () => {
               </Col>
             </Row>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Academic Year</Form.Label>
-                <Form.Select
-                  name="academic_yr"
-                  value={formData.academic_yr}
-                  onChange={handleChange}
-                >
-                  <option value="">Select Academic Year</option>
-                  {getCurrentAcademicYears().map((year, index) => (
-                    <option key={index} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Academic Year</Form.Label>
+              <Form.Select
+                name="academic_yr"
+                value={formData.academic_yr}
+                onChange={handleChange}
+              >
+                <option value="">Select Academic Year</option>
+                {getCurrentAcademicYears().map((year, index) => (
+                  <option key={index} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
 
             <Button
               variant="primary"
