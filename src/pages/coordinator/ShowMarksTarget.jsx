@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify"; // Import ToastContainer and toast
-import "react-toastify/dist/ReactToastify.css"; // Import the toastify styles
-
+import { ToastContainer } from "react-toastify"; // Import ToastContainer
+import { showToast } from "../../components/Toast";  // Import showToast
 const ShowMarksTarget = () => {
   const { courseId, dept_id, academicYear } = useParams();
   console.log("Extracted Params:", { courseId, dept_id, academicYear });
@@ -54,29 +53,13 @@ const ShowMarksTarget = () => {
         setTargetData(targetData);
 
         // Show success toast notification
-        toast.success("Data fetched successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: "colored",
-        });
+        showToast("success", "Data fetched successfully!");
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("Failed to fetch marks and target data");
 
         // Show error toast notification
-        toast.error("Failed to fetch data. Please try again.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: "colored",
-        });
+        showToast("error", "Failed to fetch data. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -108,29 +91,13 @@ const ShowMarksTarget = () => {
       setAttainmentData(response.data.message);
 
       // Show success toast notification
-      toast.success("Attainment calculated successfully!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
+      showToast("success","Attainment calculated successfully!");
     } catch (error) {
       console.error("Error calculating attainment:", error);
       setAttainmentData("Failed to calculate attainment");
 
       // Show error toast notification
-      toast.error("Failed to calculate attainment.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
+      showToast("error","Failed to calculate attainment");
     } finally {
       setAttainmentLoading(false);
     }
@@ -222,7 +189,6 @@ const ShowMarksTarget = () => {
         >
           {attainmentLoading ? "Calculating..." : "Calculate Attainment"}
         </button>
-
       </div>
     </div>
   );

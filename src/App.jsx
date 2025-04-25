@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppRoutes from "./routes";  // ✅ Import only the routes
-// import { getCurrentUser,} from "./services/authServices";
-import { setUserRole } from './redux/actions'; // Adjust the path if necessary
-
+import { setUserRole } from './redux/actions'; 
 import { useDispatch } from "react-redux";
 
 import '@coreui/coreui/dist/css/coreui.min.css';
