@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Row, Col, Table, Container, Spinner, Alert, Form, InputGroup, Button } from "react-bootstrap";
+import { Row, Col, Table, Container, Alert, Form, InputGroup, Button } from "react-bootstrap";
+import LoaderPage from "../../components/LoaderPage";
 
 const SeeFaculty = () => {
-  const [facultyList, setFacultyList] = useState([]); // Original faculty list
-  const [filteredFacultyList, setFilteredFacultyList] = useState([]); // Filtered faculty list
+  const [facultyList, setFacultyList] = useState([]);
+  const [filteredFacultyList, setFilteredFacultyList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
-  const [searchTerm, setSearchTerm] = useState(""); // State for search term
+  const [searchTerm, setSearchTerm] = useState("");
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
-  const { user } = storedUser;
-  const { id: dept_id } = user;
+  const { user } = storedUser || {};
+  const { id: dept_id } = user || {};
 
   useEffect(() => {
     const token = storedUser?.accessToken;
@@ -24,39 +25,44 @@ const SeeFaculty = () => {
     const fetchFacultyList = async () => {
       try {
         const response = await axios.get(
-          `https://teacher-attainment-system-backend.onrender.com/profile/faculty/department/${dept_id}`
+          `https://teacher-attainment-system-backend.onrender.com/profile/faculty/department/${dept_id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
         );
-        console.log("Faculty list fetched:", response.data);
+        
         setFacultyList(response.data);
-        setFilteredFacultyList(response.data); // Initialize filtered list with all faculty
-        setLoading(false);
+        setFilteredFacultyList(response.data);
       } catch (error) {
         console.error("Error fetching faculty list:", error);
-        setMessage("Failed to load faculty list.");
+        setMessage(error.response?.data?.message || "Failed to load faculty list.");
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchFacultyList();
-  }, [dept_id]);
+    if (dept_id) {
+      fetchFacultyList();
+    }
+  }, [dept_id, storedUser]);
 
-  // Handle search input change
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
 
-    // Filter faculty list based on search term
     const filtered = facultyList.filter(
       (faculty) =>
-        faculty.faculty_id.toString().includes(term) || // Search by faculty_id
-        faculty.name.toLowerCase().includes(term.toLowerCase()) // Search by name
+        faculty.faculty_id.toString().includes(term) ||
+        faculty.name.toLowerCase().includes(term.toLowerCase())
     );
-
     setFilteredFacultyList(filtered);
   };
 
   return (
-    <Container fluid className="p-4">
+    <Container fluid className="p-4" style={{ position: "relative", minHeight: "80vh" }}>
+      {/* Loader positioned absolutely within the container */}
+      <LoaderPage loading={loading} />
+
       <h2 className="text-center text-primary mb-4">Faculty List</h2>
 
       {/* Search Bar */}
@@ -69,25 +75,26 @@ const SeeFaculty = () => {
               value={searchTerm}
               onChange={handleSearch}
             />
-            <Button variant="outline-secondary" onClick={() => setSearchTerm("")}>
+            <Button
+              variant="outline-secondary"
+              onClick={() => setSearchTerm("")}
+              disabled={!searchTerm}
+            >
               Clear
             </Button>
           </InputGroup>
         </Col>
       </Row>
 
-      {loading ? (
-        <div className="text-center">
-          <Spinner animation="border" variant="primary" />
-          <p>Loading faculty list...</p>
-        </div>
-      ) : message ? (
+      {message && (
         <Alert variant="danger" className="text-center">
           {message}
         </Alert>
-      ) : (
-        <Table striped bordered hover responsive>
-          <thead>
+      )}
+
+      {!loading && (
+        <Table striped bordered hover responsive className="mt-3">
+          <thead className="table-dark">
             <tr>
               <th>Faculty ID</th>
               <th>Name</th>
@@ -98,8 +105,10 @@ const SeeFaculty = () => {
           <tbody>
             {filteredFacultyList.length === 0 ? (
               <tr>
-                <td colSpan="4" className="text-center">
-                  No faculty found matching your search.
+                <td colSpan="4" className="text-center text-muted">
+                  {facultyList.length === 0 
+                    ? "No faculty members found" 
+                    : "No matching faculty found"}
                 </td>
               </tr>
             ) : (
@@ -108,7 +117,7 @@ const SeeFaculty = () => {
                   <td>{faculty.faculty_id}</td>
                   <td>{faculty.name}</td>
                   <td>{faculty.email}</td>
-                  <td>{faculty.mobile_no}</td>
+                  <td>{faculty.mobile_no || "N/A"}</td>
                 </tr>
               ))
             )}

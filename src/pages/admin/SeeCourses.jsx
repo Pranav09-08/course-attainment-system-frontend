@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Table, Spinner, Alert, InputGroup, Form, Button, Container } from "react-bootstrap";
+import { Table, Alert, InputGroup, Form, Button, Container } from "react-bootstrap";
+import LoaderPage from "../../components/LoaderPage"; // Adjust the import path as needed
 
 const AllCourses = () => {
   const [courses, setCourses] = useState([]); // Original courses list
@@ -73,6 +74,9 @@ const AllCourses = () => {
 
   return (
     <Container className="mt-5">
+      {/* Loader Component */}
+      <LoaderPage loading={loading} />
+
       <h2 className="text-center mb-4">All Courses</h2>
 
       {/* Search Bar */}
@@ -94,15 +98,6 @@ const AllCourses = () => {
           </InputGroup>
         </div>
       </div>
-
-      {/* Loading State */}
-      {loading && (
-        <div className="text-center">
-          <Spinner animation="border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
-        </div>
-      )}
 
       {/* Error Message */}
       {error && (
