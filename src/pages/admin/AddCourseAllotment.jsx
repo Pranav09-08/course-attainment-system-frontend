@@ -17,6 +17,7 @@ const AddCourseAllotment = () => {
   const [formData, setFormData] = useState({
     course_id: "",
     faculty_id: "",
+    class_type: "", // New field for class type (FE/SE/TE/BE)
     class: "",
     sem: "",
     academic_yr: "",
@@ -34,15 +35,14 @@ const AddCourseAllotment = () => {
   }, []);
 
   const getCurrentAcademicYears = () => {
-    const currentYear = new Date().getFullYear(); // Get the current year
+    const currentYear = new Date().getFullYear();
     const years = [];
 
-    // Add the current year and the previous 5 years
     for (let i = 0; i <= 5; i++) {
       years.push(currentYear - i);
     }
 
-    return years.reverse(); // Reverse to show the oldest year first
+    return years.reverse();
   };
 
   useEffect(() => {
@@ -109,7 +109,13 @@ const AddCourseAllotment = () => {
   }, [formData.dept_id]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ 
+      ...formData, 
+      [name]: value,
+      // Reset class when class_type changes
+      ...(name === "class_type" && { class: "" }) 
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -146,6 +152,7 @@ const AddCourseAllotment = () => {
       setFormData({
         course_id: "",
         faculty_id: "",
+        class_type: "",
         class: "",
         sem: "",
         academic_yr: "",
@@ -159,6 +166,42 @@ const AddCourseAllotment = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderDivisionOptions = () => {
+    if (!formData.class_type) return <option value="">Select Class Type first</option>;
+    
+    if (formData.class_type === "FE") {
+      return <option value="FE">FE</option>;
+    }
+
+    // For SE/TE/BE, show divisions based on department
+    const divisions = [];
+    const prefix = formData.class_type; // SE, TE, or BE
+
+    if (formData.dept_id === 1) {
+      for (let i = 1; i <= 4; i++) {
+        divisions.push(`${prefix}${i}`);
+      }
+    } else if (formData.dept_id === 2) {
+      for (let i = 5; i <= 8; i++) {
+        divisions.push(`${prefix}${i}`);
+      }
+    } else if (formData.dept_id === 3) {
+      for (let i = 9; i <= 11; i++) {
+        divisions.push(`${prefix}${i}`);
+      }
+    } else if (formData.dept_id === 4) {
+      divisions.push(`${prefix}12`);
+    } else if (formData.dept_id === 5) {
+      divisions.push(`${prefix}13`);
+    }
+
+    return divisions.map((division) => (
+      <option key={division} value={division}>
+        {division}
+      </option>
+    ));
   };
 
   return (
@@ -205,94 +248,37 @@ const AddCourseAllotment = () => {
             <Row>
               <Col>
                 <Form.Group className="mb-3">
-                  <Form.Label>Class</Form.Label>
+                  <Form.Label>Class Type</Form.Label>
+                  <Form.Select
+                    name="class_type"
+                    value={formData.class_type}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select Class Type</option>
+                    <option value="FE">FE</option>
+                    <option value="SE">SE</option>
+                    <option value="TE">TE</option>
+                    <option value="BE">BE</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col>
+                <Form.Group className="mb-3">
+                  <Form.Label>Division</Form.Label>
                   <Form.Select
                     name="class"
                     value={formData.class}
                     onChange={handleChange}
+                    disabled={!formData.class_type}
                   >
-                    <option value="">Select Class</option>
-                    {/* FE Class */}
-                    <option value="FE">FE</option>
-
-                    {/* SE, TE, BE Classes based on dept_id */}
-                    {formData.dept_id === 1 &&
-                      [...Array(4)].map((_, i) => (
-                        <option key={`SE${i + 1}`} value={`SE${i + 1}`}>
-                          {`SE${i + 1}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 2 &&
-                      [...Array(4)].map((_, i) => (
-                        <option key={`SE${i + 5}`} value={`SE${i + 5}`}>
-                          {`SE${i + 5}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 3 &&
-                      [...Array(3)].map((_, i) => (
-                        <option key={`SE${i + 9}`} value={`SE${i + 9}`}>
-                          {`SE${i + 9}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 4 && (
-                      <option value="SE12">SE12</option>
-                    )}
-                    {formData.dept_id === 5 && (
-                      <option value="SE13">SE13</option>
-                    )}
-
-                    {formData.dept_id === 1 &&
-                      [...Array(4)].map((_, i) => (
-                        <option key={`TE${i + 1}`} value={`TE${i + 1}`}>
-                          {`TE${i + 1}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 2 &&
-                      [...Array(4)].map((_, i) => (
-                        <option key={`TE${i + 5}`} value={`TE${i + 5}`}>
-                          {`TE${i + 5}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 3 &&
-                      [...Array(3)].map((_, i) => (
-                        <option key={`TE${i + 9}`} value={`TE${i + 9}`}>
-                          {`TE${i + 9}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 4 && (
-                      <option value="TE12">TE12</option>
-                    )}
-                    {formData.dept_id === 5 && (
-                      <option value="TE13">TE13</option>
-                    )}
-
-                    {formData.dept_id === 1 &&
-                      [...Array(4)].map((_, i) => (
-                        <option key={`BE${i + 1}`} value={`BE${i + 1}`}>
-                          {`BE${i + 1}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 2 &&
-                      [...Array(4)].map((_, i) => (
-                        <option key={`BE${i + 5}`} value={`BE${i + 5}`}>
-                          {`BE${i + 5}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 3 &&
-                      [...Array(3)].map((_, i) => (
-                        <option key={`BE${i + 9}`} value={`BE${i + 9}`}>
-                          {`BE${i + 9}`}
-                        </option>
-                      ))}
-                    {formData.dept_id === 4 && (
-                      <option value="BE12">BE12</option>
-                    )}
-                    {formData.dept_id === 5 && (
-                      <option value="BE13">BE13</option>
-                    )}
+                    <option value="">Select Division</option>
+                    {renderDivisionOptions()}
                   </Form.Select>
                 </Form.Group>
               </Col>
+            </Row>
+
+            <Row>
               <Col>
                 <Form.Group className="mb-3">
                   <Form.Label>Semester</Form.Label>
@@ -307,23 +293,24 @@ const AddCourseAllotment = () => {
                   </Form.Select>
                 </Form.Group>
               </Col>
+              <Col>
+                <Form.Group className="mb-3">
+                  <Form.Label>Academic Year</Form.Label>
+                  <Form.Select
+                    name="academic_yr"
+                    value={formData.academic_yr}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select Academic Year</option>
+                    {getCurrentAcademicYears().map((year, index) => (
+                      <option key={index} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
             </Row>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Academic Year</Form.Label>
-              <Form.Select
-                name="academic_yr"
-                value={formData.academic_yr}
-                onChange={handleChange}
-              >
-                <option value="">Select Academic Year</option>
-                {getCurrentAcademicYears().map((year, index) => (
-                  <option key={index} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
 
             <Button
               variant="primary"

@@ -1,5 +1,6 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import LoaderPage from "../../components/LoaderPage"; // Adjust the path as needed
 
 const AddFaculty = () => {
   const [faculty, setFaculty] = useState({
@@ -12,13 +13,15 @@ const AddFaculty = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false); // For initial loading if needed
+  const [operationLoading, setOperationLoading] = useState(false); // For form submission
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser?.user?.id) {
       setFaculty((prev) => ({ ...prev, dept_id: storedUser.user.id }));
-    }
-  }, []);
+    }
+  }, []);
 
   const validate = () => {
     let newErrors = {};
@@ -63,6 +66,8 @@ const AddFaculty = () => {
       return;
     }
 
+    setOperationLoading(true);
+
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = storedUser?.accessToken;
     const { user } = storedUser;
@@ -70,6 +75,7 @@ const AddFaculty = () => {
 
     if (!token) {
       alert("Unauthorized: Please log in again.");
+      setOperationLoading(false);
       return;
     }
 
@@ -88,18 +94,23 @@ const AddFaculty = () => {
         name: "",
         email: "",
         mobile_no: "",
-        dept_id:storedUser.user.id,
+        dept_id: storedUser.user.id,
         password: "",
       });
       setErrors({});
     } catch (error) {
       console.error("Error adding faculty:", error.response?.data || error.message);
       alert("Failed to add faculty. Please try again.");
+    } finally {
+      setOperationLoading(false);
     }
   };
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-5" style={{ position: "relative" }}>
+      {/* Full-page loader for operations */}
+      <LoaderPage loading={operationLoading || loading} />
+
       <div className="row justify-content-center">
         <div className="col-md-6">
           <div className="card shadow-lg border-light rounded">
@@ -119,6 +130,7 @@ const AddFaculty = () => {
                     onChange={handleChange}
                     className={`form-control ${errors.faculty_id ? "is-invalid" : ""}`}
                     required
+                    disabled={operationLoading}
                   />
                   {errors.faculty_id && <div className="invalid-feedback">{errors.faculty_id}</div>}
                 </div>
@@ -134,6 +146,7 @@ const AddFaculty = () => {
                     onChange={handleChange}
                     className={`form-control ${errors.name ? "is-invalid" : ""}`}
                     required
+                    disabled={operationLoading}
                   />
                   {errors.name && <div className="invalid-feedback">{errors.name}</div>}
                 </div>
@@ -149,6 +162,7 @@ const AddFaculty = () => {
                     onChange={handleChange}
                     className={`form-control ${errors.email ? "is-invalid" : ""}`}
                     required
+                    disabled={operationLoading}
                   />
                   {errors.email && <div className="invalid-feedback">{errors.email}</div>}
                 </div>
@@ -164,11 +178,10 @@ const AddFaculty = () => {
                     onChange={handleChange}
                     className={`form-control ${errors.mobile_no ? "is-invalid" : ""}`}
                     required
+                    disabled={operationLoading}
                   />
                   {errors.mobile_no && <div className="invalid-feedback">{errors.mobile_no}</div>}
                 </div>
-
-                
 
                 <div className="mb-3">
                   <label htmlFor="password" className="form-label">Password</label>
@@ -181,12 +194,26 @@ const AddFaculty = () => {
                     onChange={handleChange}
                     className={`form-control ${errors.password ? "is-invalid" : ""}`}
                     required
+                    disabled={operationLoading}
                   />
                   {errors.password && <div className="invalid-feedback">{errors.password}</div>}
                 </div>
 
                 <div className="text-center">
-                  <button type="submit" className="btn btn-primary w-100">Add Faculty</button>
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary w-100"
+                    disabled={operationLoading}
+                  >
+                    {operationLoading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Adding...
+                      </>
+                    ) : (
+                      "Add Faculty"
+                    )}
+                  </button>
                 </div>
               </form>
             </div>

@@ -1,23 +1,25 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Modal, Button, Form, Table, Alert, Spinner, InputGroup, Container, Row, Col } from "react-bootstrap";
+import { Modal, Button, Form, Table, Alert, InputGroup, Container, Row, Col } from "react-bootstrap";
 import "../../styles/SeeFaculty.css";
+import LoaderPage from "../../components/LoaderPage"; // Adjust path as needed
 
 const ManageFaculty = () => {
-  const [facultyList, setFacultyList] = useState([]); // Original faculty list
-  const [filteredFacultyList, setFilteredFacultyList] = useState([]); // Filtered faculty list
+  const [facultyList, setFacultyList] = useState([]);
+  const [filteredFacultyList, setFilteredFacultyList] = useState([]);
   const [selectedFaculty, setSelectedFaculty] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [operationLoading, setOperationLoading] = useState(false); // For update/delete operations
   const [message, setMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(""); // State for search term
-  const [errors, setErrors] = useState({}); // State for validation errors
+  const [searchTerm, setSearchTerm] = useState("");
+  const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
   const storedUser = JSON.parse(localStorage.getItem("user"));
-  const { user } = storedUser;
-  const { id: dept_id } = user;
+  const { user } = storedUser || {};
+  const { id: dept_id } = user || {};
   const token = storedUser?.accessToken;
 
   useEffect(() => {
@@ -34,11 +36,11 @@ const ManageFaculty = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setFacultyList(response.data);
-        setFilteredFacultyList(response.data); // Initialize filtered list with all faculty
-        setLoading(false);
+        setFilteredFacultyList(response.data);
       } catch (error) {
         console.error("Error fetching faculty list:", error);
         setMessage("Failed to load faculty list.");
+      } finally {
         setLoading(false);
       }
     };
@@ -48,7 +50,7 @@ const ManageFaculty = () => {
 
   const handleFacultySelect = (faculty) => {
     setSelectedFaculty(faculty);
-    setErrors({}); // Clear previous errors when opening the modal
+    setErrors({});
     setShowModal(true);
   };
 
@@ -58,12 +60,9 @@ const ManageFaculty = () => {
       ...prevFaculty,
       [name]: value,
     }));
-
-    // Validate input on change
     validateField(name, value);
   };
 
-  // Validation function
   const validateField = (name, value) => {
     let errorMessage = "";
 
@@ -93,7 +92,6 @@ const ManageFaculty = () => {
     }));
   };
 
-  // Validate all fields before submission
   const validateForm = () => {
     const newErrors = {};
 
@@ -110,24 +108,22 @@ const ManageFaculty = () => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Return true if no errors
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return; // Stop if validation fails
-    }
-
+    if (!validateForm()) return;
     if (!token) {
       window.alert("No token found, please login!");
       return;
     }
 
+    setOperationLoading(true);
     try {
-      const response = await axios.put(
-        `http://localhost:5001/admin/update-faculty/${selectedFaculty.faculty_id}`,
+      await axios.put(
+        `https://teacher-attainment-system-backend.onrender.com/admin/update-faculty/${selectedFaculty.faculty_id}`,
         {
           name: selectedFaculty.name,
           email: selectedFaculty.email,
@@ -137,29 +133,21 @@ const ManageFaculty = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Update response:", response);
       window.alert("Faculty details updated successfully!");
       setShowModal(false);
 
-      // Refetch the faculty list after successful update
-      const fetchFacultyList = async () => {
-        try {
-          const response = await axios.get(
-            `https://teacher-attainment-system-backend.onrender.com/profile/faculty/department/${dept_id}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          setFacultyList(response.data);
-          setFilteredFacultyList(response.data); // Update the filtered list as well
-        } catch (error) {
-          console.error("Error fetching faculty list:", error);
-          window.alert("Failed to refresh faculty list.");
-        }
-      };
-
-      fetchFacultyList(); // Call the function to refetch the list
+      // Refetch faculty list
+      const response = await axios.get(
+        `https://teacher-attainment-system-backend.onrender.com/profile/faculty/department/${dept_id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setFacultyList(response.data);
+      setFilteredFacultyList(response.data);
     } catch (error) {
-      console.error("Error updating faculty:", error.response?.data || error.message);
+      console.error("Error updating faculty:", error);
       window.alert(`Failed to update faculty: ${error.response?.data?.message || "Unknown error"}`);
+    } finally {
+      setOperationLoading(false);
     }
   };
 
@@ -167,52 +155,47 @@ const ManageFaculty = () => {
     const confirmDelete = window.confirm("Are you sure you want to delete this faculty?");
     if (!confirmDelete) return;
 
+    setOperationLoading(true);
     try {
       await axios.delete(
         `https://teacher-attainment-system-backend.onrender.com/admin/delete-faculty/${facultyId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Refetch the faculty list after successful deletion
-      const fetchFacultyList = async () => {
-        try {
-          const response = await axios.get(
-            `https://teacher-attainment-system-backend.onrender.com/profile/faculty/department/${dept_id}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          setFacultyList(response.data);
-          setFilteredFacultyList(response.data); // Update the filtered list as well
-          alert("Faculty deleted successfully!");
-        } catch (error) {
-          console.error("Error fetching faculty list:", error);
-          alert("Failed to refresh faculty list after deletion.");
-        }
-      };
-
-      fetchFacultyList(); // Call the function to refetch the list
+      // Refetch faculty list
+      const response = await axios.get(
+        `https://teacher-attainment-system-backend.onrender.com/profile/faculty/department/${dept_id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setFacultyList(response.data);
+      setFilteredFacultyList(response.data);
+      alert("Faculty deleted successfully!");
     } catch (error) {
       console.error("Error deleting faculty:", error);
       alert("Failed to delete faculty.");
+    } finally {
+      setOperationLoading(false);
     }
   };
 
-  // Handle search input change
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
 
-    // Filter faculty list based on search term
     const filtered = facultyList.filter(
       (faculty) =>
-        faculty.faculty_id.toString().includes(term) || // Search by faculty_id
-        faculty.name.toLowerCase().includes(term.toLowerCase()) // Search by name
+        faculty.faculty_id.toString().includes(term) ||
+        faculty.name.toLowerCase().includes(term.toLowerCase())
     );
 
     setFilteredFacultyList(filtered);
   };
 
   return (
-    <Container fluid className="p-4">
+    <Container fluid className="p-4" style={{ position: "relative", minHeight: "80vh" }}>
+      {/* Loader for initial loading and operations */}
+      <LoaderPage loading={loading || operationLoading} />
+
       <h2 className="text-center text-primary mb-4">Faculty List</h2>
 
       {/* Search Bar */}
@@ -224,20 +207,22 @@ const ManageFaculty = () => {
               placeholder="Search by Faculty ID or Name"
               value={searchTerm}
               onChange={handleSearch}
+              disabled={loading || operationLoading}
             />
-            <Button variant="outline-secondary" onClick={() => setSearchTerm("")}>
+            <Button 
+              variant="outline-secondary" 
+              onClick={() => setSearchTerm("")}
+              disabled={loading || operationLoading || !searchTerm}
+            >
               Clear
             </Button>
           </InputGroup>
         </Col>
       </Row>
 
-      {loading ? (
-        <div className="text-center">
-          <Spinner animation="border" variant="primary" />
-          <p>Loading faculty list...</p>
-        </div>
-      ) : (
+      {message && <Alert variant="danger" className="text-center">{message}</Alert>}
+
+      {!loading && !operationLoading && (
         <Table striped bordered hover responsive>
           <thead>
             <tr>
@@ -252,7 +237,7 @@ const ManageFaculty = () => {
             {filteredFacultyList.length === 0 ? (
               <tr>
                 <td colSpan="5" className="text-center">
-                  No faculty found matching your search.
+                  {facultyList.length === 0 ? "No faculty found" : "No matching faculty found"}
                 </td>
               </tr>
             ) : (
@@ -261,12 +246,22 @@ const ManageFaculty = () => {
                   <td>{faculty.faculty_id}</td>
                   <td>{faculty.name}</td>
                   <td>{faculty.email}</td>
-                  <td>{faculty.mobile_no}</td>
+                  <td>{faculty.mobile_no || "N/A"}</td>
                   <td>
-                    <Button variant="primary" size="sm" onClick={() => handleFacultySelect(faculty)}>
+                    <Button 
+                      variant="primary" 
+                      size="sm" 
+                      onClick={() => handleFacultySelect(faculty)}
+                      disabled={operationLoading}
+                    >
                       Update
                     </Button>{" "}
-                    <Button variant="danger" size="sm" onClick={() => handleDelete(faculty.faculty_id)}>
+                    <Button 
+                      variant="danger" 
+                      size="sm" 
+                      onClick={() => handleDelete(faculty.faculty_id)}
+                      disabled={operationLoading}
+                    >
                       Delete
                     </Button>
                   </td>
@@ -277,7 +272,7 @@ const ManageFaculty = () => {
         </Table>
       )}
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal show={showModal} onHide={() => !operationLoading && setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Update Faculty</Modal.Title>
         </Modal.Header>
@@ -291,6 +286,7 @@ const ManageFaculty = () => {
                 value={selectedFaculty?.name || ""}
                 onChange={handleInputChange}
                 isInvalid={!!errors.name}
+                disabled={operationLoading}
               />
               <Form.Control.Feedback type="invalid">
                 {errors.name}
@@ -304,6 +300,7 @@ const ManageFaculty = () => {
                 value={selectedFaculty?.email || ""}
                 onChange={handleInputChange}
                 isInvalid={!!errors.email}
+                disabled={operationLoading}
               />
               <Form.Control.Feedback type="invalid">
                 {errors.email}
@@ -317,6 +314,7 @@ const ManageFaculty = () => {
                 value={selectedFaculty?.mobile_no || ""}
                 onChange={handleInputChange}
                 isInvalid={!!errors.mobile_no}
+                disabled={operationLoading}
               />
               <Form.Control.Feedback type="invalid">
                 {errors.mobile_no}
@@ -325,11 +323,19 @@ const ManageFaculty = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowModal(false)}
+            disabled={operationLoading}
+          >
             Cancel
           </Button>
-          <Button variant="success" onClick={handleUpdate}>
-            Update Faculty
+          <Button 
+            variant="success" 
+            onClick={handleUpdate}
+            disabled={operationLoading}
+          >
+            {operationLoading ? "Updating..." : "Update Faculty"}
           </Button>
         </Modal.Footer>
       </Modal>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Modal, Button, Form, Table, Alert, Spinner } from "react-bootstrap";
+import { Modal, Button, Form, Table, Alert } from "react-bootstrap";
+import LoaderPage from "../../components/LoaderPage"; // Adjust path as needed
 
 const UpdateCourses = () => {
   const [courses, setCourses] = useState([]);
@@ -13,19 +14,19 @@ const UpdateCourses = () => {
   const [formData, setFormData] = useState({
     course_id: "",
     course_name: "",
-    class: "FE", // Default value
+    class: "FE",
     ut: "",
     insem: "",
     endsem: "",
     finalsem: "",
   });
-  const [errors, setErrors] = useState({}); // State for validation errors
+  const [errors, setErrors] = useState({});
+  const [modalLoading, setModalLoading] = useState(false); // Loading state for modal operations
 
   useEffect(() => {
     fetchCourses();
   }, []);
 
-  // 🔹 Fetch All Courses
   const fetchCourses = async () => {
     setLoading(true);
     setError("");
@@ -47,17 +48,14 @@ const UpdateCourses = () => {
         }
       );
 
-      console.log("📢 API Response:", response.data);
-
       if (Array.isArray(response.data) && response.data.length > 0) {
-        // Sort courses by class: SE -> TE -> BE
         const sortedCourses = response.data.sort((a, b) => {
           const classOrder = { SE: 1, TE: 2, BE: 3 };
           return classOrder[a.class] - classOrder[b.class];
         });
 
         setCourses(sortedCourses);
-        setFilteredCourses(sortedCourses); // Initialize filtered list with sorted courses
+        setFilteredCourses(sortedCourses);
       } else {
         setError("No courses found.");
       }
@@ -69,37 +67,31 @@ const UpdateCourses = () => {
     }
   };
 
-  // 🔹 Open Update Modal
   const handleUpdateClick = (course) => {
     setSelectedCourse(course);
     setFormData({
       course_id: course.course_id,
       course_name: course.course_name,
-      class: course.class || "FE", // Default to FE if missing
+      class: course.class || "FE",
       ut: course.ut || "",
       insem: course.insem || "",
       endsem: course.endsem || "",
       finalsem: course.finalsem || "",
     });
-    setErrors({}); // Clear previous errors
+    setErrors({});
     setShowModal(true);
   };
 
-  // 🔹 Handle Input Changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Validate input on change
     validateField(name, value);
 
-    // Update form data
     setFormData((prevData) => {
       const updatedData = {
         ...prevData,
         [name]: value,
       };
 
-      // Calculate finalsem if insem or endsem changes
       if (name === "insem" || name === "endsem") {
         const insem = parseInt(updatedData.insem, 10) || 0;
         const endsem = parseInt(updatedData.endsem, 10) || 0;
@@ -110,7 +102,6 @@ const UpdateCourses = () => {
     });
   };
 
-  // 🔹 Validate a single field
   const validateField = (name, value) => {
     let errorMessage = "";
 
@@ -149,25 +140,21 @@ const UpdateCourses = () => {
     }));
   };
 
-  // 🔹 Validate the entire form
   const validateForm = () => {
     const newErrors = {};
 
-    // Validate Course ID
     if (!formData.course_id.trim()) {
       newErrors.course_id = "Course ID is required.";
     } else if (!/^[A-Za-z0-9]+$/.test(formData.course_id)) {
       newErrors.course_id = "Course ID should contain only alphabets and numbers.";
     }
 
-    // Validate Course Name
     if (!formData.course_name.trim()) {
       newErrors.course_name = "Course Name is required.";
     } else if (!/^[A-Za-z0-9]+$/.test(formData.course_name)) {
       newErrors.course_name = "Course Name should contain only alphabets and spaces.";
     }
 
-    // Validate Unit Test, In-Semester, and End-Semester Marks
     ["ut", "insem", "endsem"].forEach((field) => {
       if (!/^\d+$/.test(formData[field])) {
         newErrors[field] = "Only positive integers are allowed.";
@@ -175,19 +162,14 @@ const UpdateCourses = () => {
     });
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Return true if no errors
+    return Object.keys(newErrors).length === 0;
   };
 
-  // 🔹 Update Course API
   const handleUpdateSubmit = async () => {
     if (!selectedCourse) return;
+    if (!validateForm()) return;
 
-    // Validate form before submission
-    if (!validateForm()) {
-      return;
-    }
-
-    // Ensure numbers are properly converted before sending
+    setModalLoading(true);
     const updatedData = {
       course_id: formData.course_id,
       course_name: formData.course_name,
@@ -212,39 +194,20 @@ const UpdateCourses = () => {
 
       alert("Course updated successfully!");
       setShowModal(false);
-      fetchCourses(); // Refresh Data
+      fetchCourses();
     } catch (error) {
       console.error("❌ Update Error:", error.response?.data || error.message);
       alert("Failed to update course.");
+    } finally {
+      setModalLoading(false);
     }
   };
 
-  // Handle search input change
-  const handleSearch = (e) => {
-    const term = e.target.value;
-    setSearchTerm(term);
-
-    // Filter courses based on search term
-    const filtered = courses.filter(
-      (course) =>
-        course.course_id.toString().includes(term) || // Search by course_id
-        course.course_name.toLowerCase().includes(term.toLowerCase()) // Search by course_name
-    );
-
-    // Sort filtered courses by class: SE -> TE -> BE
-    const sortedFilteredCourses = filtered.sort((a, b) => {
-      const classOrder = { SE: 1, TE: 2, BE: 3 };
-      return classOrder[a.class] - classOrder[b.class];
-    });
-
-    setFilteredCourses(sortedFilteredCourses);
-  };
-
-  // 🔹 Delete Course
   const handleDelete = async (course_id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this course?");
     if (!confirmDelete) return;
 
+    setModalLoading(true);
     try {
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const token = storedUser?.accessToken;
@@ -258,18 +221,39 @@ const UpdateCourses = () => {
 
       alert("Course deleted successfully!");
       setCourses(courses.filter((course) => course.course_id !== course_id));
-      setFilteredCourses(filteredCourses.filter((course) => course.course_id !== course_id)); // Update filtered list
+      setFilteredCourses(filteredCourses.filter((course) => course.course_id !== course_id));
     } catch (error) {
       console.error("❌ Delete Error:", error.response?.data || error.message);
       alert("Failed to delete course.");
+    } finally {
+      setModalLoading(false);
     }
   };
 
+  const handleSearch = (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+
+    const filtered = courses.filter(
+      (course) =>
+        course.course_id.toString().includes(term) ||
+        course.course_name.toLowerCase().includes(term.toLowerCase())
+    );
+
+    const sortedFilteredCourses = filtered.sort((a, b) => {
+      const classOrder = { SE: 1, TE: 2, BE: 3 };
+      return classOrder[a.class] - classOrder[b.class];
+    });
+
+    setFilteredCourses(sortedFilteredCourses);
+  };
+
   return (
-    <div className="container mt-5">
+    <div className="container mt-5" style={{ position: "relative", minHeight: "80vh" }}>
+      <LoaderPage loading={loading || modalLoading} />
+
       <h2 className="text-center mb-4">All Courses</h2>
 
-      {/* Search Bar */}
       <div className="row mb-4">
         <div className="col-md-6 mx-auto">
           <div className="input-group">
@@ -279,11 +263,13 @@ const UpdateCourses = () => {
               placeholder="Search by Course ID or Course Name"
               value={searchTerm}
               onChange={handleSearch}
+              disabled={loading}
             />
             <button
               className="btn btn-outline-secondary"
               type="button"
               onClick={() => setSearchTerm("")}
+              disabled={loading || !searchTerm}
             >
               Clear
             </button>
@@ -291,11 +277,6 @@ const UpdateCourses = () => {
         </div>
       </div>
 
-      {loading && (
-        <p className="text-center">
-          <Spinner animation="border" />
-        </p>
-      )}
       {error && <Alert variant="danger" className="text-center">{error}</Alert>}
 
       {!loading && filteredCourses.length > 0 ? (
@@ -323,10 +304,20 @@ const UpdateCourses = () => {
                 <td>{course.endsem}</td>
                 <td>{course.finalsem}</td>
                 <td>
-                  <Button variant="primary" size="sm" onClick={() => handleUpdateClick(course)}>
+                  <Button 
+                    variant="primary" 
+                    size="sm" 
+                    onClick={() => handleUpdateClick(course)}
+                    disabled={modalLoading}
+                  >
                     Update
                   </Button>{" "}
-                  <Button variant="danger" size="sm" onClick={() => handleDelete(course.course_id)}>
+                  <Button 
+                    variant="danger" 
+                    size="sm" 
+                    onClick={() => handleDelete(course.course_id)}
+                    disabled={modalLoading}
+                  >
                     Delete
                   </Button>
                 </td>
@@ -338,25 +329,22 @@ const UpdateCourses = () => {
         !loading && <p className="text-center text-muted">No courses found.</p>
       )}
 
-      {/* 🔹 Update Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal show={showModal} onHide={() => !modalLoading && setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Update Course</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
-            {/* Course ID (Read-only) */}
             <Form.Group>
               <Form.Label>Course ID</Form.Label>
               <Form.Control
                 type="text"
                 name="course_id"
                 value={formData.course_id}
-                readOnly // Make it non-editable
+                readOnly
               />
             </Form.Group>
 
-            {/* Course Name */}
             <Form.Group>
               <Form.Label>Course Name</Form.Label>
               <Form.Control
@@ -365,13 +353,13 @@ const UpdateCourses = () => {
                 value={formData.course_name}
                 onChange={handleChange}
                 isInvalid={!!errors.course_name}
+                disabled={modalLoading}
               />
               <Form.Control.Feedback type="invalid">
                 {errors.course_name}
               </Form.Control.Feedback>
             </Form.Group>
 
-            {/* Class Dropdown */}
             <Form.Group>
               <Form.Label>Class</Form.Label>
               <Form.Control
@@ -379,6 +367,7 @@ const UpdateCourses = () => {
                 name="class"
                 value={formData.class}
                 onChange={handleChange}
+                disabled={modalLoading}
               >
                 <option value="FE">FE</option>
                 <option value="SE">SE</option>
@@ -387,7 +376,6 @@ const UpdateCourses = () => {
               </Form.Control>
             </Form.Group>
 
-            {/* Unit Test, In-Semester, End-Semester */}
             {["ut", "insem", "endsem"].map((field) => (
               <Form.Group key={field}>
                 <Form.Label>{field.toUpperCase()}</Form.Label>
@@ -397,6 +385,7 @@ const UpdateCourses = () => {
                   value={formData[field]}
                   onChange={handleChange}
                   isInvalid={!!errors[field]}
+                  disabled={modalLoading}
                 />
                 <Form.Control.Feedback type="invalid">
                   {errors[field]}
@@ -404,24 +393,31 @@ const UpdateCourses = () => {
               </Form.Group>
             ))}
 
-            {/* Final Semester (Read-only) */}
             <Form.Group>
               <Form.Label>Final Semester</Form.Label>
               <Form.Control
                 type="text"
                 name="finalsem"
                 value={formData.finalsem}
-                readOnly // Make it uneditable
+                readOnly
               />
             </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowModal(false)}
+            disabled={modalLoading}
+          >
             Cancel
           </Button>
-          <Button variant="success" onClick={handleUpdateSubmit}>
-            Update Course
+          <Button 
+            variant="success" 
+            onClick={handleUpdateSubmit}
+            disabled={modalLoading}
+          >
+            {modalLoading ? "Updating..." : "Update Course"}
           </Button>
         </Modal.Footer>
       </Modal>

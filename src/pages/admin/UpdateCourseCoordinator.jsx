@@ -11,12 +11,14 @@ import {
   Modal,
   Form,
 } from "react-bootstrap";
+import LoaderPage from "../../components/LoaderPage"; // Adjust path as needed
 
 const CourseCoordinators = () => {
   const [coordinators, setCoordinators] = useState([]);
   const [selectedCoordinator, setSelectedCoordinator] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false); // Added for modal operations
   const [error, setError] = useState("");
   const [facultyList, setFacultyList] = useState([]);
 
@@ -82,7 +84,7 @@ const CourseCoordinators = () => {
       return;
     }
 
-    setLoading(true);
+    setModalLoading(true); // Changed to modalLoading
     setError("");
 
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -90,7 +92,7 @@ const CourseCoordinators = () => {
 
     if (!token) {
       setError("Unauthorized: Please log in again.");
-      setLoading(false);
+      setModalLoading(false);
       return;
     }
 
@@ -113,7 +115,7 @@ const CourseCoordinators = () => {
       console.error("Error fetching faculties:", err);
       setError("Failed to fetch faculty list. Please try again.");
     } finally {
-      setLoading(false);
+      setModalLoading(false);
     }
   };
 
@@ -124,7 +126,7 @@ const CourseCoordinators = () => {
       return; // Abort if the user clicks "Cancel"
     }
   
-    setLoading(true);
+    setModalLoading(true);
     setError("");
   
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -132,7 +134,7 @@ const CourseCoordinators = () => {
   
     if (!token) {
       setError("Unauthorized: Please log in again.");
-      setLoading(false);
+      setModalLoading(false);
       return;
     }
   
@@ -154,7 +156,7 @@ const CourseCoordinators = () => {
         "Failed to delete course coordinator"
       );
     } finally {
-      setLoading(false);
+      setModalLoading(false);
     }
   };
 
@@ -180,14 +182,14 @@ const CourseCoordinators = () => {
       return; // Abort if the user clicks "Cancel"
     }
 
-    setLoading(true);
+    setModalLoading(true);
     setError("");
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = storedUser?.accessToken;
 
     if (!token) {
       setError("Unauthorized: Please log in again.");
-      setLoading(false);
+      setModalLoading(false);
       return;
     }
 
@@ -212,22 +214,20 @@ const CourseCoordinators = () => {
       );
       setError(error.response?.data?.error || "Failed to update faculty");
     } finally {
-      setLoading(false);
+      setModalLoading(false);
     }
   };
 
   return (
-    <Container className="mt-4">
+    <Container className="mt-4" style={{ position: "relative", minHeight: "80vh" }}>
+      <LoaderPage loading={loading || modalLoading} />
+
       <h2 className="text-center text-primary mb-4">📌 Course Coordinators</h2>
 
-      {/* Loading State */}
-      {loading ? (
-        <div className="text-center">
-          <Spinner animation="border" />
-        </div>
-      ) : error ? (
-        <Alert variant="danger">{error}</Alert>
-      ) : coordinators.length === 0 ? (
+
+      {error && <Alert variant="danger" className="text-center">{error}</Alert>}
+
+      {!loading && coordinators.length === 0 ? (
         <p className="text-muted text-center">No course coordinators found.</p>
       ) : (
         <Row className="g-4">
@@ -252,6 +252,7 @@ const CourseCoordinators = () => {
                   <Button
                     variant="primary"
                     onClick={() => handleUpdateClick(coordinator)}
+                    disabled={modalLoading}
                   >
                     Update
                   </Button>
@@ -265,6 +266,7 @@ const CourseCoordinators = () => {
                       )
                     }
                     style={{ marginLeft: "10px" }}
+                    disabled={modalLoading}
                   >
                     Delete
                   </Button>
@@ -279,7 +281,7 @@ const CourseCoordinators = () => {
       {selectedCoordinator && (
         <Modal
           show={showModal}
-          onHide={() => setShowModal(false)}
+          onHide={() => !modalLoading && setShowModal(false)}
           onShow={fetchFaculties}
         >
           <Modal.Header closeButton>
@@ -293,22 +295,23 @@ const CourseCoordinators = () => {
                   name="faculty_id"
                   value={selectedCoordinator.faculty_id}
                   onChange={handleFacultyChange}
+                  disabled={modalLoading}
                 >
                   <option value="">Select Faculty</option>
                   {facultyList.map((faculty) => (
                     <option key={faculty.faculty_id} value={faculty.faculty_id}>
-                      {faculty.faculty_id} - {faculty.name}{" "}
-                      {/* Include faculty name */}
+                      {faculty.faculty_id} - {faculty.name}
                     </option>
                   ))}
                 </Form.Select>
               </Form.Group>
+              {error && <Alert variant="danger">{error}</Alert>}
               <Button
                 variant="primary"
                 onClick={handleUpdate}
-                disabled={loading}
+                disabled={modalLoading}
               >
-                {loading ? <Spinner animation="border" size="sm" /> : "Update"}
+                {modalLoading ? "Updating..." : "Update"}
               </Button>
             </Form>
           </Modal.Body>

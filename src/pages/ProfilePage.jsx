@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import LoaderPage from "../components/LoaderPage";
-
 import {
   CCard,
   CCardBody,
@@ -13,11 +12,12 @@ import {
   CRow,
   CCol,
 } from "@coreui/react";
-import { FaCamera } from "react-icons/fa"; // Import camera icon
+import { FaCamera } from "react-icons/fa";
 
 const Profile = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [operationLoading, setOperationLoading] = useState(false); // For save operations
   const [error, setError] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
@@ -61,11 +61,28 @@ const Profile = () => {
     }
   };
 
-  if (loading) return <div className="text-center mt-5"><LoaderPage/></div>;
+  const handleSave = async () => {
+    setOperationLoading(true);
+    try {
+      // Simulate API call for saving data
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setEditMode(false);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to save profile changes");
+    } finally {
+      setOperationLoading(false);
+    }
+  };
+
+  if (loading) return <LoaderPage loading={true} />;
   if (error) return <div className="text-danger text-center mt-5">{error}</div>;
 
   return (
-    <div className="d-flex justify-content-center align-items-center min-vh-100 p-4">
+    <div className="d-flex justify-content-center align-items-center min-vh-100 p-4" style={{ position: "relative" }}>
+      {/* Full-page loader for operations */}
+      <LoaderPage loading={operationLoading} />
+
       <CCard
         className="shadow-lg rounded-4 p-4 border border-primary"
         style={{ maxWidth: "600px", width: "100%" }}
@@ -86,14 +103,22 @@ const Profile = () => {
               width="140"
               height="140"
             />
-            <label
-              htmlFor="file-upload"
-              className="position-absolute bottom-0 end-0 p-2 bg-white rounded-circle shadow"
-              style={{ cursor: "pointer" }}
-            >
-              <FaCamera size={22} className="text-primary" />
-            </label>
-            <CFormInput type="file" id="file-upload" className="d-none" onChange={handleImageUpload} />
+            {editMode && (
+              <label
+                htmlFor="file-upload"
+                className="position-absolute bottom-0 end-0 p-2 bg-white rounded-circle shadow"
+                style={{ cursor: "pointer" }}
+              >
+                <FaCamera size={22} className="text-primary" />
+              </label>
+            )}
+            <CFormInput 
+              type="file" 
+              id="file-upload" 
+              className="d-none" 
+              onChange={handleImageUpload} 
+              disabled={!editMode}
+            />
           </div>
 
           {/* User Information */}
@@ -102,7 +127,11 @@ const Profile = () => {
               <CFormLabel className="fw-semibold">Name</CFormLabel>
             </CCol>
             <CCol md="8">
-              <CFormInput type="text" value={userData?.name || userData?.dept_name || "N/A"} disabled={!editMode} />
+              <CFormInput 
+                type="text" 
+                value={userData?.name || userData?.dept_name || "N/A"} 
+                disabled={!editMode} 
+              />
             </CCol>
           </CRow>
 
@@ -111,7 +140,11 @@ const Profile = () => {
               <CFormLabel className="fw-semibold">Email</CFormLabel>
             </CCol>
             <CCol md="8">
-              <CFormInput type="email" value={userData?.email || "N/A"} disabled={!editMode} />
+              <CFormInput 
+                type="email" 
+                value={userData?.email || "N/A"} 
+                disabled={!editMode} 
+              />
             </CCol>
           </CRow>
 
@@ -132,11 +165,20 @@ const Profile = () => {
           <div className="text-center mt-4">
             {editMode ? (
               <>
-                <CButton color="secondary" className="me-2" onClick={() => setEditMode(false)}>
+                <CButton 
+                  color="secondary" 
+                  className="me-2" 
+                  onClick={() => setEditMode(false)}
+                  disabled={operationLoading}
+                >
                   Cancel
                 </CButton>
-                <CButton color="primary" onClick={() => setEditMode(false)}>
-                  Save
+                <CButton 
+                  color="primary" 
+                  onClick={handleSave}
+                  disabled={operationLoading}
+                >
+                  {operationLoading ? "Saving..." : "Save"}
                 </CButton>
               </>
             ) : (

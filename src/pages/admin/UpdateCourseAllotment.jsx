@@ -8,17 +8,18 @@ import {
   Row,
   Col,
   Form,
-  Spinner,
   Alert,
   InputGroup,
   FormControl,
 } from "react-bootstrap";
+import LoaderPage from "../../components/LoaderPage"; // Adjust path as needed
 
 const UpdateCourseAllotment = () => {
   const [allotments, setAllotments] = useState([]);
   const [selectedAllotment, setSelectedAllotment] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false); // Separate loading state for modal operations
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -29,7 +30,6 @@ const UpdateCourseAllotment = () => {
     fetchAllotments();
   }, []);
 
-  // Fetch faculties when selectedAllotment changes
   useEffect(() => {
     if (selectedAllotment?.dept_id) {
       fetchFaculties();
@@ -40,9 +40,9 @@ const UpdateCourseAllotment = () => {
     setLoading(true);
     setError("");
     const storedUser = JSON.parse(localStorage.getItem("user")) || {};
-        const token = storedUser?.accessToken;
-        const dept_id = storedUser?.user?.id;
-        
+    const token = storedUser?.accessToken;
+    const dept_id = storedUser?.user?.id;
+    
     if (!token) {
       setError("Unauthorized: Please log in again.");
       setLoading(false);
@@ -54,8 +54,6 @@ const UpdateCourseAllotment = () => {
         `https://teacher-attainment-system-backend.onrender.com/admin/allotment/get-allotted-courses/${dept_id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      console.log("API Response:", response.data);
 
       if (Array.isArray(response.data?.data)) {
         setAllotments(response.data.data);
@@ -73,26 +71,18 @@ const UpdateCourseAllotment = () => {
 
   const handleUpdateClick = (allotment) => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    const deptId = storedUser?.user?.id; // Use `id` instead of `dept_id`
-
-    console.log("Selected Allotment:", { ...allotment, dept_id: deptId }); // Debugging
-
-    setSelectedAllotment({ ...allotment, dept_id: deptId }); // Set `dept_id` in state
-    setShowModal(true); // Open the modal
+    const deptId = storedUser?.user?.id;
+    setSelectedAllotment({ ...allotment, dept_id: deptId });
+    setShowModal(true);
   };
 
   const fetchFaculties = async () => {
-    console.log(
-      "Fetching faculties for department ID:",
-      selectedAllotment?.dept_id
-    ); // Debugging
-
     if (!selectedAllotment?.dept_id) {
-      console.error("Department ID is missing in selectedAllotment"); // Debugging
+      console.error("Department ID is missing in selectedAllotment");
       return;
     }
 
-    setLoading(true);
+    setModalLoading(true);
     setError("");
 
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -100,7 +90,7 @@ const UpdateCourseAllotment = () => {
 
     if (!token) {
       setError("Unauthorized: Please log in again.");
-      setLoading(false);
+      setModalLoading(false);
       return;
     }
 
@@ -110,12 +100,9 @@ const UpdateCourseAllotment = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Faculties API Response:", response.data); // Debugging
-
       if (Array.isArray(response.data)) {
         setFacultyList(response.data);
       } else {
-        console.error("Unexpected API response format:", response.data); // Debugging
         setFacultyList([]);
         setError("No faculty members found.");
       }
@@ -123,7 +110,7 @@ const UpdateCourseAllotment = () => {
       console.error("Error fetching faculties:", err);
       setError("Failed to fetch faculty list. Please try again.");
     } finally {
-      setLoading(false);
+      setModalLoading(false);
     }
   };
 
@@ -136,7 +123,7 @@ const UpdateCourseAllotment = () => {
     setSelectedAllotment((prev) => ({
       ...prev,
       faculty_id: selectedFaculty?.faculty_id || "",
-      faculty_name: selectedFaculty?.name || "", // Use `name` instead of `faculty_name`
+      faculty_name: selectedFaculty?.name || "",
     }));
   };
 
@@ -145,99 +132,76 @@ const UpdateCourseAllotment = () => {
       "Are you sure you want to delete this course allotment?"
     );
 
-    if (!isConfirmed) {
-      return; // Abort if the user clicks "Cancel"
-    }
+    if (!isConfirmed) return;
 
-    setLoading(true);
+    setModalLoading(true);
     setError("");
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = storedUser?.accessToken;
 
     if (!token) {
       setError("Unauthorized: Please log in again.");
-      setLoading(false);
+      setModalLoading(false);
       return;
     }
 
     try {
       const { course_id, academic_yr, sem } = allotment;
-
-      // Make the API call
-      const response = await axios.delete(
+      await axios.delete(
         `https://teacher-attainment-system-backend.onrender.com/admin/allotment/delete-course-allotment/${course_id}/${academic_yr}/${sem}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("✅ Course allotment deleted successfully:", response.data);
       alert("✅ Course Allotment Deleted Successfully!");
-      fetchAllotments(); // Refresh the list of allotted courses
+      fetchAllotments();
     } catch (error) {
-      console.error(
-        "❌ Error deleting course allotment:",
-        error.response?.data?.error || error.message
-      );
-      setError(
-        error.response?.data?.error || "Failed to delete course allotment"
-      );
+      console.error("Error deleting course allotment:", error);
+      setError(error.response?.data?.error || "Failed to delete course allotment");
     } finally {
-      setLoading(false);
+      setModalLoading(false);
     }
   };
 
   const handleUpdate = async () => {
-    // Show confirmation dialog
     const isConfirmed = window.confirm(
       "Are you sure you want to update the faculty for this course allotment?"
     );
 
-    if (!isConfirmed) {
-      return; // Abort if the user clicks "Cancel"
-    }
+    if (!isConfirmed) return;
 
-    setLoading(true);
+    setModalLoading(true);
     setError("");
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = storedUser?.accessToken;
 
     if (!token) {
       setError("Unauthorized: Please log in again.");
-      setLoading(false);
+      setModalLoading(false);
       return;
     }
 
     try {
       const { course_id, academic_yr, sem, faculty_id } = selectedAllotment;
-
-      // Make the API call
-      const response = await axios.put(
+      await axios.put(
         `https://teacher-attainment-system-backend.onrender.com/admin/allotment/update-course-allotment/${course_id}/${academic_yr}/${sem}`,
-        { faculty_id }, // Send only faculty_id in the request body
+        { faculty_id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("✅ Faculty updated successfully:", response.data);
       alert("✅ Course Allotment Updated Successfully!");
-      setShowModal(false); // Close the modal
-      fetchAllotments(); // Refresh the list of allotted courses
+      setShowModal(false);
+      fetchAllotments();
     } catch (error) {
-      console.error(
-        "❌ Error updating faculty:",
-        error.response?.data?.error || error.message
-      );
+      console.error("Error updating faculty:", error);
       setError(error.response?.data?.error || "Failed to update faculty");
     } finally {
-      setLoading(false);
+      setModalLoading(false);
     }
   };
 
-  // Unique Years & Semesters for Filtering
-  const uniqueYears = [
-    ...new Set(allotments.map((course) => course.academic_yr)),
-  ];
+  const uniqueYears = [...new Set(allotments.map((course) => course.academic_yr))];
   const uniqueSems = [...new Set(allotments.map((course) => course.sem))];
 
-  // Filtered Courses
   const filteredCourses = allotments.filter((course) => {
     return (
       (searchTerm === "" ||
@@ -249,7 +213,10 @@ const UpdateCourseAllotment = () => {
   });
 
   return (
-    <Container className="mt-4">
+    <Container className="mt-4" style={{ position: "relative", minHeight: "80vh" }}>
+      {/* Loader for initial loading and modal operations */}
+      <LoaderPage loading={loading || modalLoading} />
+
       <h2 className="text-center text-primary mb-4">📌Update Allotted Courses</h2>
 
       {/* Search Bar */}
@@ -260,8 +227,14 @@ const UpdateCourseAllotment = () => {
             aria-label="Search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            disabled={loading || modalLoading}
           />
-          <Button variant="outline-secondary">Search</Button>
+          <Button 
+            variant="outline-secondary"
+            disabled={loading || modalLoading}
+          >
+            Search
+          </Button>
         </InputGroup>
       </div>
 
@@ -271,6 +244,7 @@ const UpdateCourseAllotment = () => {
           className="w-25 mx-2"
           value={selectedYear}
           onChange={(e) => setSelectedYear(e.target.value)}
+          disabled={loading || modalLoading}
         >
           <option value="">Select Academic Year</option>
           {uniqueYears.map((year) => (
@@ -284,6 +258,7 @@ const UpdateCourseAllotment = () => {
           className="w-25 mx-2"
           value={selectedSem}
           onChange={(e) => setSelectedSem(e.target.value)}
+          disabled={loading || modalLoading}
         >
           <option value="">Select Semester</option>
           {uniqueSems.map((sem) => (
@@ -294,14 +269,11 @@ const UpdateCourseAllotment = () => {
         </Form.Select>
       </div>
 
-      {/* Loading State */}
-      {loading ? (
-        <div className="text-center">
-          <Spinner animation="border" />
-        </div>
-      ) : error ? (
-        <Alert variant="danger">{error}</Alert>
-      ) : filteredCourses.length === 0 ? (
+      {/* Error Message */}
+      {error && <Alert variant="danger">{error}</Alert>}
+
+      {/* Content */}
+      {!loading && !modalLoading && filteredCourses.length === 0 ? (
         <p className="text-muted text-center">
           No courses match your criteria.
         </p>
@@ -309,18 +281,17 @@ const UpdateCourseAllotment = () => {
         <Row className="g-4">
           {filteredCourses.map((allotment) => (
             <Col md={6} lg={4} key={allotment.id}>
-              <Card className="shadow-lg p-3 h-100"> {/* Add h-100 for equal height */}
-                <Card.Body >
+              <Card className="shadow-lg p-3 h-100">
+                <Card.Body>
                   <h5 className="text-primary font-weight-bold mb-2">
                     {allotment.course_name}
                   </h5>
                   <hr />
-                  <Card.Text className="flex-grow-1"> 
+                  <Card.Text className="flex-grow-1">
                     <strong>Course ID:</strong> {allotment.course_id} <br />
                     <strong>Course Name:</strong> {allotment.course_name} <br />
                     <strong>Faculty ID:</strong> {allotment.faculty_id} <br />
-                    <strong>Faculty Name:</strong> {allotment.faculty_name}{" "}
-                    <br />
+                    <strong>Faculty Name:</strong> {allotment.faculty_name} <br />
                     <strong>Class:</strong> {allotment.class} <br />
                     <strong>Semester:</strong> {allotment.sem} <br />
                     <strong>Academic Year:</strong> {allotment.academic_yr}
@@ -329,13 +300,15 @@ const UpdateCourseAllotment = () => {
                   <Button
                     variant="primary"
                     onClick={() => handleUpdateClick(allotment)}
+                    disabled={modalLoading}
                   >
                     Update
                   </Button>
                   <Button
                     variant="danger"
                     onClick={() => handleDeleteClick(allotment)}
-                    className="ms-2" // Add margin to separate from the "Update" button
+                    className="ms-2"
+                    disabled={modalLoading}
                   >
                     Delete
                   </Button>
@@ -348,7 +321,7 @@ const UpdateCourseAllotment = () => {
 
       {/* Update Modal */}
       {selectedAllotment && (
-        <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal show={showModal} onHide={() => !modalLoading && setShowModal(false)}>
           <Modal.Header closeButton>
             <Modal.Title>Update Course Allotment</Modal.Title>
           </Modal.Header>
@@ -360,12 +333,12 @@ const UpdateCourseAllotment = () => {
                   name="faculty_id"
                   value={selectedAllotment.faculty_id}
                   onChange={handleFacultyChange}
+                  disabled={modalLoading}
                 >
                   <option value="">Select Faculty</option>
                   {facultyList.map((faculty) => (
                     <option key={faculty.faculty_id} value={faculty.faculty_id}>
-                      {faculty.faculty_id} - {faculty.name}{" "}
-                      {/* Include faculty name */}
+                      {faculty.faculty_id} - {faculty.name}
                     </option>
                   ))}
                 </Form.Select>
@@ -373,9 +346,9 @@ const UpdateCourseAllotment = () => {
               <Button
                 variant="primary"
                 onClick={handleUpdate}
-                disabled={loading}
+                disabled={modalLoading}
               >
-                {loading ? <Spinner animation="border" size="sm" /> : "Update"}
+                {modalLoading ? "Updating..." : "Update"}
               </Button>
             </Form>
           </Modal.Body>

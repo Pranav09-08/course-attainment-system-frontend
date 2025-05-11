@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import LoaderPage from "../../components/LoaderPage"; // Adjust the path as needed
 import {
   Container,
   Card,
@@ -17,6 +18,7 @@ import {
 const ReportAnalysis = () => {
   const [allottedCourses, setAllottedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [operationLoading, setOperationLoading] = useState(false); // For any future operations
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -30,16 +32,14 @@ const ReportAnalysis = () => {
       setError("");
 
       try {
-        // ✅ Get User Data from LocalStorage
         const storedUser = JSON.parse(localStorage.getItem("user")) || {};
         const token = storedUser?.accessToken;
-        const dept_id = storedUser?.user?.id; // Extract dept_id from localStorage
+        const dept_id = storedUser?.user?.id;
 
         if (!token || !dept_id) {
           throw new Error("Unauthorized: Please log in again.");
         }
 
-        // ✅ API Request
         const response = await axios.get(
           `https://teacher-attainment-system-backend.onrender.com/admin/allotment/get-allotted-courses/${dept_id}`,
           {
@@ -86,11 +86,15 @@ const ReportAnalysis = () => {
   });
 
   const handleViewAnalysis = (course_id, academic_yr) => {
+    setOperationLoading(true);
     navigate(`/admin/attainment-analysis/${course_id}/${academic_yr}`);
   };
 
   return (
-    <Container className="mt-4">
+    <Container className="mt-4" style={{ position: "relative", minHeight: "80vh" }}>
+      {/* Full-page loader for operations */}
+      <LoaderPage loading={loading || operationLoading} />
+
       <h2 className="text-center text-primary mb-4">📚 Courses for Report and Analysis</h2>
 
       {/* Search Bar */}
@@ -101,8 +105,14 @@ const ReportAnalysis = () => {
             aria-label="Search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            disabled={loading || operationLoading}
           />
-          <Button variant="outline-secondary">Search</Button>
+          <Button 
+            variant="outline-secondary"
+            disabled={loading || operationLoading}
+          >
+            Search
+          </Button>
         </InputGroup>
       </div>
 
@@ -112,6 +122,7 @@ const ReportAnalysis = () => {
           className="w-25 mx-2"
           value={selectedYear}
           onChange={(e) => setSelectedYear(e.target.value)}
+          disabled={loading || operationLoading}
         >
           <option value="">Select Academic Year</option>
           {uniqueYears.map((year) => (
@@ -125,6 +136,7 @@ const ReportAnalysis = () => {
           className="w-25 mx-2"
           value={selectedSem}
           onChange={(e) => setSelectedSem(e.target.value)}
+          disabled={loading || operationLoading}
         >
           <option value="">Select Semester</option>
           {uniqueSems.map((sem) => (
@@ -135,48 +147,49 @@ const ReportAnalysis = () => {
         </Form.Select>
       </div>
 
-      {/* Loading State */}
-      {loading ? (
-        <div className="text-center">
-          <Spinner animation="border" />
-        </div>
-      ) : error ? (
-        <Alert variant="danger">{error}</Alert>
-      ) : filteredCourses.length === 0 ? (
-        <p className="text-muted text-center">
-          No courses match your criteria.
-        </p>
-      ) : (
-        <Row className="g-4">
-          {filteredCourses.map((course) => (
-            <Col md={6} lg={4} key={course.course_id}>
-              <Card className="shadow-lg p-3 h-100 d-flex flex-column">
-                <Card.Body className="flex-grow-1">
-                  <h5 className="text-primary font-weight-bold mb-2">
-                    {course.course_name}
-                  </h5>
-                  <hr />
-                  <Card.Text>
-                    <strong>Course ID:</strong> {course.course_id} <br />
-                    <strong>Course Name:</strong> {course.course_name} <br />
-                    <strong>Academic Year:</strong> {course.academic_yr}
-                  </Card.Text>
-                </Card.Body>
-                <Card.Footer>
-                  <Button
-                    variant="primary"
-                    className="w-100"
-                    onClick={() =>
-                      handleViewAnalysis(course.course_id, course.academic_yr)
-                    }
-                  >
-                    View Analysis
-                  </Button>
-                </Card.Footer>
-              </Card>
-            </Col>
-          ))}
-        </Row>
+      {/* Content */}
+      {!loading && !operationLoading && (
+        <>
+          {error ? (
+            <Alert variant="danger">{error}</Alert>
+          ) : filteredCourses.length === 0 ? (
+            <p className="text-muted text-center">
+              No courses match your criteria.
+            </p>
+          ) : (
+            <Row className="g-4">
+              {filteredCourses.map((course) => (
+                <Col md={6} lg={4} key={course.course_id}>
+                  <Card className="shadow-lg p-3 h-100 d-flex flex-column">
+                    <Card.Body className="flex-grow-1">
+                      <h5 className="text-primary font-weight-bold mb-2">
+                        {course.course_name}
+                      </h5>
+                      <hr />
+                      <Card.Text>
+                        <strong>Course ID:</strong> {course.course_id} <br />
+                        <strong>Course Name:</strong> {course.course_name} <br />
+                        <strong>Academic Year:</strong> {course.academic_yr}
+                      </Card.Text>
+                    </Card.Body>
+                    <Card.Footer>
+                      <Button
+                        variant="primary"
+                        className="w-100"
+                        onClick={() =>
+                          handleViewAnalysis(course.course_id, course.academic_yr)
+                        }
+                        disabled={operationLoading}
+                      >
+                        View Analysis
+                      </Button>
+                    </Card.Footer>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          )}
+        </>
       )}
     </Container>
   );

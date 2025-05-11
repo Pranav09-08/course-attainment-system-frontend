@@ -12,10 +12,12 @@ import {
   Spinner,
   Alert,
 } from "react-bootstrap";
+import LoaderPage from "../../components/LoaderPage"; // Adjust the path as needed
 
 const AllottedCourses = () => {
   const [allottedCourses, setAllottedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [operationLoading, setOperationLoading] = useState(false); // For any future operations
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -27,8 +29,8 @@ const AllottedCourses = () => {
       setError("");
 
       const storedUser = JSON.parse(localStorage.getItem("user")) || {};
-        const token = storedUser?.accessToken;
-        const dept_id = storedUser?.user?.id;
+      const token = storedUser?.accessToken;
+      const dept_id = storedUser?.user?.id;
 
       if (!token) {
         setError("Unauthorized: Please log in again.");
@@ -77,7 +79,10 @@ const AllottedCourses = () => {
   });
 
   return (
-    <Container className="mt-4">
+    <Container className="mt-4" style={{ position: "relative", minHeight: "80vh" }}>
+      {/* Loader for initial loading and operations */}
+      <LoaderPage loading={loading || operationLoading} />
+
       <h2 className="text-center text-primary mb-4">📚 My Allotted Courses</h2>
 
       {/* Search Bar */}
@@ -88,8 +93,14 @@ const AllottedCourses = () => {
             aria-label="Search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            disabled={loading || operationLoading}
           />
-          <Button variant="outline-secondary">Search</Button>
+          <Button 
+            variant="outline-secondary"
+            disabled={loading || operationLoading}
+          >
+            Search
+          </Button>
         </InputGroup>
       </div>
 
@@ -99,6 +110,7 @@ const AllottedCourses = () => {
           className="w-25 mx-2"
           value={selectedYear}
           onChange={(e) => setSelectedYear(e.target.value)}
+          disabled={loading || operationLoading}
         >
           <option value="">Select Academic Year</option>
           {uniqueYears.map((year) => (
@@ -112,6 +124,7 @@ const AllottedCourses = () => {
           className="w-25 mx-2"
           value={selectedSem}
           onChange={(e) => setSelectedSem(e.target.value)}
+          disabled={loading || operationLoading}
         >
           <option value="">Select Semester</option>
           {uniqueSems.map((sem) => (
@@ -122,41 +135,44 @@ const AllottedCourses = () => {
         </Form.Select>
       </div>
 
-      {/* Loading State */}
-      {loading ? (
-        <div className="text-center">
-          <Spinner animation="border" />
-        </div>
-      ) : error ? (
+      {/* Error Message */}
+      {error && !loading && !operationLoading && (
         <Alert variant="danger">{error}</Alert>
-      ) : filteredCourses.length === 0 ? (
-        <p className="text-muted text-center">
-          No courses match your criteria.
-        </p>
-      ) : (
-        <Row className="g-4">
-          {filteredCourses.map((course) => (
-            <Col md={6} lg={4} key={course.course_id}>
-              <Card className="shadow-lg p-3 h-100"> {/* Add h-100 for equal height */}
-                <Card.Body className="d-flex flex-column"> {/* Flexbox for consistent height */}
-                  <h5 className="text-primary font-weight-bold mb-2">
-                    {course.course_name}
-                  </h5>
-                  <hr />
-                  <Card.Text className="flex-grow-1"> {/* Flex-grow for equal height */}
-                    <strong>Course ID:</strong> {course.course_id} <br />
-                    <strong>Course Name:</strong> {course.course_name} <br />
-                    <strong>Faculty ID:</strong> {course.faculty_id} <br />
-                    <strong>Faculty Name:</strong> {course.faculty_name} <br />
-                    <strong>Class:</strong> {course.class} <br />
-                    <strong>Semester:</strong> {course.sem} <br />
-                    <strong>Academic Year:</strong> {course.academic_yr}
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))}
-        </Row>
+      )}
+
+      {/* Content */}
+      {!loading && !operationLoading && (
+        <>
+          {filteredCourses.length === 0 ? (
+            <p className="text-muted text-center">
+              No courses match your criteria.
+            </p>
+          ) : (
+            <Row className="g-4">
+              {filteredCourses.map((course) => (
+                <Col md={6} lg={4} key={course.course_id}>
+                  <Card className="shadow-lg p-3 h-100">
+                    <Card.Body className="d-flex flex-column">
+                      <h5 className="text-primary font-weight-bold mb-2">
+                        {course.course_name}
+                      </h5>
+                      <hr />
+                      <Card.Text className="flex-grow-1">
+                        <strong>Course ID:</strong> {course.course_id} <br />
+                        <strong>Course Name:</strong> {course.course_name} <br />
+                        <strong>Faculty ID:</strong> {course.faculty_id} <br />
+                        <strong>Faculty Name:</strong> {course.faculty_name} <br />
+                        <strong>Class:</strong> {course.class} <br />
+                        <strong>Semester:</strong> {course.sem} <br />
+                        <strong>Academic Year:</strong> {course.academic_yr}
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          )}
+        </>
       )}
     </Container>
   );

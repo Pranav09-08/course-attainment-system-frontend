@@ -12,6 +12,7 @@ import {
   Modal,
   Alert,
 } from "react-bootstrap";
+import LoaderPage from "../../components/LoaderPage"; // Adjust the path as needed
 
 const UpdateStudent = () => {
   const [students, setStudents] = useState([]);
@@ -21,17 +22,18 @@ const UpdateStudent = () => {
   const [selectedDivision, setSelectedDivision] = useState("");
   const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
   const [loading, setLoading] = useState(true);
+  const [operationLoading, setOperationLoading] = useState(false); // For update operations
   const [studentCount, setStudentCount] = useState(0);
 
   const [academicYears, setAcademicYears] = useState([]);
   const [years, setYears] = useState([]);
   const [divisions, setDivisions] = useState([]);
 
-  const [showModal, setShowModal] = useState(false); // State to control modal visibility
-  const [selectedStudent, setSelectedStudent] = useState(null); // State to store the selected student for editing
-  const [errors, setErrors] = useState({}); // State to store validation errors
-  const [alert, setAlert] = useState({ show: false, message: "", variant: "success" }); // State for alert popup
-  const [showConfirmation, setShowConfirmation] = useState(false); // State for confirmation popup
+  const [showModal, setShowModal] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [alert, setAlert] = useState({ show: false, message: "", variant: "success" });
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const storedUser = JSON.parse(localStorage.getItem("user")) || {};
   const department_id = storedUser?.user?.id || "";
@@ -69,6 +71,11 @@ const UpdateStudent = () => {
       setDivisions(uniqueDivisions);
     } catch (error) {
       console.error("Error fetching students:", error);
+      setAlert({
+        show: true,
+        message: "❌ Failed to fetch students. Please try again.",
+        variant: "danger",
+      });
     } finally {
       setLoading(false);
     }
@@ -110,7 +117,7 @@ const UpdateStudent = () => {
   // Handle opening the modal for editing a student
   const handleEditClick = (student) => {
     setSelectedStudent(student);
-    setErrors({}); // Clear previous errors
+    setErrors({});
     setShowModal(true);
   };
 
@@ -134,11 +141,12 @@ const UpdateStudent = () => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Return true if no errors
+    return Object.keys(newErrors).length === 0;
   };
 
   // Handle updating a student
   const handleUpdateStudent = async () => {
+    setOperationLoading(true);
     try {
       const response = await axios.put(
         `https://teacher-attainment-system-backend.onrender.com/admin/student/update-student/${selectedStudent.roll_no}`,
@@ -146,33 +154,35 @@ const UpdateStudent = () => {
       );
       console.log("Student updated:", response.data);
 
-      // Show success alert
       setAlert({ show: true, message: "✅ Student updated successfully!", variant: "success" });
 
-      fetchStudents(); // Refresh the student list
-      setShowModal(false); // Close the modal
-      setShowConfirmation(false); // Close the confirmation popup
+      fetchStudents();
+      setShowModal(false);
+      setShowConfirmation(false);
     } catch (error) {
       console.error("Error updating student:", error);
-
-      // Show error alert
       setAlert({
         show: true,
         message: "❌ Failed to update student. Please try again.",
         variant: "danger",
       });
+    } finally {
+      setOperationLoading(false);
     }
   };
 
   // Handle update button click
   const handleUpdateClick = () => {
     if (validateInputs()) {
-      setShowConfirmation(true); // Show confirmation popup if all fields are valid
+      setShowConfirmation(true);
     }
   };
 
   return (
-    <Container fluid className="p-4">
+    <Container fluid className="p-4" style={{ position: "relative", minHeight: "80vh" }}>
+      {/* Loader for initial loading and operations */}
+      <LoaderPage loading={loading || operationLoading} />
+
       <h2 className="text-center text-primary mb-4">See Students</h2>
 
       {/* Alert Popup */}
@@ -190,7 +200,11 @@ const UpdateStudent = () => {
       <Row className="mb-4 g-3 d-flex align-items-center">
         {/* Academic Year Filter */}
         <Col xs={12} sm={6} md={3}>
-          <Form.Select value={selectedAcademicYear} onChange={(e) => setSelectedAcademicYear(e.target.value)}>
+          <Form.Select 
+            value={selectedAcademicYear} 
+            onChange={(e) => setSelectedAcademicYear(e.target.value)}
+            disabled={loading || operationLoading}
+          >
             <option value="">All Academic Years</option>
             {academicYears.map((year) => (
               <option key={year} value={year}>
@@ -202,7 +216,11 @@ const UpdateStudent = () => {
 
         {/* Year Filter */}
         <Col xs={12} sm={6} md={3}>
-          <Form.Select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
+          <Form.Select 
+            value={selectedYear} 
+            onChange={(e) => setSelectedYear(e.target.value)}
+            disabled={loading || operationLoading}
+          >
             <option value="">All Years</option>
             {years.map((year) => (
               <option key={year} value={year}>
@@ -214,7 +232,11 @@ const UpdateStudent = () => {
 
         {/* Division Filter */}
         <Col xs={12} sm={6} md={3}>
-          <Form.Select value={selectedDivision} onChange={(e) => setSelectedDivision(e.target.value)}>
+          <Form.Select 
+            value={selectedDivision} 
+            onChange={(e) => setSelectedDivision(e.target.value)}
+            disabled={loading || operationLoading}
+          >
             <option value="">All Divisions</option>
             {divisions.map((div) => (
               <option key={div} value={div}>
@@ -232,8 +254,13 @@ const UpdateStudent = () => {
               placeholder="Search by Name or Roll No."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              disabled={loading || operationLoading}
             />
-            <Button variant="outline-secondary" onClick={() => setSearchTerm("")}>
+            <Button 
+              variant="outline-secondary" 
+              onClick={() => setSearchTerm("")}
+              disabled={loading || operationLoading || !searchTerm}
+            >
               Clear
             </Button>
           </InputGroup>
@@ -243,7 +270,11 @@ const UpdateStudent = () => {
       {/* Reset Filters Button */}
       <Row className="mb-3">
         <Col className="text-end">
-          <Button variant="warning" onClick={resetFilters}>
+          <Button 
+            variant="warning" 
+            onClick={resetFilters}
+            disabled={loading || operationLoading}
+          >
             Reset Filters
           </Button>
         </Col>
@@ -257,13 +288,8 @@ const UpdateStudent = () => {
         </Col>
       </Row>
 
-      {/* Loading Spinner */}
-      {loading ? (
-        <div className="text-center">
-          <Spinner animation="border" variant="primary" />
-          <p>Loading students...</p>
-        </div>
-      ) : (
+      {/* Students Table */}
+      {!loading && !operationLoading && (
         <Table striped bordered hover responsive>
           <thead>
             <tr>
@@ -287,7 +313,11 @@ const UpdateStudent = () => {
                   <td>{student.class}</td>
                   <td>{student.academic_yr}</td>
                   <td>
-                    <Button variant="primary" onClick={() => handleEditClick(student)}>
+                    <Button 
+                      variant="primary" 
+                      onClick={() => handleEditClick(student)}
+                      disabled={operationLoading}
+                    >
                       Update
                     </Button>
                   </td>
@@ -305,7 +335,7 @@ const UpdateStudent = () => {
       )}
 
       {/* Update Student Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal show={showModal} onHide={() => !operationLoading && setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Update Student</Modal.Title>
         </Modal.Header>
@@ -314,7 +344,7 @@ const UpdateStudent = () => {
             <Form
               onSubmit={(e) => {
                 e.preventDefault();
-                handleUpdateClick(); // Validate and show confirmation popup
+                handleUpdateClick();
               }}
             >
               <Form.Group className="mb-3">
@@ -326,6 +356,7 @@ const UpdateStudent = () => {
                     setSelectedStudent({ ...selectedStudent, name: e.target.value })
                   }
                   isInvalid={!!errors.name}
+                  disabled={operationLoading}
                 />
                 <Form.Control.Feedback type="invalid">
                   {errors.name}
@@ -341,6 +372,7 @@ const UpdateStudent = () => {
                     setSelectedStudent({ ...selectedStudent, email: e.target.value })
                   }
                   isInvalid={!!errors.email}
+                  disabled={operationLoading}
                 />
                 <Form.Control.Feedback type="invalid">
                   {errors.email}
@@ -356,14 +388,15 @@ const UpdateStudent = () => {
                     setSelectedStudent({ ...selectedStudent, mobile_no: e.target.value })
                   }
                   isInvalid={!!errors.mobile_no}
+                  disabled={operationLoading}
                 />
                 <Form.Control.Feedback type="invalid">
                   {errors.mobile_no}
                 </Form.Control.Feedback>
               </Form.Group>
 
-              <Button variant="primary" type="submit">
-                Update
+              <Button variant="primary" type="submit" disabled={operationLoading}>
+                {operationLoading ? "Updating..." : "Update"}
               </Button>
             </Form>
           )}
@@ -371,7 +404,7 @@ const UpdateStudent = () => {
       </Modal>
 
       {/* Confirmation Popup */}
-      <Modal show={showConfirmation} onHide={() => setShowConfirmation(false)}>
+      <Modal show={showConfirmation} onHide={() => !operationLoading && setShowConfirmation(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Update</Modal.Title>
         </Modal.Header>
@@ -379,11 +412,19 @@ const UpdateStudent = () => {
           Are you sure you want to update this student's details?
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowConfirmation(false)}>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowConfirmation(false)}
+            disabled={operationLoading}
+          >
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleUpdateStudent}>
-            Confirm
+          <Button 
+            variant="primary" 
+            onClick={handleUpdateStudent}
+            disabled={operationLoading}
+          >
+            {operationLoading ? "Updating..." : "Confirm"}
           </Button>
         </Modal.Footer>
       </Modal>
