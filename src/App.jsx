@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AppRoutes from "./routes";  // ✅ Import only the routes
+import AppRoutes from "./routes";
 import { setUserRole } from './redux/actions'; 
 import { useDispatch } from "react-redux";
+import { ToastContainer } from 'react-toastify'; // Add this import
+import 'react-toastify/dist/ReactToastify.css'; // Add this CSS import
 
 import '@coreui/coreui/dist/css/coreui.min.css';
 import '@coreui/icons/css/all.min.css';
@@ -21,7 +23,7 @@ const App = () => {
     const loadUserRole = () => {
       const storedUser = JSON.parse(localStorage.getItem("user"));
       if (storedUser) {
-        dispatch(setUserRole(storedUser.role)); // Dispatch role to Redux state
+        dispatch(setUserRole(storedUser.role));
         setUser(storedUser);
       }
       setLoading(false);
@@ -44,7 +46,12 @@ const App = () => {
 
   if (loading) return <div>Loading...</div>;
 
-  return <AppRoutes />;
+  return (
+    <>
+      <AppRoutes />
+      <ToastContainer /> {/* Add this component */}
+    </>
+  );
 };
 
-export default App;
+export default App;
