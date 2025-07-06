@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { InputGroup, FormControl, Button, Form } from "react-bootstrap"; // Ensure these are imported
+import { InputGroup, FormControl, Button, Form, Alert } from "react-bootstrap";
 
 const UpdateMarks = () => {
   const [userData, setUserData] = useState([]);
@@ -60,19 +61,24 @@ const UpdateMarks = () => {
   const years = [...new Set(userData.map(course => course.academic_yr))];
   const semesters = [...new Set(userData.map(course => course.sem))];
 
-  if (loading) return <div className="text-center mt-5">Loading...</div>;
-  if (error) return <div className="text-danger text-center mt-5">{error}</div>;
-
   const handleUpdateMarks = (course) => {
+    if (course.is_locked === 1) {
+      toast.error("Cannot update marks. This course is locked.");
+      return;
+    }
     navigate("/faculty-dashboard/update-marks-form", { state: { course } });
   };
-  
+
+  if (loading) return <div className="text-center mt-5">Loading...</div>;
+  if (error) return <div className="text-danger text-center mt-5">{error}</div>;
 
   return (
     <div className="container py-5">
       <h2 className="text-3xl font-bold text-white mb-4 text-center">
         Update Marks
       </h2>
+
+      <ToastContainer position="top-right" autoClose={3000} />
 
       {/* Search Bar */}
       <div className="d-flex justify-content-center mb-4">
@@ -132,14 +138,20 @@ const UpdateMarks = () => {
                   <p className="card-text"><strong>Semester:</strong> {course.sem}</p>
                   <p className="card-text"><strong>Department:</strong> {course.dept_name} | <strong>Academic Year:</strong> {course.academic_yr}</p>
 
-                  {/* "Add Marks" button */}
                   <Button 
                     onClick={() => handleUpdateMarks(course)} 
                     variant="outline-primary" 
                     className="me-3"
+                    disabled={course.is_locked === 1}
                   >
                     Update Marks
                   </Button>
+                  {course.is_locked === 1 && (
+                    <Alert variant="warning" className="mt-3">
+                      Marks for this subject are locked
+                      {course.locked_on && ` (locked on ${new Date(course.locked_on).toLocaleDateString()})`}
+                    </Alert>
+                  )}
                 </div>
               </div>
             </div>

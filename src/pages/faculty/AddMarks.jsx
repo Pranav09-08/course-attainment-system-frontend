@@ -390,7 +390,7 @@ const UploadMarks = () => {
                   <Button
                     onClick={() => handleAddMarks(course)}
                     variant="outline-primary"
-                    className="me-3">
+                    className="me-3"disabled={course.is_locked === 1}>
                     Add Marks
                   </Button>
                   {course.is_locked === 1 && (
