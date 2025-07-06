@@ -8,6 +8,10 @@ const CoursesCoordinated = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedSem, setSelectedSem] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [facultyList, setFacultyList] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+
   const navigate = useNavigate();
 
   const storedUser = JSON.parse(localStorage.getItem("user")); // Retrieve user details
@@ -59,6 +63,34 @@ const CoursesCoordinated = () => {
     );
     navigate(`/coordinator-dashboard/attainment/${courseId}/${academicYear}/${dept_id}`);
   };
+
+  // To show the faculties details
+  const handleShowDetails = (course) => {
+    setSelectedCourse(course);
+    setShowModal(true);
+
+    const token = JSON.parse(localStorage.getItem("user"))?.accessToken;
+
+    axios
+      .get(`https://teacher-attainment-system-backend.onrender.com/faculty_courses/faculties-for-course`, {
+        params: {
+          course_id: course.course_id,
+          academic_yr: course.academic_yr,
+          dept_id: course.dept_id
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      })
+      .then((res) => {
+        setFacultyList(res.data.faculties);
+      })
+      .catch((err) => {
+        console.error("Error fetching faculty list:", err);
+        setFacultyList([]);
+      });
+  };
+
 
   // Filter Courses based on Search Term, Academic Year, and Semester
   const filteredCourses = courses.filter((course) => {
@@ -175,7 +207,10 @@ const CoursesCoordinated = () => {
                   >
                     View Attainment
                   </button>
-                  <button className="btn btn-outline-secondary w-100">
+                  <button
+                    className="btn btn-outline-secondary w-100"
+                    onClick={() => handleShowDetails(course)}
+                  >
                     Details
                   </button>
                 </div>
@@ -184,6 +219,53 @@ const CoursesCoordinated = () => {
           ))}
         </div>
       )}
+
+      {selectedCourse && (
+        <div className={`modal fade show`} style={{ display: showModal ? 'block' : 'none' }} tabIndex="-1">
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Faculty Handling This Course</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                {facultyList.length === 0 ? (
+                  <p className="text-muted">No faculty data found.</p>
+                ) : (
+                  <ul className="list-group">
+                    {facultyList.map((faculty, idx) => (
+                      <li key={idx} className="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                          <p className="mb-1"><strong>Name:</strong> {faculty.name}</p>
+                          <p className="mb-1"><strong>Class:</strong> {faculty.class}</p>
+                          <p className="mb-1"><strong>Email:</strong> {faculty.email || "Not Available"}</p>
+                        </div>
+                        <button
+                          className="btn btn-danger"
+                          onClick={() => handleLockMarks(faculty)}
+                        >
+                          Lock Add Marks
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
 };
