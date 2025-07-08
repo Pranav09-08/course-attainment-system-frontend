@@ -4,7 +4,6 @@ import LoaderPage from "../../components/LoaderPage"; // Adjust the path as need
 
 const AddFaculty = () => {
   const [faculty, setFaculty] = useState({
-    faculty_id: "",
     name: "",
     email: "",
     mobile_no: "",
@@ -26,20 +25,16 @@ const AddFaculty = () => {
   const validate = () => {
     let newErrors = {};
 
-    // Validate Faculty ID (Only positive integers)
-    if (!/^\d+$/.test(faculty.faculty_id)) {
-      newErrors.faculty_id = "Faculty ID must be a positive integer.";
-    }
-
     // Validate Name (Only alphabets and spaces)
     if (!/^[A-Za-z\s]+$/.test(faculty.name.trim())) {
       newErrors.name = "Name must contain only letters and spaces.";
     }
 
-    // Validate Email (Must be a valid Gmail)
-    if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(faculty.email)) {
-      newErrors.email = "Email must be a valid Gmail address (e.g., example@gmail.com).";
+    // ✅ Validate Email (Must be a valid @pict.edu address)
+    if (!/^[a-zA-Z0-9._%+-]+@pict\.edu$/.test(faculty.email)) {
+      newErrors.email = "Email must be a valid PICT address (e.g., username@pict.edu).";
     }
+
 
     // Validate Mobile Number (Exactly 10 digits)
     if (!/^\d{10}$/.test(faculty.mobile_no)) {
@@ -81,7 +76,7 @@ const AddFaculty = () => {
 
     try {
       await axios.post(
-        "https://teacher-attainment-system-backend.onrender.com/admin/add-faculty",
+        "http://localhost:5001/admin/add-faculty",
         faculty,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -90,7 +85,6 @@ const AddFaculty = () => {
 
       alert("Faculty added successfully!");
       setFaculty({
-        faculty_id: "",
         name: "",
         email: "",
         mobile_no: "",
@@ -119,21 +113,6 @@ const AddFaculty = () => {
             </div>
             <div className="card-body">
               <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label htmlFor="faculty_id" className="form-label">Faculty ID</label>
-                  <input
-                    type="text"
-                    name="faculty_id"
-                    id="faculty_id"
-                    placeholder="Enter Faculty ID (Integer)"
-                    value={faculty.faculty_id}
-                    onChange={handleChange}
-                    className={`form-control ${errors.faculty_id ? "is-invalid" : ""}`}
-                    required
-                    disabled={operationLoading}
-                  />
-                  {errors.faculty_id && <div className="invalid-feedback">{errors.faculty_id}</div>}
-                </div>
 
                 <div className="mb-3">
                   <label htmlFor="name" className="form-label">Name</label>
@@ -157,7 +136,7 @@ const AddFaculty = () => {
                     type="email"
                     name="email"
                     id="email"
-                    placeholder="Enter Email (Gmail only)"
+                    placeholder="Enter Email (PICT Mail only)"
                     value={faculty.email}
                     onChange={handleChange}
                     className={`form-control ${errors.email ? "is-invalid" : ""}`}
@@ -200,8 +179,8 @@ const AddFaculty = () => {
                 </div>
 
                 <div className="text-center">
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="btn btn-primary w-100"
                     disabled={operationLoading}
                   >
