@@ -76,7 +76,7 @@ const AddFaculty = () => {
 
     try {
       await axios.post(
-        "http://localhost:5001/admin/add-faculty",
+        "https://teacher-attainment-system-backend.onrender.com/admin/add-faculty",
         faculty,
         {
           headers: { Authorization: `Bearer ${token}` },
