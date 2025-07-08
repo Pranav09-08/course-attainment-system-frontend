@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Form, Button, InputGroup, FormControl, Modal, Table } from 'react-bootstrap';
+import { Form, Button, InputGroup, FormControl, Modal, Table, Alert } from 'react-bootstrap';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -22,7 +22,9 @@ const UploadMarks = () => {
   const [showDownloadButton, setShowDownloadButton] = useState(false);
   const [students, setStudents] = useState([]);
   const [csvContent, setCsvContent] = useState("");
-  const [csvRows, setCsvRows] = useState([]); // State to store CSV rows for table display
+  const [csvRows, setCsvRows] = useState([]);
+  const [validationErrors, setValidationErrors] = useState({});
+  
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const { accessToken, user } = storedUser || {};
   const { id: user_id } = user || {};
@@ -35,8 +37,7 @@ const UploadMarks = () => {
         setUserData(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching faculty course data:", err);
-   
-        alert("Failed to fetch course allotment data! Please try again later."); // Show alert
+        alert("Failed to fetch course allotment data! Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -69,9 +70,104 @@ const UploadMarks = () => {
   const years = [...new Set(userData.map(course => course.academic_yr))];
   const semesters = [...new Set(userData.map(course => course.sem))];
 
-  if (loading) return <div className="text-center mt-5">Loading...</div>;
+  const validateMarks = (markType, csvRows) => {
+    const errors = {};
+    if (csvRows.length < 2) return { isValid: false, message: "CSV must have at least one data row", errors };
+
+    const headers = csvRows[0].map(h => h.trim().toLowerCase());
+    const dataRows = csvRows.slice(1);
+
+    const validationRules = {
+      ut1: {
+        columns: ["u1_co1", "u1_co2"],
+        min: 0,
+        max: 15,
+        allowedStrings: ["AB", ""],
+        rangeMessage: "Must be between 0-15 or AB"
+      },
+      ut2: {
+        columns: ["u2_co3", "u2_co4"],
+        min: 0,
+        max: 15,
+        allowedStrings: ["AB", ""],
+        rangeMessage: "Must be between 0-15 or AB"
+      },
+      ut3: {
+        columns: ["u3_co5", "u3_co6"],
+        min: 0,
+        max: 15,
+        allowedStrings: ["AB", ""],
+        rangeMessage: "Must be between 0-15 or AB"
+      },
+      insem: {
+        columns: ["i_co1", "i_co2"],
+        min: 0,
+        max: 15,
+        allowedStrings: ["AB", ""],
+        rangeMessage: "Must be between 0-15 or AB"
+      },
+      final: {
+        columns: ["end_sem"],
+        min: 0,
+        max: 70,
+        allowedStrings: ["AB", ""],
+        rangeMessage: "Must be between 0-70 or AB"
+      }
+    };
+
+    const rules = validationRules[markType.toLowerCase()];
+    if (!rules) return { isValid: false, message: "Invalid mark type selected", errors };
+
+    for (const column of rules.columns) {
+      if (!headers.includes(column)) {
+        return { 
+          isValid: false, 
+          message: `Missing required column: ${column.toUpperCase()}`,
+          errors
+        };
+      }
+    }
+
+    for (let i = 0; i < dataRows.length; i++) {
+      const row = dataRows[i];
+      if (row.length !== headers.length) {
+        errors[i] = { __row: `Row ${i + 1} has incorrect number of columns` };
+        continue;
+      }
+
+      for (let j = 0; j < headers.length; j++) {
+        const header = headers[j];
+        const value = row[j] ? row[j].trim().toUpperCase() : "";
+        
+        if (rules.columns.includes(header)) {
+          if (rules.allowedStrings.includes(value)) continue;
+          
+          const numValue = parseFloat(value);
+          if (isNaN(numValue)) {
+            errors[i] = errors[i] || {};
+            errors[i][j] = true;
+          } else if (numValue < rules.min || numValue > rules.max) {
+            errors[i] = errors[i] || {};
+            errors[i][j] = true;
+          }
+        }
+      }
+    }
+
+    const isValid = Object.keys(errors).length === 0;
+    return { 
+      isValid, 
+      message: isValid ? "CSV data is valid" : `Some values are invalid. Please correct them before uploading. [${rules.rangeMessage}]`, 
+      errors 
+    };
+  };
 
   const handleAddMarks = async (course) => {
+    if (course.is_locked === 1) {
+      toast.error("Cannot add marks. This course is locked.");
+      return;
+    }
+
     try {
       const response = await axios.post(
         "https://teacher-attainment-system-backend.onrender.com/get_student/students",
@@ -86,6 +182,7 @@ const UploadMarks = () => {
       setSelectedCourse(course);
       setStudents(response.data);
       setShowModal(true);
+      setValidationErrors({});
     } catch (error) {
       console.error("Error sending course data:", error);
       toast.error("Failed to fetch student data for the selected course.");
@@ -96,22 +193,31 @@ const UploadMarks = () => {
     const selectedType = e.target.value;
     setSelectedMarkType(selectedType);
     setShowDownloadButton(!!selectedType);
+    
+    if (csvRows.length > 0) {
+      const validationResult = validateMarks(selectedType, csvRows);
+      setValidationErrors(validationResult.errors);
+    }
   };
 
   const handleCsvChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setCsvFile(file);
+      setValidationErrors({});
 
-      // Read and display CSV content
       const reader = new FileReader();
       reader.onload = (event) => {
         const content = event.target.result;
         setCsvContent(content);
 
-        // Parse CSV content into rows and columns
         const rows = content.split("\n").map(row => row.split(","));
         setCsvRows(rows);
+
+        if (selectedMarkType) {
+          const validationResult = validateMarks(selectedMarkType, rows);
+          setValidationErrors(validationResult.errors);
+        }
       };
       reader.readAsText(file);
     }
@@ -160,72 +266,64 @@ const UploadMarks = () => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.readAsText(csvFile);
+    if (selectedCourse.is_locked === 1) {
+      toast.error("Cannot upload marks. This course is locked.");
+      return;
+    }
 
-    reader.onload = async (event) => {
-      const csvText = event.target.result;
-      const rows = csvText.split("\n").map(row => row.trim());
+    const validationResult = validateMarks(selectedMarkType, csvRows);
+    setValidationErrors(validationResult.errors);
+    
+    if (!validationResult.isValid) {
+      toast.error(validationResult.message);
+      return;
+    }
 
-      if (rows.length < 2) {
-        toast.warn("Invalid CSV format. The file must contain at least a header and one data row.");
-        return;
-      }
+    const formData = new FormData();
+    formData.append("file", csvFile);
+    formData.append("markType", selectedMarkType);
+    formData.append("academic_yr", selectedCourse.academic_yr);
+    formData.append("course_id", selectedCourse.course_id);
+    formData.append("sem", selectedCourse.sem);
+    formData.append("class", selectedCourse.class);
+    formData.append("dept_id", selectedCourse.dept_id);
 
-      const csvHeaders = rows[0].split(",").map(header => header.trim());
+    setLoadingUpload(true);
 
-      const requiredColumnsMap = {
-        "UT1": ["roll_no", "name", "u1_co1", "u1_co2"],
-        "UT2": ["roll_no", "name", "u2_co3", "u2_co4"],
-        "UT3": ["roll_no", "name", "u3_co5", "u3_co6"],
-        "Insem": ["roll_no", "name", "i_co1", "i_co2"],
-        "Final": ["roll_no", "name", "end_sem"]
-      };
-
-      const requiredColumns = requiredColumnsMap[selectedMarkType] || [];
-
-      if (csvHeaders.length !== requiredColumns.length || !csvHeaders.every(col => requiredColumns.includes(col))) {
-        toast.warn(`Invalid CSV format. It must contain only these columns for ${selectedMarkType}: ${requiredColumns.join(", ")}`);
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("file", csvFile);
-      formData.append("markType", selectedMarkType);
-      formData.append("academic_yr", selectedCourse.academic_yr);
-      formData.append("course_id", selectedCourse.course_id);
-      formData.append("sem", selectedCourse.sem);
-      formData.append("class", selectedCourse.class);
-      formData.append("dept_id", selectedCourse.dept_id);
-
-      setLoadingUpload(true);
-
-      try {
-        const response = await axios.post(
-          "https://teacher-attainment-system-backend.onrender.com/add_marks/upload_marks",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              "Authorization": `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (response.data.success) {
-          toast.success("✅ Marks successfully uploaded!");
-        } else {
-          toast.error(`⚠️ ${response.data.message || "Error in uploading data."}`);
+    try {
+      const response = await axios.post(
+        "https://teacher-attainment-system-backend.onrender.com/add_marks/upload_marks",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "Authorization": `Bearer ${accessToken}`,
+          },
         }
-      } catch (err) {
-        console.error("Error uploading CSV file:", err);
-        toast.error("❌ Server error! Could not upload marks.");
-      } finally {
-        setLoadingUpload(false);
-        setShowModal(false);
+      );
+
+      if (response.data.success) {
+        toast.success("Marks successfully uploaded!");
+      } else {
+        toast.error(`⚠️ ${response.data.message || "Error in uploading data."}`);
       }
-    };
+    } catch (err) {
+      console.error("Error uploading CSV file:", err);
+      toast.error("❌ Server error! Could not upload marks.");
+    } finally {
+      setLoadingUpload(false);
+      setShowModal(false);
+    }
   };
+
+  const getCellStyle = (rowIndex, cellIndex) => {
+    if (validationErrors[rowIndex] && validationErrors[rowIndex][cellIndex]) {
+      return { color: 'red', fontWeight: 'bold', fontSize: '14px' };
+    }
+    return { color: 'white', fontSize: '14px' };
+  };
+
+  if (loading) return <div className="text-center mt-5">Loading...</div>;
 
   return (
     <div className="container py-5">
@@ -292,9 +390,15 @@ const UploadMarks = () => {
                   <Button
                     onClick={() => handleAddMarks(course)}
                     variant="outline-primary"
-                    className="me-3">
+                    className="me-3"disabled={course.is_locked === 1}>
                     Add Marks
                   </Button>
+                  {course.is_locked === 1 && (
+                    <Alert variant="warning" className="mt-3">
+                      Marks for this subject are locked
+                      {course.locked_on && ` (locked on ${new Date(course.locked_on).toLocaleDateString()})`}
+                    </Alert>
+                  )}
                 </div>
               </div>
             </div>
@@ -302,7 +406,7 @@ const UploadMarks = () => {
         </div>
       )}
 
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+      <Modal show={showModal && selectedCourse.is_locked !== 1} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Upload Marks</Modal.Title>
         </Modal.Header>
@@ -337,6 +441,13 @@ const UploadMarks = () => {
           {csvRows.length > 0 && (
             <div className="mb-4">
               <h6>CSV Preview:</h6>
+              {Object.keys(validationErrors).length > 0 && (
+                <div className="alert alert-warning">
+                  Some values are invalid. Please correct them before uploading. [Must be between {
+                    selectedMarkType === "Final" ? "0-70" : "0-15"
+                  } or AB]
+                </div>
+              )}
               <Table striped bordered hover responsive>
                 <thead>
                   <tr>
@@ -349,7 +460,9 @@ const UploadMarks = () => {
                   {csvRows.slice(1).map((row, rowIndex) => (
                     <tr key={rowIndex}>
                       {row.map((cell, cellIndex) => (
-                        <td key={cellIndex} style={{ color: "white", fontSize: "14px" }}>{cell}</td>
+                        <td key={cellIndex} style={getCellStyle(rowIndex, cellIndex)}>
+                          {cell}
+                        </td>
                       ))}
                     </tr>
                   ))}

@@ -112,6 +112,7 @@ const Profile = () => {
         const uploadFormData = new FormData();
         uploadFormData.append('profile_image', profileImageFile);
         uploadFormData.append('user_role', userRole);
+        uploadFormData.append('email', formData.email); 
 
         const uploadResponse = await axios.post(
           `${backendBaseUrl}/api/profile/upload/${userId}`,
@@ -150,7 +151,7 @@ const Profile = () => {
 
   return (
     <div className="d-flex justify-content-center align-items-center min-vh-100 p-4" style={{ 
-      position: "fixed",
+     // position: "fixed",
       top: 0,
       left: 0,
       right: 0,
@@ -158,7 +159,7 @@ const Profile = () => {
      
       overflow: 'hidden' // Prevent scrolling
     }}>
-      <LoaderPage loading={operationLoading} />
+     <LoaderPage loading={operationLoading} />
 
       <CCard
         className="shadow-lg rounded-4 p-4 border border-primary"
@@ -282,4 +283,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default Profile;  
