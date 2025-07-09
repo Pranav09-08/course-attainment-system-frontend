@@ -128,7 +128,7 @@ const AddCourseAllotment = () => {
     const payload = {
       ...formData,
       course_id: String(formData.course_id),
-      faculty_id: Number(formData.faculty_id),
+      faculty_id: String(formData.faculty_id),
       academic_yr: Number(formData.academic_yr),
     };
 
