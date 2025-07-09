@@ -1,15 +1,15 @@
-
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { saveAs } from "file-saver";
 import Papa from "papaparse";
 import { Form, Button, Alert, Card, Container, Table } from "react-bootstrap";
+import { ToastContainer, toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "react-toastify/dist/ReactToastify.css";
 
 const AddStudents = () => {
   const [file, setFile] = useState(null);
   const [students, setStudents] = useState([]);
-  const [message, setMessage] = useState({ text: "", type: "" });
   const [deptId, setDeptId] = useState(null);
   const [token, setToken] = useState(null);
   
@@ -22,12 +22,22 @@ const AddStudents = () => {
   const classOptions = ["FE", "SE", "TE", "BE"];
   const semOptions = ["ODD", "EVEN"];
   
-  // Generate academic year options (current year and previous 5 years)
+  // Generate academic year options
   const currentYear = new Date().getFullYear();
   const academicYearOptions = Array.from({ length: 6 }, (_, i) => {
     const year = currentYear - i;
     return `${year}_${(year + 1).toString().slice(-2)}`;
   });
+
+  // Toast configuration
+  const showToast = (type, message) => {
+    toast[type](message, {
+      position: "top-right",
+      autoClose: type === "error" ? 5000 : 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+    });
+  };
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user")) || {};
@@ -38,7 +48,6 @@ const AddStudents = () => {
     }
   }, []);
 
-  // Generate sample CSV content based on selected class
   const generateSampleCSV = () => {
     let headers = "roll_no,seat_no,name";
     
@@ -48,7 +57,6 @@ const AddStudents = () => {
       headers += ",el1,el2";
     }
     
-    // Add sample data rows
     let content = headers + "\n";
     content += `1001,1,Student One${selectedClass === "TE" ? ",Elective 1" : selectedClass === "BE" ? ",Elective 1,Elective 2" : ""}\n`;
     content += `1002,2,Student Two${selectedClass === "TE" ? ",Elective 1" : selectedClass === "BE" ? ",Elective 1,Elective 2" : ""}`;
@@ -58,12 +66,13 @@ const AddStudents = () => {
 
   const handleDownloadSample = () => {
     if (!selectedClass) {
-      setMessage({ text: "Please select a class first", type: "danger" });
+      showToast("error", "Please select a class first");
       return;
     }
     
     const blob = new Blob([generateSampleCSV()], { type: "text/csv;charset=utf-8" });
     saveAs(blob, `sample_${selectedClass}_students.csv`);
+    showToast("success", `Sample CSV for ${selectedClass} downloaded`);
   };
 
   const handleFileChange = (e) => {
@@ -71,7 +80,7 @@ const AddStudents = () => {
     setFile(selectedFile);
 
     if (!selectedClass || !selectedSem || !selectedAcademicYear) {
-      setMessage({ text: "Please select class, semester and academic year first", type: "danger" });
+      showToast("error", "Please select class, semester and academic year first");
       return;
     }
 
@@ -81,13 +90,11 @@ const AddStudents = () => {
       complete: (results) => {
         const errors = [];
         const parsedStudents = results.data
-          .filter(row => row.roll_no && row.name) // Filter out empty rows
+          .filter(row => row.roll_no && row.name)
           .map((row, index) => {
-            // Validate required fields
             if (!row.roll_no) errors.push(`Row ${index+1}: Missing roll_no`);
             if (!row.name) errors.push(`Row ${index+1}: Missing name`);
             
-            // Class-specific validation
             if (selectedClass === "TE" && !row.el1) {
               errors.push(`Row ${index+1}: TE students require el1`);
             }
@@ -105,114 +112,74 @@ const AddStudents = () => {
           });
 
         if (errors.length > 0) {
-          setMessage({
-            text: `CSV validation errors: ${errors.join('; ')}`,
-            type: "danger"
-          });
+          showToast("error", `CSV contains ${errors.length} validation errors`);
           return;
         }
 
         setStudents(parsedStudents);
-        setMessage({
-          text: `Successfully parsed ${parsedStudents.length} students. Click "Add Students" to confirm.`,
-          type: "success"
-        });
+        showToast("success", `Parsed ${parsedStudents.length} students ready for upload`);
       },
       error: (error) => {
-        setMessage({
-          text: `CSV parsing error: ${error.message}`,
-          type: "danger"
-        });
+        showToast("error", `CSV parsing error: ${error.message}`);
       }
     });
   };
 
-const handleUpload = async () => {
-  if (!selectedClass || !selectedSem || !selectedAcademicYear) {
-    setMessage({ text: "Please select class, semester and academic year", type: "danger" });
-    return;
-  }
+  const handleUpload = async () => {
+    if (!selectedClass || !selectedSem || !selectedAcademicYear) {
+      showToast("error", "Please select class, semester and academic year");
+      return;
+    }
 
-  if (students.length === 0) {
-    setMessage({ text: "No valid student data to upload!", type: "danger" });
-    return;
-  }
+    if (students.length === 0) {
+      showToast("error", "No valid student data to upload");
+      return;
+    }
 
-  try {
-    // Debug: Log what's being sent
-    console.log("Sending data:", {
-      students,
-      sem: selectedSem,
-      academic_yr: selectedAcademicYear
-    });
-
-    const response = await axios.post(
-      "http://localhost:5001/admin/student/upload-students",
-      { 
-        students,
-        sem: selectedSem,
-        academic_yr: selectedAcademicYear
-      },
-      {
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+    try {
+      const response = await axios.post(
+        "http://localhost:5001/admin/student/upload-students",
+        { 
+          students,
+          sem: selectedSem,
+          academic_yr: selectedAcademicYear
         },
-        timeout: 10000 // 10 second timeout
+        {
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          timeout: 10000
+        }
+      );
+
+      if (response.data && response.data.message) {
+        showToast("success", `${students.length} students added successfully!`);
+        setStudents([]);
+        setFile(null);
+      } else {
+        throw new Error("Invalid response format from server");
       }
-    );
+    } catch (error) {
+      let errorMsg = "Error uploading student data";
+      
+      if (error.response) {
+        errorMsg = error.response.data?.message || 
+                  `Server Error: ${error.response.status}`;
+      } else if (error.request) {
+        errorMsg = "No response from server - check backend connection";
+      } else if (error.code === "ECONNABORTED") {
+        errorMsg = "Request timeout - server took too long to respond";
+      }
 
-    // Debug: Log full response
-    console.log("Full response:", response);
-
-    if (response.data && response.data.message) {
-      setMessage({ 
-        text: `✅ ${students.length} students added successfully to ${selectedSem} ${selectedAcademicYear}!`,
-        type: "success" 
-      });
-      setStudents([]);
-      setFile(null);
-    } else {
-      throw new Error("Invalid response format from server");
+      showToast("error", errorMsg);
     }
-  } catch (error) {
-    // Enhanced error logging
-    console.error("Full error details:", {
-      message: error.message,
-      code: error.code,
-      config: error.config,
-      response: error.response?.data,
-      stack: error.stack
-    });
-
-    let errorMsg = "Error uploading student data.";
-    
-    if (error.response) {
-      // Handle HTTP error responses (4xx, 5xx)
-      errorMsg = error.response.data?.message || 
-                `Server Error: ${error.response.status} - ${error.response.statusText}`;
-    } else if (error.request) {
-      // The request was made but no response received
-      errorMsg = "No response from server. Please check:";
-      errorMsg += "\n1. Backend is running";
-      errorMsg += "\n2. Correct port (5001)";
-      errorMsg += "\n3. No network issues";
-    } else if (error.code === "ECONNABORTED") {
-      errorMsg = "Request timeout. Server took too long to respond.";
-    } else {
-      // Something happened in setting up the request
-      errorMsg = `Request setup error: ${error.message}`;
-    }
-
-    setMessage({ 
-      text: errorMsg,
-      type: "danger" 
-    });
-  }
-};
+  };
 
   return (
     <Container className="mt-5 d-flex justify-content-center">
+      <ToastContainer />
+      
       <Card className="shadow-lg p-4" style={{ width: '75%' }}>
         <Card.Title className="text-center text-primary mb-4">Add Students using CSV</Card.Title>
         
@@ -329,18 +296,6 @@ const handleUpload = async () => {
           >
             Add {students.length} Students
           </Button>
-        )}
-
-        {/* Status Message */}
-        {message.text && (
-          <Alert 
-            variant={message.type} 
-            className="mt-3"
-            onClose={() => setMessage({ text: "", type: "" })}
-            dismissible
-          >
-            {message.text}
-          </Alert>
         )}
       </Card>
     </Container>

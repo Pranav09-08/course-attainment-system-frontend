@@ -1,230 +1,332 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Form, InputGroup, Button, Container, Row, Col, Alert } from "react-bootstrap";
-import LoaderPage from "../../components/LoaderPage"; // Adjust path as needed
+import { Table, Form, InputGroup, Button, Container, Row, Col, Alert, Spinner } from "react-bootstrap";
+import LoaderPage from "../../components/LoaderPage";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const SeeStudents = () => {
-    const [students, setStudents] = useState([]);
+    const [allStudents, setAllStudents] = useState([]);
     const [filteredStudents, setFilteredStudents] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedYear, setSelectedYear] = useState("");
-    const [selectedDivision, setSelectedDivision] = useState("");
-    const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
+    const [selectedClass, setSelectedClass] = useState("");
+    const [selectedSem, setSelectedSem] = useState("ALL");
     const [loading, setLoading] = useState(true);
-    const [studentCount, setStudentCount] = useState(0);
     const [error, setError] = useState(null);
-
-    const [academicYears, setAcademicYears] = useState([]);
-    const [years, setYears] = useState([]);
-    const [divisions, setDivisions] = useState([]);
+    const [operationLoading, setOperationLoading] = useState(false);
 
     const storedUser = JSON.parse(localStorage.getItem("user")) || {};
     const department_id = storedUser?.user?.id || "";
+    const token = storedUser?.accessToken;
+
+    // Generate academic years
+    const generateAcademicYears = () => {
+        const years = [];
+        const currentYear = new Date().getFullYear();
+        for (let i = 0; i <= 5; i++) {
+            const year = currentYear - i;
+            years.push(`${year}_${(year + 1).toString().slice(-2)}`);
+        }
+        return years;
+    };
+
+    const academicYears = generateAcademicYears();
+    const [selectedAcademicYear, setSelectedAcademicYear] = useState(academicYears[0]);
+
+    // Only show essential error toasts
+    const showErrorToast = (message) => {
+        toast.error(message, {
+            position: "top-right",
+            autoClose: 5000, // Longer display for errors
+            hideProgressBar: false,
+            closeOnClick: true,
+        });
+    };
 
     useEffect(() => {
         if (department_id) {
-            fetchStudents();
+            fetchAllStudents();
         }
-    }, [department_id]);
+    }, [department_id, selectedAcademicYear]);
 
-    const fetchStudents = async () => {
+    const fetchAllStudents = async () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get(
-                `https://teacher-attainment-system-backend.onrender.com/admin/student/get-students?dept_id=${department_id}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${storedUser?.accessToken}`
-                    }
-                }
-            );
-            const studentsData = response.data;
+            const [oddSemResponse, evenSemResponse] = await Promise.all([
+                axios.get(`http://localhost:5001/admin/student/get-students`, {
+                    params: {
+                        dept_id: department_id,
+                        sem: 'ODD',
+                        academic_yr: selectedAcademicYear
+                    },
+                    headers: { Authorization: `Bearer ${token}` }
+                }),
+                axios.get(`http://localhost:5001/admin/student/get-students`, {
+                    params: {
+                        dept_id: department_id,
+                        sem: 'EVEN',
+                        academic_yr: selectedAcademicYear
+                    },
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+            ]);
 
-            setStudents(studentsData);
-            setFilteredStudents(studentsData);
+            const combinedStudents = [
+                ...(oddSemResponse.data || []),
+                ...(evenSemResponse.data || [])
+            ];
 
-            // Extract unique values for filters
-            const uniqueAcademicYears = [...new Set(studentsData.map(student => student.academic_yr))];
-            const uniqueYears = [...new Set(studentsData.map(student => student.class.slice(0, 2)))];
-            const uniqueDivisions = [...new Set(studentsData.map(student => student.class))];
-
-            setAcademicYears(uniqueAcademicYears);
-            setYears(uniqueYears);
-            setDivisions(uniqueDivisions);
+            setAllStudents(combinedStudents);
+            setFilteredStudents(combinedStudents);
         } catch (error) {
             console.error("Error fetching students:", error);
-            setError(error.response?.data?.message || "Failed to load students. Please try again.");
+            const errorMsg = error.response?.data?.error || "Failed to load students";
+            setError(errorMsg);
+            showErrorToast(errorMsg);
         } finally {
             setLoading(false);
         }
     };
 
-    // Filter students dynamically
+    // Apply filters
     useEffect(() => {
-        let filtered = students;
+        let filtered = [...allStudents];
 
-        if (selectedAcademicYear) {
-            filtered = filtered.filter(student => student.academic_yr === selectedAcademicYear);
+        if (selectedClass) {
+            filtered = filtered.filter(student => 
+                student.class.toUpperCase() === selectedClass.toUpperCase()
+            );
         }
-        if (selectedYear) {
-            filtered = filtered.filter(student => student.class.includes(selectedYear));
+
+        if (selectedSem !== "ALL") {
+            filtered = filtered.filter(student => 
+                student.sem.toUpperCase() === selectedSem
+            );
         }
-        if (selectedDivision) {
-            filtered = filtered.filter(student => student.class === selectedDivision);
-        }
+
         if (searchTerm) {
+            const term = searchTerm.toLowerCase();
             filtered = filtered.filter(student =>
-                student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                student.roll_no.toString().includes(searchTerm)
+                student.name.toLowerCase().includes(term) ||
+                student.roll_no.toString().toLowerCase().includes(term)
             );
         }
 
         setFilteredStudents(filtered);
-        setStudentCount(filtered.length);
-    }, [selectedAcademicYear, selectedYear, selectedDivision, searchTerm, students]);
+    }, [selectedClass, selectedSem, searchTerm, allStudents]);
 
     const resetFilters = () => {
-        setSelectedAcademicYear("");
-        setSelectedYear("");
-        setSelectedDivision("");
+        setSelectedClass("");
+        setSelectedSem("ALL");
         setSearchTerm("");
     };
 
+    const handleRefresh = async () => {
+        setOperationLoading(true);
+        try {
+            await fetchAllStudents();
+            toast.success("Student data refreshed", {
+                autoClose: 3000,
+                hideProgressBar: true
+            });
+        } catch (error) {
+            showErrorToast("Failed to refresh data");
+        } finally {
+            setOperationLoading(false);
+        }
+    };
+
+    const handleAcademicYearChange = (e) => {
+        setSelectedAcademicYear(e.target.value);
+        resetFilters();
+    };
+
+    const showElective1 = !selectedClass || ['TE', 'BE'].includes(selectedClass);
+    const showElective2 = !selectedClass || selectedClass === 'BE';
+
     return (
         <Container fluid className="p-4" style={{ position: "relative", minHeight: "80vh" }}>
-            {/* Loader Component */}
+            {/* Toast Container - only shows essential messages */}
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
+
             <LoaderPage loading={loading} />
 
             <h2 className="text-center text-primary mb-4">See Students</h2>
 
             {error && (
-                <Alert variant="danger" className="text-center">
+                <Alert variant="danger" onClose={() => setError(null)} dismissible>
                     {error}
                 </Alert>
             )}
 
-            {/* Filters Section */}
-            <Row className="mb-4 g-3 d-flex align-items-center">
-                <Col xs={12} sm={6} md={3}>
-                    <Form.Select 
-                        value={selectedAcademicYear} 
-                        onChange={(e) => setSelectedAcademicYear(e.target.value)}
-                        disabled={loading}
-                    >
-                        <option value="">All Academic Years</option>
-                        {academicYears.map((year) => (
-                            <option key={year} value={year}>{year}</option>
-                        ))}
-                    </Form.Select>
-                </Col>
-
-                <Col xs={12} sm={6} md={3}>
-                    <Form.Select 
-                        value={selectedYear} 
-                        onChange={(e) => setSelectedYear(e.target.value)}
-                        disabled={loading}
-                    >
-                        <option value="">All Years</option>
-                        {years.map((year) => (
-                            <option key={year} value={year}>{year}</option>
-                        ))}
-                    </Form.Select>
-                </Col>
-
-                <Col xs={12} sm={6} md={3}>
-                    <Form.Select 
-                        value={selectedDivision} 
-                        onChange={(e) => setSelectedDivision(e.target.value)}
-                        disabled={loading}
-                    >
-                        <option value="">All Divisions</option>
-                        {divisions.map((div) => (
-                            <option key={div} value={div}>{div}</option>
-                        ))}
-                    </Form.Select>
-                </Col>
-
-                <Col xs={12} sm={6} md={3}>
-                    <InputGroup>
+            {/* Academic Year Selection */}
+            <Row className="mb-3">
+                <Col md={4}>
+                    <Form.Group>
+                        <Form.Label>Academic Year</Form.Label>
                         <Form.Control
-                            type="text"
-                            placeholder="Search by Name or Roll No."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            as="select"
+                            value={selectedAcademicYear}
+                            onChange={handleAcademicYearChange}
                             disabled={loading}
-                        />
-                        <Button 
-                            variant="outline-secondary" 
-                            onClick={() => setSearchTerm("")}
-                            disabled={!searchTerm || loading}
                         >
-                            Clear
-                        </Button>
-                    </InputGroup>
+                            {academicYears.map(year => (
+                                <option key={year} value={year}>{year}</option>
+                            ))}
+                        </Form.Control>
+                    </Form.Group>
+                </Col>
+                <Col md={8} className="d-flex align-items-end justify-content-end">
+                    <Button 
+                        variant="primary" 
+                        onClick={handleRefresh}
+                        disabled={loading || operationLoading}
+                        className="me-2"
+                    >
+                        {operationLoading ? (
+                            <>
+                                <Spinner as="span" size="sm" animation="border" />
+                                <span className="ms-2">Refreshing...</span>
+                            </>
+                        ) : "Refresh Data"}
+                    </Button>
                 </Col>
             </Row>
 
-            {/* Reset Filters Button */}
+            {/* Filters Section */}
+            <Row className="mb-4 g-3">
+                <Col md={4}>
+                    <Form.Group>
+                        <Form.Label>Class</Form.Label>
+                        <Form.Select 
+                            value={selectedClass}
+                            onChange={(e) => setSelectedClass(e.target.value)}
+                            disabled={loading}
+                        >
+                            <option value="">All Classes</option>
+                            <option value="FE">FE</option>
+                            <option value="SE">SE</option>
+                            <option value="TE">TE</option>
+                            <option value="BE">BE</option>
+                        </Form.Select>
+                    </Form.Group>
+                </Col>
+
+                <Col md={4}>
+                    <Form.Group>
+                        <Form.Label>Semester</Form.Label>
+                        <Form.Select 
+                            value={selectedSem}
+                            onChange={(e) => setSelectedSem(e.target.value)}
+                            disabled={loading}
+                        >
+                            <option value="ALL">All Semesters</option>
+                            <option value="ODD">ODD</option>
+                            <option value="EVEN">EVEN</option>
+                        </Form.Select>
+                    </Form.Group>
+                </Col>
+
+                <Col md={4}>
+                    <Form.Group>
+                        <Form.Label>Search</Form.Label>
+                        <InputGroup>
+                            <Form.Control
+                                type="text"
+                                placeholder="Name or Roll No"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                disabled={loading}
+                            />
+                            <Button 
+                                variant="outline-secondary" 
+                                onClick={() => setSearchTerm("")}
+                                disabled={!searchTerm || loading}
+                            >
+                                Clear
+                            </Button>
+                        </InputGroup>
+                    </Form.Group>
+                </Col>
+            </Row>
+
+            {/* Reset Button */}
             <Row className="mb-3">
                 <Col className="text-end">
                     <Button 
                         variant="warning" 
                         onClick={resetFilters}
-                        disabled={loading || (
-                            !selectedAcademicYear && 
-                            !selectedYear && 
-                            !selectedDivision && 
-                            !searchTerm
-                        )}
+                        disabled={loading || (!selectedClass && selectedSem === "ALL" && !searchTerm)}
                     >
                         Reset Filters
                     </Button>
                 </Col>
             </Row>
 
+            {/* Students Count */}
             <Row className="mb-3">
                 <Col>
                     <h5 className="text-secondary">
-                        Total Students: <span className="text-primary">{studentCount}</span>
+                        Showing: <span className="text-primary">{filteredStudents.length}</span> students
+                        {allStudents.length !== filteredStudents.length && (
+                            <span className="text-muted"> (of {allStudents.length} total)</span>
+                        )}
                     </h5>
                 </Col>
             </Row>
 
             {/* Students Table */}
             {!loading && (
-                <Table striped bordered hover responsive>
-                    <thead className="table-dark">
-                        <tr>
-                            <th>Roll No</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Mobile No</th>
-                            <th>Class</th>
-                            <th>Academic Year</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredStudents.length > 0 ? (
-                            filteredStudents.map((student) => (
-                                <tr key={student.roll_no}>
-                                    <td>{student.roll_no}</td>
-                                    <td>{student.name}</td>
-                                    <td>{student.email}</td>
-                                    <td>{student.mobile_no || "N/A"}</td>
-                                    <td>{student.class}</td>
-                                    <td>{student.academic_yr}</td>
-                                </tr>
-                            ))
-                        ) : (
+                <div className="table-responsive">
+                    <Table striped bordered hover>
+                        <thead className="table-dark">
                             <tr>
-                                <td colSpan="6" className="text-center">
-                                    {students.length === 0 ? "No students found" : "No matching students found"}
-                                </td>
+                                <th>Roll No</th>
+                                <th>Name</th>
+                                <th>Class</th>
+                                <th>Seat No</th>
+                                <th>Semester</th>
+                                {showElective1 && <th>Elective 1</th>}
+                                {showElective2 && <th>Elective 2</th>}
                             </tr>
-                        )}
-                    </tbody>
-                </Table>
+                        </thead>
+                        <tbody>
+                            {filteredStudents.length > 0 ? (
+                                filteredStudents.map((student) => (
+                                    <tr key={`${student.roll_no}-${student.sem}`}>
+                                        <td>{student.roll_no}</td>
+                                        <td>{student.name}</td>
+                                        <td>{student.class}</td>
+                                        <td>{student.seat_no || '-'}</td>
+                                        <td>{student.sem.toUpperCase()}</td>
+                                        {showElective1 && <td>{student.el1 || '-'}</td>}
+                                        {showElective2 && <td>{student.el2 || '-'}</td>}
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td 
+                                        colSpan={5 + (showElective1 ? 1 : 0) + (showElective2 ? 1 : 0)} 
+                                        className="text-center"
+                                    >
+                                        {allStudents.length === 0 ? "No students found" : "No matching students found"}
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </Table>
+                </div>
             )}
         </Container>
     );
