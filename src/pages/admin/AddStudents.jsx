@@ -138,7 +138,7 @@ const AddStudents = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5001/admin/student/upload-students",
+        "https://teacher-attainment-system-backend.onrender.com/admin/student/upload-students",
         { 
           students,
           sem: selectedSem,

@@ -79,7 +79,7 @@ const UpdateStudent = () => {
     try {
       // Fetch students from both semesters
       const [oddSemResponse, evenSemResponse] = await Promise.all([
-        axios.get(`http://localhost:5001/admin/student/get-students`, {
+        axios.get(`https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`, {
           params: {
             dept_id: department_id,
             sem: "ODD",
@@ -87,7 +87,7 @@ const UpdateStudent = () => {
           },
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get(`http://localhost:5001/admin/student/get-students`, {
+        axios.get(`https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`, {
           params: {
             dept_id: department_id,
             sem: "EVEN",
@@ -172,7 +172,7 @@ const UpdateStudent = () => {
     setOperationLoading(true);
     try {
       const response = await axios.put(
-        `http://localhost:5001/admin/student/update-student/${selectedStudent.roll_no}`,
+        `https://teacher-attainment-system-backend.onrender.com/admin/student/update-student/${selectedStudent.roll_no}`,
         {
           ...selectedStudent,
           sem: selectedStudent.sem,

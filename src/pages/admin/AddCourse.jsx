@@ -1,6 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
 import LoaderPage from "../../components/LoaderPage";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast"; // Import toast function
 
 const AddCourse = () => {
   const [course, setCourse] = useState({
@@ -16,7 +19,6 @@ const AddCourse = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Validation function
   const validate = () => {
     const newErrors = {};
 
@@ -91,18 +93,21 @@ const AddCourse = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validate()) return;
+    if (!validate()) {
+      showToast('error', 'Please fix the form errors before submitting');
+      return;
+    }
 
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = storedUser?.accessToken;
 
     if (!token) {
-      alert("Unauthorized: Please log in again.");
+      showToast('error', 'Unauthorized: Please log in again');
       return;
     }
 
     try {
-      setLoading(true); // Show loader
+      setLoading(true);
 
       const formattedData = {
         course_id: course.course_id,
@@ -122,7 +127,7 @@ const AddCourse = () => {
         }
       );
 
-      alert("Course added successfully!");
+      showToast('success', 'Course added successfully!');
       setCourse({
         course_id: "",
         course_name: "",
@@ -135,9 +140,10 @@ const AddCourse = () => {
       setErrors({});
     } catch (error) {
       console.error("Error adding course:", error.response?.data || error.message);
-      alert(error.response?.data?.error || "Failed to add course. Please try again.");
+      const errorMsg = error.response?.data?.error || "Failed to add course. Please try again.";
+      showToast('error', errorMsg);
     } finally {
-      setLoading(false); // Hide loader immediately after the API call
+      setLoading(false);
     }
   };
 
@@ -151,6 +157,7 @@ const AddCourse = () => {
 
   return (
     <div className="container mt-5">
+    <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <div className="row justify-content-center">
         <div className="col-md-6">
           <div className="card shadow-lg border-light rounded">

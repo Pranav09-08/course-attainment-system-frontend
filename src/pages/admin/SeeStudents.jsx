@@ -54,7 +54,7 @@ const SeeStudents = () => {
         setError(null);
         try {
             const [oddSemResponse, evenSemResponse] = await Promise.all([
-                axios.get(`http://localhost:5001/admin/student/get-students`, {
+                axios.get(`https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`, {
                     params: {
                         dept_id: department_id,
                         sem: 'ODD',
@@ -62,7 +62,7 @@ const SeeStudents = () => {
                     },
                     headers: { Authorization: `Bearer ${token}` }
                 }),
-                axios.get(`http://localhost:5001/admin/student/get-students`, {
+                axios.get(`https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`, {
                     params: {
                         dept_id: department_id,
                         sem: 'EVEN',

@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import LoaderPage from "../../components/LoaderPage"; // Adjust the path as needed
+import { ToastContainer } from "react-toastify";
+import { showToast } from "../../components/Toast"; // Your custom toast function
+import "react-toastify/dist/ReactToastify.css"; // Default toast styles
 
 const AddFaculty = () => {
   const [faculty, setFaculty] = useState({
@@ -32,9 +35,9 @@ const AddFaculty = () => {
 
     // ✅ Validate Email (Must be a valid @pict.edu address)
     if (!/^[a-zA-Z0-9._%+-]+@pict\.edu$/.test(faculty.email)) {
-      newErrors.email = "Email must be a valid PICT address (e.g., username@pict.edu).";
+      newErrors.email =
+        "Email must be a valid PICT address (e.g., username@pict.edu).";
     }
-
 
     // Validate Mobile Number (Exactly 10 digits)
     if (!/^\d{10}$/.test(faculty.mobile_no)) {
@@ -69,11 +72,10 @@ const AddFaculty = () => {
     const { id: department } = user;
 
     if (!token) {
-      alert("Unauthorized: Please log in again.");
+      showToast("error", "Unauthorized: Please log in again");
       setOperationLoading(false);
       return;
     }
-
     try {
       await axios.post(
         "https://teacher-attainment-system-backend.onrender.com/admin/add-faculty",
@@ -83,7 +85,7 @@ const AddFaculty = () => {
         }
       );
 
-      alert("Faculty added successfully!");
+      showToast("success", "Faculty added successfully!");
       setFaculty({
         name: "",
         email: "",
@@ -93,8 +95,11 @@ const AddFaculty = () => {
       });
       setErrors({});
     } catch (error) {
-      console.error("Error adding faculty:", error.response?.data || error.message);
-      alert("Failed to add faculty. Please try again.");
+      showToast(
+        "error",
+        error.response?.data?.message ||
+          "Failed to add faculty. Please try again."
+      );
     } finally {
       setOperationLoading(false);
     }
@@ -102,6 +107,11 @@ const AddFaculty = () => {
 
   return (
     <div className="container mt-5" style={{ position: "relative" }}>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       {/* Full-page loader for operations */}
       <LoaderPage loading={operationLoading || loading} />
 
@@ -113,9 +123,10 @@ const AddFaculty = () => {
             </div>
             <div className="card-body">
               <form onSubmit={handleSubmit}>
-
                 <div className="mb-3">
-                  <label htmlFor="name" className="form-label">Name</label>
+                  <label htmlFor="name" className="form-label">
+                    Name
+                  </label>
                   <input
                     type="text"
                     name="name"
@@ -123,15 +134,21 @@ const AddFaculty = () => {
                     placeholder="Enter Name"
                     value={faculty.name}
                     onChange={handleChange}
-                    className={`form-control ${errors.name ? "is-invalid" : ""}`}
+                    className={`form-control ${
+                      errors.name ? "is-invalid" : ""
+                    }`}
                     required
                     disabled={operationLoading}
                   />
-                  {errors.name && <div className="invalid-feedback">{errors.name}</div>}
+                  {errors.name && (
+                    <div className="invalid-feedback">{errors.name}</div>
+                  )}
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="email" className="form-label">Email</label>
+                  <label htmlFor="email" className="form-label">
+                    Email
+                  </label>
                   <input
                     type="email"
                     name="email"
@@ -139,15 +156,21 @@ const AddFaculty = () => {
                     placeholder="Enter Email (PICT Mail only)"
                     value={faculty.email}
                     onChange={handleChange}
-                    className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                    className={`form-control ${
+                      errors.email ? "is-invalid" : ""
+                    }`}
                     required
                     disabled={operationLoading}
                   />
-                  {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+                  {errors.email && (
+                    <div className="invalid-feedback">{errors.email}</div>
+                  )}
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="mobile_no" className="form-label">Mobile Number</label>
+                  <label htmlFor="mobile_no" className="form-label">
+                    Mobile Number
+                  </label>
                   <input
                     type="text"
                     name="mobile_no"
@@ -155,15 +178,21 @@ const AddFaculty = () => {
                     placeholder="Enter Mobile No (10 digits)"
                     value={faculty.mobile_no}
                     onChange={handleChange}
-                    className={`form-control ${errors.mobile_no ? "is-invalid" : ""}`}
+                    className={`form-control ${
+                      errors.mobile_no ? "is-invalid" : ""
+                    }`}
                     required
                     disabled={operationLoading}
                   />
-                  {errors.mobile_no && <div className="invalid-feedback">{errors.mobile_no}</div>}
+                  {errors.mobile_no && (
+                    <div className="invalid-feedback">{errors.mobile_no}</div>
+                  )}
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="password" className="form-label">Password</label>
+                  <label htmlFor="password" className="form-label">
+                    Password
+                  </label>
                   <input
                     type="password"
                     name="password"
@@ -171,11 +200,15 @@ const AddFaculty = () => {
                     placeholder="Enter Password (Min. 6 characters)"
                     value={faculty.password}
                     onChange={handleChange}
-                    className={`form-control ${errors.password ? "is-invalid" : ""}`}
+                    className={`form-control ${
+                      errors.password ? "is-invalid" : ""
+                    }`}
                     required
                     disabled={operationLoading}
                   />
-                  {errors.password && <div className="invalid-feedback">{errors.password}</div>}
+                  {errors.password && (
+                    <div className="invalid-feedback">{errors.password}</div>
+                  )}
                 </div>
 
                 <div className="text-center">
@@ -186,7 +219,11 @@ const AddFaculty = () => {
                   >
                     {operationLoading ? (
                       <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
                         Adding...
                       </>
                     ) : (

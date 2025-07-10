@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Table, Alert, InputGroup, Form, Button, Container } from "react-bootstrap";
 import LoaderPage from "../../components/LoaderPage"; // Adjust the import path as needed
+import { ToastContainer } from 'react-toastify';
+import { showToast } from '../../components/Toast'; // Your custom toast function
+import 'react-toastify/dist/ReactToastify.css'; // Default toast styles
 
 const AllCourses = () => {
   const [courses, setCourses] = useState([]); // Original courses list
@@ -19,7 +22,7 @@ const AllCourses = () => {
       const token = storedUser?.accessToken;
 
       if (!token) {
-        setError("Unauthorized: Please log in again.");
+        showToast('error',"Unauthorized: Please log in again.");
         setLoading(false);
         return;
       }
@@ -44,11 +47,11 @@ const AllCourses = () => {
           setCourses(sortedCourses);
           setFilteredCourses(sortedCourses); // Initialize filtered list with sorted courses
         } else {
-          setError("No courses found.");
+          showToast('info', 'No courses found');
         }
       } catch (err) {
         console.error("❌ API Error:", err.response?.data || err.message);
-        setError("Failed to fetch courses. Please try again.");
+        showToast('error',"Failed to fetch courses. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -74,6 +77,7 @@ const AllCourses = () => {
 
   return (
     <Container className="mt-5">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       {/* Loader Component */}
       <LoaderPage loading={loading} />
 
