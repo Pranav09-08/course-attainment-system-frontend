@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast"; // Import toast function
 import {
   Container,
   Card,
@@ -48,8 +51,10 @@ const AllottedCourseCoordinator = () => {
           throw new Error("No Allotted Course Coordinators found.");
         }
       } catch (err) {
-        console.error("❌ API Fetch Error:", err);
-        setError(err.response?.data?.msg || err.message || "Something went wrong.");
+        console.error("API Fetch Error:", err);
+        showToast(
+          "error",
+          err.response?.data?.msg || err.message || "Something went wrong.");
       } finally {
         setLoading(false);
       }
@@ -74,10 +79,20 @@ const AllottedCourseCoordinator = () => {
   };
 
   return (
-    <Container className="mt-4" style={{ position: "relative", minHeight: "80vh" }}>
+    <Container
+      className="mt-4"
+      style={{ position: "relative", minHeight: "80vh" }}
+    >
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       <LoaderPage loading={loading} />
 
-      <h2 className="text-center text-primary mb-4">👨‍🏫 Allotted Course Coordinators</h2>
+      <h2 className="text-center text-primary mb-4">
+        Allotted Course Coordinators
+      </h2>
 
       {/* Search Bar */}
       <div className="d-flex justify-content-center mb-4">
@@ -130,7 +145,9 @@ const AllottedCourseCoordinator = () => {
         </Row>
       ) : (
         !loading && (
-          <p className="text-center text-muted">No allotted course coordinators found.</p>
+          <p className="text-center text-muted">
+            {/* No allotted course coordinators found. */}
+          </p>
         )
       )}
     </Container>

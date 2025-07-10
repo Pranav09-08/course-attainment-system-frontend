@@ -10,6 +10,9 @@ import {
   Row,
   Col,
 } from "react-bootstrap";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast"; // Import toast function
 
 const AddCourseAllotment = () => {
   const [courses, setCourses] = useState([]);
@@ -53,7 +56,7 @@ const AddCourseAllotment = () => {
       const token = storedUser?.accessToken;
 
       if (!token) {
-        setError("Unauthorized: Please log in again.");
+        showToast('error',"Unauthorized: Please log in again.");
         setLoading(false);
         return;
       }
@@ -69,10 +72,10 @@ const AddCourseAllotment = () => {
         if (Array.isArray(response.data) && response.data.length > 0) {
           setCourses(response.data);
         } else {
-          setError("No courses found.");
+          showToast('info',"No courses found.");
         }
       } catch (err) {
-        setError("Failed to fetch courses. Please try again.");
+        showToast('error',"Failed to fetch courses. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -88,7 +91,7 @@ const AddCourseAllotment = () => {
       const token = storedUser?.accessToken;
 
       if (!token) {
-        setError("Unauthorized: Please log in again.");
+        showToast('error',"Unauthorized: Please log in again.");
         return;
       }
 
@@ -101,7 +104,7 @@ const AddCourseAllotment = () => {
         );
         setFaculty(response.data);
       } catch (err) {
-        setError("Failed to fetch faculty.");
+        showToast('error',"Failed to fetch faculty.");
       }
     };
 
@@ -127,7 +130,7 @@ const AddCourseAllotment = () => {
     const token = storedUser?.accessToken;
 
     if (!token) {
-      setError("Unauthorized: Please log in again.");
+      showToast('error',"Unauthorized: Please log in again.");
       setLoading(false);
       return;
     }
@@ -148,7 +151,7 @@ const AddCourseAllotment = () => {
         }
       );
 
-      alert("✅ Course Allotment Successful!");
+      showToast('success',"Course Allotment Successful!");
       setFormData({
         course_id: "",
         faculty_id: "",
@@ -159,7 +162,7 @@ const AddCourseAllotment = () => {
         dept_id: storedUser?.user?.id || "",
       });
     } catch (error) {
-      setError(
+      showToast('error',
         error.response?.data?.details ||
           "Error allotting course. Please try again."
       );
@@ -206,6 +209,7 @@ const AddCourseAllotment = () => {
 
   return (
     <Container className="d-flex justify-content-center mt-4">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <Card style={{ width: "40rem" }} className="shadow-lg p-4">
         <Card.Body>
           <Card.Title className="text-center mb-3">📚 Allot Course</Card.Title>
@@ -288,8 +292,8 @@ const AddCourseAllotment = () => {
                     onChange={handleChange}
                   >
                     <option value="">Select Semester</option>
-                    <option value="EVEN">EVEN</option>
                     <option value="ODD">ODD</option>
+                    <option value="EVEN">EVEN</option>
                   </Form.Select>
                 </Form.Group>
               </Col>

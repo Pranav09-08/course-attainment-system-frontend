@@ -5,29 +5,32 @@ import {
   Container,
   Row,
   Col,
-  Spinner,
   Alert,
   Button,
   Modal,
   Form,
 } from "react-bootstrap";
-import LoaderPage from "../../components/LoaderPage"; // Adjust path as needed
+import LoaderPage from "../../components/LoaderPage";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast";
 
 const CourseCoordinators = () => {
   const [coordinators, setCoordinators] = useState([]);
   const [selectedCoordinator, setSelectedCoordinator] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [modalLoading, setModalLoading] = useState(false); // Added for modal operations
+  const [modalLoading, setModalLoading] = useState(false);
   const [error, setError] = useState("");
   const [facultyList, setFacultyList] = useState([]);
+  const [courseToDelete, setCourseToDelete] = useState(null);
 
   const fetchAllottedCoordinators = async () => {
     setLoading(true);
     setError("");
 
     try {
-      // ✅ Get User Data from LocalStorage
       const storedUser = JSON.parse(localStorage.getItem("user")) || {};
       const token = storedUser?.accessToken;
       const dept_id = storedUser?.user?.id;
@@ -36,7 +39,6 @@ const CourseCoordinators = () => {
         throw new Error("Unauthorized: Please log in again.");
       }
 
-      // ✅ API Request
       const response = await axios.get(
         `https://teacher-attainment-system-backend.onrender.com/admin/coordinator/get-course-coordinators/${dept_id}`,
         {
@@ -51,7 +53,8 @@ const CourseCoordinators = () => {
       }
     } catch (err) {
       console.error("❌ API Fetch Error:", err);
-      setError(
+      showToast(
+        "error",
         err.response?.data?.msg || err.message || "Something went wrong."
       );
     } finally {
@@ -65,33 +68,30 @@ const CourseCoordinators = () => {
 
   const handleUpdateClick = (coordinator) => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    const deptId = storedUser?.user?.id; // Use `id` instead of `dept_id`
+    const deptId = storedUser?.user?.id;
+    setSelectedCoordinator({ ...coordinator, dept_id: deptId });
+    setShowUpdateModal(true);
+  };
 
-    console.log("Selected Coordinator:", { ...coordinator, dept_id: deptId }); // Debugging
-
-    setSelectedCoordinator({ ...coordinator, dept_id: deptId }); // Set `dept_id` in state
-    setShowModal(true); // Open the modal
+  const handleDeleteClick = (courseId, academicYr, sem) => {
+    setCourseToDelete({ courseId, academicYr, sem });
+    setShowDeleteModal(true);
   };
 
   const fetchFaculties = async () => {
-    console.log(
-      "Fetching faculties for department ID:",
-      selectedCoordinator?.dept_id
-    ); // Debugging
-
     if (!selectedCoordinator?.dept_id) {
-      console.error("Department ID is missing in selectedCoordinator"); // Debugging
+      console.error("Department ID is missing in selectedCoordinator");
       return;
     }
 
-    setModalLoading(true); // Changed to modalLoading
+    setModalLoading(true);
     setError("");
 
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = storedUser?.accessToken;
 
     if (!token) {
-      setError("Unauthorized: Please log in again.");
+      showToast("error", "Unauthorized: Please log in again.");
       setModalLoading(false);
       return;
     }
@@ -102,85 +102,69 @@ const CourseCoordinators = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Faculties API Response:", response.data); // Debugging
-
       if (Array.isArray(response.data)) {
         setFacultyList(response.data);
       } else {
-        console.error("Unexpected API response format:", response.data); // Debugging
         setFacultyList([]);
-        setError("No faculty members found.");
+        showToast("info", "No faculty members found.");
       }
     } catch (err) {
       console.error("Error fetching faculties:", err);
-      setError("Failed to fetch faculty list. Please try again.");
+      showToast("error", "Failed to fetch faculty list. Please try again.");
     } finally {
       setModalLoading(false);
     }
   };
 
-  const handleDelete = async (courseId, academicYr, sem) => {
-    const isConfirmed = window.confirm("Are you sure you want to delete this course coordinator?");
-  
-    if (!isConfirmed) {
-      return; // Abort if the user clicks "Cancel"
-    }
-  
+  const confirmDelete = async () => {
+    if (!courseToDelete) return;
+
     setModalLoading(true);
-    setError("");
-  
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = storedUser?.accessToken;
-  
+
     if (!token) {
-      setError("Unauthorized: Please log in again.");
+      showToast("error", "Unauthorized: Please log in again.");
       setModalLoading(false);
       return;
     }
-  
+
     try {
-      const response = await axios.delete(
-        `https://teacher-attainment-system-backend.onrender.com/admin/coordinator/delete-course-coordinator/${courseId}/${academicYr}/${sem}`,
+      await axios.delete(
+        `https://teacher-attainment-system-backend.onrender.com/admin/coordinator/delete-course-coordinator/${courseToDelete.courseId}/${courseToDelete.academicYr}/${courseToDelete.sem}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
-      console.log("✅ Course Coordinator deleted successfully:", response.data);
-      alert("✅ Course Coordinator Deleted Successfully!");
-      await fetchAllottedCoordinators(); // Refresh the list of course coordinators
+
+      showToast("success", "Course Coordinator Deleted Successfully!");
+      await fetchAllottedCoordinators();
     } catch (error) {
       console.error("❌ Error deleting course coordinator:", error);
-      setError(
-        error.response?.data?.error ||
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to delete course coordinator"
+      showToast(
+        "error",
+        error.response?.data?.error || "Failed to delete course coordinator"
       );
     } finally {
       setModalLoading(false);
+      setShowDeleteModal(false);
+      setCourseToDelete(null);
     }
   };
 
   const handleFacultyChange = (e) => {
     const selectedFacultyId = e.target.value;
     const selectedFaculty = facultyList.find(
-      (faculty) => faculty.faculty_id === parseInt(selectedFacultyId)
+      (faculty) => faculty.faculty_id.toString() === selectedFacultyId
     );
 
     setSelectedCoordinator((prev) => ({
       ...prev,
-      faculty_id: selectedFaculty?.faculty_id || "",
-      faculty_name: selectedFaculty?.name || "", // Use `name` instead of `faculty_name`
+      faculty_id: selectedFacultyId,
+      faculty_name: selectedFaculty?.name || "",
     }));
   };
 
-  const handleUpdate = async () => {
-    const isConfirmed = window.confirm(
-      "Are you sure you want to update the faculty for this course coordinator?"
-    );
-
-    if (!isConfirmed) {
-      return; // Abort if the user clicks "Cancel"
-    }
+  const confirmUpdate = async () => {
+    if (!selectedCoordinator) return;
 
     setModalLoading(true);
     setError("");
@@ -188,7 +172,7 @@ const CourseCoordinators = () => {
     const token = storedUser?.accessToken;
 
     if (!token) {
-      setError("Unauthorized: Please log in again.");
+      showToast("error", "Unauthorized: Please log in again.");
       setModalLoading(false);
       return;
     }
@@ -196,36 +180,45 @@ const CourseCoordinators = () => {
     try {
       const { course_id, academic_yr, sem, faculty_id } = selectedCoordinator;
 
-      // Make the API call
-      const response = await axios.put(
+      await axios.put(
         `https://teacher-attainment-system-backend.onrender.com/admin/coordinator/update-course-coordinator/${course_id}/${academic_yr}/${sem}`,
-        { faculty_id }, // Send only faculty_id in the request body
+        { faculty_id: faculty_id.toString() },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("✅ Faculty updated successfully:", response.data);
-      alert("✅ Course Coordinator Updated Successfully!");
-      setShowModal(false); // Close the modal
-      await fetchAllottedCoordinators(); // Refresh the list of course coordinators
+      showToast("success", "Course Coordinator Updated Successfully!");
+      setShowUpdateModal(false);
+      await fetchAllottedCoordinators();
     } catch (error) {
-      console.error(
-        "❌ Error updating faculty:",
-        error.response?.data?.error || error.message
+      console.error("❌ Error updating faculty:", error);
+      showToast(
+        "error",
+        error.response?.data?.error || "Failed to update faculty"
       );
-      setError(error.response?.data?.error || "Failed to update faculty");
     } finally {
       setModalLoading(false);
     }
   };
 
   return (
-    <Container className="mt-4" style={{ position: "relative", minHeight: "80vh" }}>
+    <Container
+      className="mt-4"
+      style={{ position: "relative", minHeight: "80vh" }}
+    >
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       <LoaderPage loading={loading || modalLoading} />
 
       <h2 className="text-center text-primary mb-4">📌 Course Coordinators</h2>
 
-
-      {error && <Alert variant="danger" className="text-center">{error}</Alert>}
+      {error && (
+        <Alert variant="danger" className="text-center">
+          {error}
+        </Alert>
+      )}
 
       {!loading && coordinators.length === 0 ? (
         <p className="text-muted text-center">No course coordinators found.</p>
@@ -259,7 +252,7 @@ const CourseCoordinators = () => {
                   <Button
                     variant="danger"
                     onClick={() =>
-                      handleDelete(
+                      handleDeleteClick(
                         coordinator.course_id,
                         coordinator.academic_yr,
                         coordinator.sem
@@ -280,8 +273,8 @@ const CourseCoordinators = () => {
       {/* Update Modal */}
       {selectedCoordinator && (
         <Modal
-          show={showModal}
-          onHide={() => !modalLoading && setShowModal(false)}
+          show={showUpdateModal}
+          onHide={() => !modalLoading && setShowUpdateModal(false)}
           onShow={fetchFaculties}
         >
           <Modal.Header closeButton>
@@ -293,13 +286,16 @@ const CourseCoordinators = () => {
                 <Form.Label>Faculty</Form.Label>
                 <Form.Select
                   name="faculty_id"
-                  value={selectedCoordinator.faculty_id}
+                  value={selectedCoordinator.faculty_id?.toString()}
                   onChange={handleFacultyChange}
                   disabled={modalLoading}
                 >
                   <option value="">Select Faculty</option>
                   {facultyList.map((faculty) => (
-                    <option key={faculty.faculty_id} value={faculty.faculty_id}>
+                    <option
+                      key={faculty.faculty_id}
+                      value={faculty.faculty_id.toString()}
+                    >
                       {faculty.faculty_id} - {faculty.name}
                     </option>
                   ))}
@@ -308,7 +304,7 @@ const CourseCoordinators = () => {
               {error && <Alert variant="danger">{error}</Alert>}
               <Button
                 variant="primary"
-                onClick={handleUpdate}
+                onClick={confirmUpdate}
                 disabled={modalLoading}
               >
                 {modalLoading ? "Updating..." : "Update"}
@@ -317,6 +313,43 @@ const CourseCoordinators = () => {
           </Modal.Body>
         </Modal>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        show={showDeleteModal}
+        onHide={() => !modalLoading && setShowDeleteModal(false)}
+      >
+        <Modal.Header closeButton className="bg-danger text-white">
+          <Modal.Title>Confirm Deletion</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="lead">Are you sure you want to delete this course coordinator?</p>
+          <p className="text-danger"><strong>This action cannot be undone.</strong></p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowDeleteModal(false)}
+            disabled={modalLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={confirmDelete}
+            disabled={modalLoading}
+          >
+            {modalLoading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Deleting...
+              </>
+            ) : (
+              "Confirm Delete"
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };

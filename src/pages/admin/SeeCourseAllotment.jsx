@@ -13,6 +13,9 @@ import {
   Alert,
 } from "react-bootstrap";
 import LoaderPage from "../../components/LoaderPage"; // Adjust the path as needed
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast"; // Import toast function
 
 const AllottedCourses = () => {
   const [allottedCourses, setAllottedCourses] = useState([]);
@@ -33,7 +36,7 @@ const AllottedCourses = () => {
       const dept_id = storedUser?.user?.id;
 
       if (!token) {
-        setError("Unauthorized: Please log in again.");
+        showToast('error',"Unauthorized: Please log in again.");
         setLoading(false);
         return;
       }
@@ -49,10 +52,10 @@ const AllottedCourses = () => {
         if (response.data?.data.length > 0) {
           setAllottedCourses(response.data.data);
         } else {
-          setError("No course allotments found.");
+          showToast('error',"No course allotments found.");
         }
       } catch (err) {
-        setError("Failed to fetch course allotments. Please try again.");
+        showToast('error',"Failed to fetch course allotments. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -80,6 +83,7 @@ const AllottedCourses = () => {
 
   return (
     <Container className="mt-4" style={{ position: "relative", minHeight: "80vh" }}>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       {/* Loader for initial loading and operations */}
       <LoaderPage loading={loading || operationLoading} />
 

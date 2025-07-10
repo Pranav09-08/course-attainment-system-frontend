@@ -13,6 +13,9 @@ import {
   FormControl,
 } from "react-bootstrap";
 import LoaderPage from "../../components/LoaderPage"; // Adjust path as needed
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast"; // Import toast function
 
 const UpdateCourseAllotment = () => {
   const [allotments, setAllotments] = useState([]);
@@ -44,7 +47,7 @@ const UpdateCourseAllotment = () => {
     const dept_id = storedUser?.user?.id;
     
     if (!token) {
-      setError("Unauthorized: Please log in again.");
+      showToast('error',"Unauthorized: Please log in again.");
       setLoading(false);
       return;
     }
@@ -59,11 +62,11 @@ const UpdateCourseAllotment = () => {
         setAllotments(response.data.data);
       } else {
         setAllotments([]);
-        setError("No course allotments found.");
+        showToast('error',"No course allotments found.");
       }
     } catch (err) {
       console.error("Error fetching courses:", err);
-      setError("Failed to fetch course allotments. Please try again.");
+      showToast('error',"Failed to fetch course allotments. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -89,7 +92,7 @@ const UpdateCourseAllotment = () => {
     const token = storedUser?.accessToken;
 
     if (!token) {
-      setError("Unauthorized: Please log in again.");
+      showToast('error',"Unauthorized: Please log in again.");
       setModalLoading(false);
       return;
     }
@@ -104,11 +107,11 @@ const UpdateCourseAllotment = () => {
         setFacultyList(response.data);
       } else {
         setFacultyList([]);
-        setError("No faculty members found.");
+        showToast('error',"No faculty members found.");
       }
     } catch (err) {
       console.error("Error fetching faculties:", err);
-      setError("Failed to fetch faculty list. Please try again.");
+      showToast('error',"Failed to fetch faculty list. Please try again.");
     } finally {
       setModalLoading(false);
     }
@@ -140,7 +143,7 @@ const UpdateCourseAllotment = () => {
     const token = storedUser?.accessToken;
 
     if (!token) {
-      setError("Unauthorized: Please log in again.");
+      showToast('error',"Unauthorized: Please log in again.");
       setModalLoading(false);
       return;
     }
@@ -152,11 +155,11 @@ const UpdateCourseAllotment = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert("✅ Course Allotment Deleted Successfully!");
+      showToast('success',"Course Allotment Deleted Successfully!");
       fetchAllotments();
     } catch (error) {
       console.error("Error deleting course allotment:", error);
-      setError(error.response?.data?.error || "Failed to delete course allotment");
+      showToast('error',error.response?.data?.error || "Failed to delete course allotment");
     } finally {
       setModalLoading(false);
     }
@@ -175,7 +178,7 @@ const UpdateCourseAllotment = () => {
     const token = storedUser?.accessToken;
 
     if (!token) {
-      setError("Unauthorized: Please log in again.");
+      showToast('error',"Unauthorized: Please log in again.");
       setModalLoading(false);
       return;
     }
@@ -188,12 +191,12 @@ const UpdateCourseAllotment = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert("✅ Course Allotment Updated Successfully!");
+      showToast('success',"Course Allotment Updated Successfully!");
       setShowModal(false);
       fetchAllotments();
     } catch (error) {
       console.error("Error updating faculty:", error);
-      setError(error.response?.data?.error || "Failed to update faculty");
+      showToast('error',error.response?.data?.error || "Failed to update faculty");
     } finally {
       setModalLoading(false);
     }
@@ -214,6 +217,7 @@ const UpdateCourseAllotment = () => {
 
   return (
     <Container className="mt-4" style={{ position: "relative", minHeight: "80vh" }}>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       {/* Loader for initial loading and modal operations */}
       <LoaderPage loading={loading || modalLoading} />
 

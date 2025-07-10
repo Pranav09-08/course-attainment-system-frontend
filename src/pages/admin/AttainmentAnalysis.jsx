@@ -5,6 +5,9 @@ import axios from 'axios';
 import { 
     ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid 
 } from 'recharts';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast"; // Import toast function
 
 const AttainmentAnalysis = () => {
     const { courseId } = useParams();
@@ -24,7 +27,7 @@ const AttainmentAnalysis = () => {
                     );
 
                     if (missingData) {
-                        setError('The attainment calculation is currently in progress. Please come back later for updated results.');
+                        showToast('error','The attainment calculation is currently in progress. Please come back later for updated results.');
                     } else {
                         setData(response.data);
 
@@ -34,10 +37,10 @@ const AttainmentAnalysis = () => {
                         setSummary({ max: maxAttainment, min: minAttainment });
                     }
                 } else {
-                    setError('No data found for the selected course.');
+                    showToast('error','No data found for the selected course.');
                 }
             } catch (err) {
-                setError('The attainment calculation is currently in progress. Please come back later for updated results.');
+                showToast('error','The attainment calculation is currently in progress. Please come back later for updated results.');
                 console.error('Error fetching data:', err);
             } finally {
                 setLoading(false);
@@ -71,6 +74,7 @@ const AttainmentAnalysis = () => {
 
     return (
         <div className="container mt-4">
+            <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
             <h2 className="text-center mb-4">Course Attainment Over Last 4 Years</h2>
 
             {/* Summary Section */}
