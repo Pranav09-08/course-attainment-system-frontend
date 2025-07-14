@@ -9,6 +9,7 @@ import {
   Container,
   Row,
   Col,
+  Badge,
 } from "react-bootstrap";
 
 const AddCourseAllotment = () => {
@@ -17,13 +18,13 @@ const AddCourseAllotment = () => {
   const [formData, setFormData] = useState({
     course_id: "",
     faculty_id: "",
-    class_type: "", // New field for class type (FE/SE/TE/BE)
+    class_type: "",
     class: "",
     sem: "",
     academic_yr: "",
     dept_id: "",
   });
-
+  const [selectedDivisions, setSelectedDivisions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -113,9 +114,24 @@ const AddCourseAllotment = () => {
     setFormData({ 
       ...formData, 
       [name]: value,
-      // Reset class when class_type changes
+      // Reset divisions when class_type changes
       ...(name === "class_type" && { class: "" }) 
     });
+    
+    if (name === "class_type") {
+      setSelectedDivisions([]);
+    }
+  };
+
+  const handleDivisionSelect = (e) => {
+    const division = e.target.value;
+    if (division && !selectedDivisions.includes(division)) {
+      setSelectedDivisions([...selectedDivisions, division]);
+    }
+  };
+
+  const removeDivision = (divisionToRemove) => {
+    setSelectedDivisions(selectedDivisions.filter(div => div !== divisionToRemove));
   };
 
   const handleSubmit = async (e) => {
@@ -132,22 +148,38 @@ const AddCourseAllotment = () => {
       return;
     }
 
-    const payload = {
-      ...formData,
-      course_id: String(formData.course_id),
-      faculty_id: Number(formData.faculty_id),
-      academic_yr: Number(formData.academic_yr),
-    };
+    // Validate at least one division is selected for TE/BE
+    if ((formData.class_type === "TE" || formData.class_type === "BE") && selectedDivisions.length === 0) {
+      setError("Please select at least one division");
+      setLoading(false);
+      return;
+    }
+
+    // For FE/SE, use the single class value
+    const divisionsToProcess = (formData.class_type === "TE" || formData.class_type === "BE") 
+      ? selectedDivisions 
+      : [formData.class];
 
     try {
-      await axios.post(
-        "https://teacher-attainment-system-backend.onrender.com/admin/allotment/add-course-allotment",
-        payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const requests = divisionsToProcess.map(division => {
+        const payload = {
+          course_id: String(formData.course_id),
+          faculty_id: Number(formData.faculty_id),
+          class_type: formData.class_type,
+          class: division,
+          sem: formData.sem,
+          academic_yr: Number(formData.academic_yr),
+          dept_id: formData.dept_id,
+        };
 
+        return axios.post(
+          "https://teacher-attainment-system-backend.onrender.com/admin/allotment/add-course-allotment",
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      });
+
+      await Promise.all(requests);
       alert("✅ Course Allotment Successful!");
       setFormData({
         course_id: "",
@@ -158,6 +190,7 @@ const AddCourseAllotment = () => {
         academic_yr: "",
         dept_id: storedUser?.user?.id || "",
       });
+      setSelectedDivisions([]);
     } catch (error) {
       setError(
         error.response?.data?.details ||
@@ -265,15 +298,52 @@ const AddCourseAllotment = () => {
               <Col>
                 <Form.Group className="mb-3">
                   <Form.Label>Division</Form.Label>
-                  <Form.Select
-                    name="class"
-                    value={formData.class}
-                    onChange={handleChange}
-                    disabled={!formData.class_type}
-                  >
-                    <option value="">Select Division</option>
-                    {renderDivisionOptions()}
-                  </Form.Select>
+                  {(formData.class_type === "TE" || formData.class_type === "BE") ? (
+                    <>
+                      <Form.Select
+                        name="class"
+                        value=""
+                        onChange={handleDivisionSelect}
+                        disabled={!formData.class_type}
+                      >
+                        <option value="">Select Division to Add</option>
+                        {renderDivisionOptions()}
+                      </Form.Select>
+                      {selectedDivisions.length > 0 && (
+                        <div className="mt-2">
+                          <small className="text-muted">Selected Divisions:</small>
+                          <div className="d-flex flex-wrap gap-2 mt-1">
+                            {selectedDivisions.map(division => (
+                              <Badge 
+                                key={division} 
+                                bg="primary"
+                                className="d-flex align-items-center"
+                              >
+                                {division}
+                                <button 
+                                  type="button" 
+                                  className="btn-close btn-close-white ms-2" 
+                                  aria-label="Close"
+                                  style={{ fontSize: '0.5rem' }}
+                                  onClick={() => removeDivision(division)}
+                                ></button>
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Form.Select
+                      name="class"
+                      value={formData.class}
+                      onChange={handleChange}
+                      disabled={!formData.class_type}
+                    >
+                      <option value="">Select Division</option>
+                      {renderDivisionOptions()}
+                    </Form.Select>
+                  )}
                 </Form.Group>
               </Col>
             </Row>

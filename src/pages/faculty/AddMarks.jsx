@@ -37,7 +37,7 @@ const UploadMarks = () => {
         setUserData(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching faculty course data:", err);
-        alert("Failed to fetch course allotment data! Please try again later.");
+        toast.error("No Courses Found !");
       } finally {
         setLoading(false);
       }
