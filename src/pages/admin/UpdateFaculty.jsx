@@ -3,16 +3,22 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Modal, Button, Form, Table, Alert, InputGroup, Container, Row, Col } from "react-bootstrap";
 import "../../styles/SeeFaculty.css";
-import LoaderPage from "../../components/LoaderPage"; // Adjust path as needed
+import LoaderPage from "../../components/LoaderPage";
+import { ToastContainer } from 'react-toastify';
+import { showToast } from '../../components/Toast';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ManageFaculty = () => {
   const [facultyList, setFacultyList] = useState([]);
   const [filteredFacultyList, setFilteredFacultyList] = useState([]);
   const [selectedFaculty, setSelectedFaculty] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [operationLoading, setOperationLoading] = useState(false); // For update/delete operations
+  const [operationLoading, setOperationLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [facultyToDelete, setFacultyToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [errors, setErrors] = useState({});
 
@@ -24,7 +30,7 @@ const ManageFaculty = () => {
 
   useEffect(() => {
     if (!token) {
-      setMessage("No token found, please login!");
+      showToast('error', 'Unauthorized: Please log in again');
       setLoading(false);
       return;
     }
@@ -39,7 +45,7 @@ const ManageFaculty = () => {
         setFilteredFacultyList(response.data);
       } catch (error) {
         console.error("Error fetching faculty list:", error);
-        setMessage("Failed to load faculty list.");
+        showToast('error', "Failed to load faculty list.");
       } finally {
         setLoading(false);
       }
@@ -116,7 +122,7 @@ const ManageFaculty = () => {
 
     if (!validateForm()) return;
     if (!token) {
-      window.alert("No token found, please login!");
+      showToast('error', "No token found, please login!");
       return;
     }
 
@@ -133,7 +139,7 @@ const ManageFaculty = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      window.alert("Faculty details updated successfully!");
+      showToast('success', "Faculty details updated successfully!");
       setShowModal(false);
 
       // Refetch faculty list
@@ -145,20 +151,24 @@ const ManageFaculty = () => {
       setFilteredFacultyList(response.data);
     } catch (error) {
       console.error("Error updating faculty:", error);
-      window.alert(`Failed to update faculty: ${error.response?.data?.message || "Unknown error"}`);
+      showToast('error', `Failed to update faculty: ${error.response?.data?.message || "Unknown error"}`);
     } finally {
       setOperationLoading(false);
     }
   };
 
-  const handleDelete = async (facultyId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this faculty?");
-    if (!confirmDelete) return;
+  const handleDeleteClick = (facultyId) => {
+    setFacultyToDelete(facultyId);
+    setShowDeleteModal(true);
+  };
 
-    setOperationLoading(true);
+  const confirmDelete = async () => {
+    if (!facultyToDelete) return;
+    
+    setDeleteLoading(true);
     try {
       await axios.delete(
-        `https://teacher-attainment-system-backend.onrender.com/admin/delete-faculty/${facultyId}`,
+        `https://teacher-attainment-system-backend.onrender.com/admin/delete-faculty/${facultyToDelete}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -169,12 +179,14 @@ const ManageFaculty = () => {
       );
       setFacultyList(response.data);
       setFilteredFacultyList(response.data);
-      alert("Faculty deleted successfully!");
+      showToast('success', "Faculty deleted successfully!");
     } catch (error) {
       console.error("Error deleting faculty:", error);
-      alert("Failed to delete faculty.");
+      showToast('error', "Failed to delete faculty.");
     } finally {
-      setOperationLoading(false);
+      setDeleteLoading(false);
+      setShowDeleteModal(false);
+      setFacultyToDelete(null);
     }
   };
 
@@ -193,8 +205,8 @@ const ManageFaculty = () => {
 
   return (
     <Container fluid className="p-4" style={{ position: "relative", minHeight: "80vh" }}>
-      {/* Loader for initial loading and operations */}
-      <LoaderPage loading={loading || operationLoading} />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      <LoaderPage loading={loading || operationLoading || deleteLoading} />
 
       <h2 className="text-center text-primary mb-4">Faculty List</h2>
 
@@ -207,12 +219,12 @@ const ManageFaculty = () => {
               placeholder="Search by Faculty ID or Name"
               value={searchTerm}
               onChange={handleSearch}
-              disabled={loading || operationLoading}
+              disabled={loading || operationLoading || deleteLoading}
             />
             <Button 
               variant="outline-secondary" 
               onClick={() => setSearchTerm("")}
-              disabled={loading || operationLoading || !searchTerm}
+              disabled={loading || operationLoading || deleteLoading || !searchTerm}
             >
               Clear
             </Button>
@@ -222,7 +234,7 @@ const ManageFaculty = () => {
 
       {message && <Alert variant="danger" className="text-center">{message}</Alert>}
 
-      {!loading && !operationLoading && (
+      {!loading && !operationLoading && !deleteLoading && (
         <Table striped bordered hover responsive>
           <thead>
             <tr>
@@ -252,15 +264,15 @@ const ManageFaculty = () => {
                       variant="primary" 
                       size="sm" 
                       onClick={() => handleFacultySelect(faculty)}
-                      disabled={operationLoading}
+                      disabled={operationLoading || deleteLoading}
                     >
                       Update
                     </Button>{" "}
                     <Button 
                       variant="danger" 
                       size="sm" 
-                      onClick={() => handleDelete(faculty.faculty_id)}
-                      disabled={operationLoading}
+                      onClick={() => handleDeleteClick(faculty.faculty_id)}
+                      disabled={operationLoading || deleteLoading}
                     >
                       Delete
                     </Button>
@@ -272,13 +284,14 @@ const ManageFaculty = () => {
         </Table>
       )}
 
+      {/* Update Faculty Modal */}
       <Modal show={showModal} onHide={() => !operationLoading && setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Update Faculty</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
-            <Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Name</Form.Label>
               <Form.Control
                 type="text"
@@ -292,7 +305,7 @@ const ManageFaculty = () => {
                 {errors.name}
               </Form.Control.Feedback>
             </Form.Group>
-            <Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Email</Form.Label>
               <Form.Control
                 type="email"
@@ -306,7 +319,7 @@ const ManageFaculty = () => {
                 {errors.email}
               </Form.Control.Feedback>
             </Form.Group>
-            <Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Mobile No</Form.Label>
               <Form.Control
                 type="text"
@@ -331,11 +344,45 @@ const ManageFaculty = () => {
             Cancel
           </Button>
           <Button 
-            variant="success" 
+            variant="primary" 
             onClick={handleUpdate}
             disabled={operationLoading}
           >
             {operationLoading ? "Updating..." : "Update Faculty"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => !deleteLoading && setShowDeleteModal(false)}>
+        <Modal.Header closeButton className="bg-danger text-white">
+          <Modal.Title>Confirm Deletion</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="lead">Are you sure you want to delete this faculty member?</p>
+          <p className="text-danger"><strong>This action cannot be undone.</strong></p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowDeleteModal(false)}
+            disabled={deleteLoading}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={confirmDelete}
+            disabled={deleteLoading}
+          >
+            {deleteLoading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Deleting...
+              </>
+            ) : (
+              "Confirm Delete"
+            )}
           </Button>
         </Modal.Footer>
       </Modal>

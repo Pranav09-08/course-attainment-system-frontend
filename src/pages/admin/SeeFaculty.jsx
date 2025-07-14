@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Row, Col, Table, Container, Alert, Form, InputGroup, Button } from "react-bootstrap";
 import LoaderPage from "../../components/LoaderPage";
+import { ToastContainer } from 'react-toastify';
+import { showToast } from '../../components/Toast'; // Your custom toast function
+import 'react-toastify/dist/ReactToastify.css'; // Default toast styles
 
 const SeeFaculty = () => {
   const [facultyList, setFacultyList] = useState([]);
@@ -17,7 +20,7 @@ const SeeFaculty = () => {
   useEffect(() => {
     const token = storedUser?.accessToken;
     if (!token) {
-      setMessage("No token found, please login!");
+      showToast('error','Unauthorized: Please Log in again');
       setLoading(false);
       return;
     }
@@ -35,7 +38,7 @@ const SeeFaculty = () => {
         setFilteredFacultyList(response.data);
       } catch (error) {
         console.error("Error fetching faculty list:", error);
-        setMessage(error.response?.data?.message || "Failed to load faculty list.");
+        showToast('error',error.response?.data?.message || "Failed to load faculty list.");
       } finally {
         setLoading(false);
       }
@@ -60,6 +63,7 @@ const SeeFaculty = () => {
 
   return (
     <Container fluid className="p-4" style={{ position: "relative", minHeight: "80vh" }}>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       {/* Loader positioned absolutely within the container */}
       <LoaderPage loading={loading} />
 

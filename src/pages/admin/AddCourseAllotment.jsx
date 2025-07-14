@@ -9,8 +9,10 @@ import {
   Container,
   Row,
   Col,
-  Badge,
 } from "react-bootstrap";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast"; // Import toast function
 
 const AddCourseAllotment = () => {
   const [courses, setCourses] = useState([]);
@@ -18,13 +20,13 @@ const AddCourseAllotment = () => {
   const [formData, setFormData] = useState({
     course_id: "",
     faculty_id: "",
-    class_type: "",
+    class_type: "", // New field for class type (FE/SE/TE/BE)
     class: "",
     sem: "",
     academic_yr: "",
     dept_id: "",
   });
-  const [selectedDivisions, setSelectedDivisions] = useState([]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -54,7 +56,7 @@ const AddCourseAllotment = () => {
       const token = storedUser?.accessToken;
 
       if (!token) {
-        setError("Unauthorized: Please log in again.");
+        showToast('error',"Unauthorized: Please log in again.");
         setLoading(false);
         return;
       }
@@ -70,10 +72,10 @@ const AddCourseAllotment = () => {
         if (Array.isArray(response.data) && response.data.length > 0) {
           setCourses(response.data);
         } else {
-          setError("No courses found.");
+          showToast('info',"No courses found.");
         }
       } catch (err) {
-        setError("Failed to fetch courses. Please try again.");
+        showToast('error',"Failed to fetch courses. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -89,7 +91,7 @@ const AddCourseAllotment = () => {
       const token = storedUser?.accessToken;
 
       if (!token) {
-        setError("Unauthorized: Please log in again.");
+        showToast('error',"Unauthorized: Please log in again.");
         return;
       }
 
@@ -102,7 +104,7 @@ const AddCourseAllotment = () => {
         );
         setFaculty(response.data);
       } catch (err) {
-        setError("Failed to fetch faculty.");
+        showToast('error',"Failed to fetch faculty.");
       }
     };
 
@@ -114,24 +116,9 @@ const AddCourseAllotment = () => {
     setFormData({ 
       ...formData, 
       [name]: value,
-      // Reset divisions when class_type changes
+      // Reset class when class_type changes
       ...(name === "class_type" && { class: "" }) 
     });
-    
-    if (name === "class_type") {
-      setSelectedDivisions([]);
-    }
-  };
-
-  const handleDivisionSelect = (e) => {
-    const division = e.target.value;
-    if (division && !selectedDivisions.includes(division)) {
-      setSelectedDivisions([...selectedDivisions, division]);
-    }
-  };
-
-  const removeDivision = (divisionToRemove) => {
-    setSelectedDivisions(selectedDivisions.filter(div => div !== divisionToRemove));
   };
 
   const handleSubmit = async (e) => {
@@ -143,44 +130,28 @@ const AddCourseAllotment = () => {
     const token = storedUser?.accessToken;
 
     if (!token) {
-      setError("Unauthorized: Please log in again.");
+      showToast('error',"Unauthorized: Please log in again.");
       setLoading(false);
       return;
     }
 
-    // Validate at least one division is selected for TE/BE
-    if ((formData.class_type === "TE" || formData.class_type === "BE") && selectedDivisions.length === 0) {
-      setError("Please select at least one division");
-      setLoading(false);
-      return;
-    }
-
-    // For FE/SE, use the single class value
-    const divisionsToProcess = (formData.class_type === "TE" || formData.class_type === "BE") 
-      ? selectedDivisions 
-      : [formData.class];
+    const payload = {
+      ...formData,
+      course_id: String(formData.course_id),
+      faculty_id: Number(formData.faculty_id),
+      academic_yr: Number(formData.academic_yr),
+    };
 
     try {
-      const requests = divisionsToProcess.map(division => {
-        const payload = {
-          course_id: String(formData.course_id),
-          faculty_id: Number(formData.faculty_id),
-          class_type: formData.class_type,
-          class: division,
-          sem: formData.sem,
-          academic_yr: Number(formData.academic_yr),
-          dept_id: formData.dept_id,
-        };
+      await axios.post(
+        "https://teacher-attainment-system-backend.onrender.com/admin/allotment/add-course-allotment",
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-        return axios.post(
-          "https://teacher-attainment-system-backend.onrender.com/admin/allotment/add-course-allotment",
-          payload,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      });
-
-      await Promise.all(requests);
-      alert("✅ Course Allotment Successful!");
+      showToast('success',"Course Allotment Successful!");
       setFormData({
         course_id: "",
         faculty_id: "",
@@ -190,9 +161,8 @@ const AddCourseAllotment = () => {
         academic_yr: "",
         dept_id: storedUser?.user?.id || "",
       });
-      setSelectedDivisions([]);
     } catch (error) {
-      setError(
+      showToast('error',
         error.response?.data?.details ||
           "Error allotting course. Please try again."
       );
@@ -239,6 +209,7 @@ const AddCourseAllotment = () => {
 
   return (
     <Container className="d-flex justify-content-center mt-4">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <Card style={{ width: "40rem" }} className="shadow-lg p-4">
         <Card.Body>
           <Card.Title className="text-center mb-3">📚 Allot Course</Card.Title>
@@ -298,52 +269,15 @@ const AddCourseAllotment = () => {
               <Col>
                 <Form.Group className="mb-3">
                   <Form.Label>Division</Form.Label>
-                  {(formData.class_type === "TE" || formData.class_type === "BE") ? (
-                    <>
-                      <Form.Select
-                        name="class"
-                        value=""
-                        onChange={handleDivisionSelect}
-                        disabled={!formData.class_type}
-                      >
-                        <option value="">Select Division to Add</option>
-                        {renderDivisionOptions()}
-                      </Form.Select>
-                      {selectedDivisions.length > 0 && (
-                        <div className="mt-2">
-                          <small className="text-muted">Selected Divisions:</small>
-                          <div className="d-flex flex-wrap gap-2 mt-1">
-                            {selectedDivisions.map(division => (
-                              <Badge 
-                                key={division} 
-                                bg="primary"
-                                className="d-flex align-items-center"
-                              >
-                                {division}
-                                <button 
-                                  type="button" 
-                                  className="btn-close btn-close-white ms-2" 
-                                  aria-label="Close"
-                                  style={{ fontSize: '0.5rem' }}
-                                  onClick={() => removeDivision(division)}
-                                ></button>
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <Form.Select
-                      name="class"
-                      value={formData.class}
-                      onChange={handleChange}
-                      disabled={!formData.class_type}
-                    >
-                      <option value="">Select Division</option>
-                      {renderDivisionOptions()}
-                    </Form.Select>
-                  )}
+                  <Form.Select
+                    name="class"
+                    value={formData.class}
+                    onChange={handleChange}
+                    disabled={!formData.class_type}
+                  >
+                    <option value="">Select Division</option>
+                    {renderDivisionOptions()}
+                  </Form.Select>
                 </Form.Group>
               </Col>
             </Row>
@@ -358,8 +292,8 @@ const AddCourseAllotment = () => {
                     onChange={handleChange}
                   >
                     <option value="">Select Semester</option>
-                    <option value="EVEN">EVEN</option>
                     <option value="ODD">ODD</option>
+                    <option value="EVEN">EVEN</option>
                   </Form.Select>
                 </Form.Group>
               </Col>

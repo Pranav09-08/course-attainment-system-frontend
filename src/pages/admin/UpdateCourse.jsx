@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Modal, Button, Form, Table, Alert } from "react-bootstrap";
-import LoaderPage from "../../components/LoaderPage"; // Adjust path as needed
+import { Modal, Button, Form, Table, Alert, InputGroup, Container, Row, Col } from "react-bootstrap";
+import LoaderPage from "../../components/LoaderPage";
+import { ToastContainer } from 'react-toastify';
+import { showToast } from '../../components/Toast';
+import 'react-toastify/dist/ReactToastify.css';
 
 const UpdateCourses = () => {
   const [courses, setCourses] = useState([]);
@@ -10,6 +13,8 @@ const UpdateCourses = () => {
   const [error, setError] = useState("");
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     course_id: "",
@@ -21,7 +26,8 @@ const UpdateCourses = () => {
     finalsem: "",
   });
   const [errors, setErrors] = useState({});
-  const [modalLoading, setModalLoading] = useState(false); // Loading state for modal operations
+  const [modalLoading, setModalLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     fetchCourses();
@@ -35,7 +41,7 @@ const UpdateCourses = () => {
     const token = storedUser?.accessToken;
 
     if (!token) {
-      setError("Unauthorized: Please log in again.");
+      showToast('error','Unauthorized: Please log in again.');
       setLoading(false);
       return;
     }
@@ -57,11 +63,11 @@ const UpdateCourses = () => {
         setCourses(sortedCourses);
         setFilteredCourses(sortedCourses);
       } else {
-        setError("No courses found.");
+        showToast('info','No courses found.');
       }
     } catch (err) {
       console.error("❌ API Error:", err.response?.data || err.message);
-      setError("Failed to fetch courses. Please try again.");
+      showToast('error','Failed to fetch courses. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -192,41 +198,47 @@ const UpdateCourses = () => {
         }
       );
 
-      alert("Course updated successfully!");
+      showToast('success',"Course updated successfully!");
       setShowModal(false);
       fetchCourses();
     } catch (error) {
       console.error("❌ Update Error:", error.response?.data || error.message);
-      alert("Failed to update course.");
+      showToast('error',"Failed to update course.");
     } finally {
       setModalLoading(false);
     }
   };
 
-  const handleDelete = async (course_id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this course?");
-    if (!confirmDelete) return;
+  const handleDeleteClick = (course_id) => {
+    setCourseToDelete(course_id);
+    setShowDeleteModal(true);
+  };
 
-    setModalLoading(true);
+  const confirmDelete = async () => {
+    if (!courseToDelete) return;
+
+    setDeleteLoading(true);
     try {
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const token = storedUser?.accessToken;
 
       await axios.delete(
-        `https://teacher-attainment-system-backend.onrender.com/admin/course/delete-course/${course_id}`,
+        `https://teacher-attainment-system-backend.onrender.com/admin/course/delete-course/${courseToDelete}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      alert("Course deleted successfully!");
-      setCourses(courses.filter((course) => course.course_id !== course_id));
-      setFilteredCourses(filteredCourses.filter((course) => course.course_id !== course_id));
+      showToast('success',"Course deleted successfully!");
+      setCourses(courses.filter((course) => course.course_id !== courseToDelete));
+      setFilteredCourses(filteredCourses.filter((course) => course.course_id !== courseToDelete));
     } catch (error) {
       console.error("❌ Delete Error:", error.response?.data || error.message);
-      alert("Failed to delete course.");
+      showToast('error',"Failed to delete course.");
     } finally {
-      setModalLoading(false);
+      setDeleteLoading(false);
+      setShowDeleteModal(false);
+      setCourseToDelete(null);
     }
   };
 
@@ -249,37 +261,37 @@ const UpdateCourses = () => {
   };
 
   return (
-    <div className="container mt-5" style={{ position: "relative", minHeight: "80vh" }}>
-      <LoaderPage loading={loading || modalLoading} />
+    <Container fluid className="p-4" style={{ position: "relative", minHeight: "80vh" }}>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      <LoaderPage loading={loading || modalLoading || deleteLoading} />
 
       <h2 className="text-center mb-4">All Courses</h2>
 
-      <div className="row mb-4">
-        <div className="col-md-6 mx-auto">
-          <div className="input-group">
-            <input
+      {/* Search Bar */}
+      <Row className="mb-4">
+        <Col md={6} className="mx-auto">
+          <InputGroup>
+            <Form.Control
               type="text"
-              className="form-control"
               placeholder="Search by Course ID or Course Name"
               value={searchTerm}
               onChange={handleSearch}
-              disabled={loading}
+              disabled={loading || modalLoading || deleteLoading}
             />
-            <button
-              className="btn btn-outline-secondary"
-              type="button"
+            <Button
+              variant="outline-secondary"
               onClick={() => setSearchTerm("")}
-              disabled={loading || !searchTerm}
+              disabled={loading || modalLoading || deleteLoading || !searchTerm}
             >
               Clear
-            </button>
-          </div>
-        </div>
-      </div>
+            </Button>
+          </InputGroup>
+        </Col>
+      </Row>
 
       {error && <Alert variant="danger" className="text-center">{error}</Alert>}
 
-      {!loading && filteredCourses.length > 0 ? (
+      {!loading && !modalLoading && !deleteLoading && (
         <Table striped bordered hover responsive>
           <thead className="table-dark">
             <tr>
@@ -294,41 +306,48 @@ const UpdateCourses = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredCourses.map((course) => (
-              <tr key={course.course_id}>
-                <td>{course.course_id}</td>
-                <td>{course.course_name}</td>
-                <td>{course.class}</td>
-                <td>{course.ut}</td>
-                <td>{course.insem}</td>
-                <td>{course.endsem}</td>
-                <td>{course.finalsem}</td>
-                <td>
-                  <Button 
-                    variant="primary" 
-                    size="sm" 
-                    onClick={() => handleUpdateClick(course)}
-                    disabled={modalLoading}
-                  >
-                    Update
-                  </Button>{" "}
-                  <Button 
-                    variant="danger" 
-                    size="sm" 
-                    onClick={() => handleDelete(course.course_id)}
-                    disabled={modalLoading}
-                  >
-                    Delete
-                  </Button>
+            {filteredCourses.length === 0 ? (
+              <tr>
+                <td colSpan="8" className="text-center">
+                  {courses.length === 0 ? "No courses found" : "No matching courses found"}
                 </td>
               </tr>
-            ))}
+            ) : (
+              filteredCourses.map((course) => (
+                <tr key={course.course_id}>
+                  <td>{course.course_id}</td>
+                  <td>{course.course_name}</td>
+                  <td>{course.class}</td>
+                  <td>{course.ut}</td>
+                  <td>{course.insem}</td>
+                  <td>{course.endsem}</td>
+                  <td>{course.finalsem}</td>
+                  <td>
+                    <Button 
+                      variant="primary" 
+                      size="sm" 
+                      onClick={() => handleUpdateClick(course)}
+                      disabled={modalLoading || deleteLoading}
+                    >
+                      Update
+                    </Button>{" "}
+                    <Button 
+                      variant="danger" 
+                      size="sm" 
+                      onClick={() => handleDeleteClick(course.course_id)}
+                      disabled={modalLoading || deleteLoading}
+                    >
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </Table>
-      ) : (
-        !loading && <p className="text-center text-muted">No courses found.</p>
       )}
 
+      {/* Update Course Modal */}
       <Modal show={showModal} onHide={() => !modalLoading && setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Update Course</Modal.Title>
@@ -345,7 +364,7 @@ const UpdateCourses = () => {
               />
             </Form.Group>
 
-            <Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Course Name</Form.Label>
               <Form.Control
                 type="text"
@@ -360,7 +379,7 @@ const UpdateCourses = () => {
               </Form.Control.Feedback>
             </Form.Group>
 
-            <Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Class</Form.Label>
               <Form.Control
                 as="select"
@@ -377,7 +396,7 @@ const UpdateCourses = () => {
             </Form.Group>
 
             {["ut", "insem", "endsem"].map((field) => (
-              <Form.Group key={field}>
+              <Form.Group className="mb-3" key={field}>
                 <Form.Label>{field.toUpperCase()}</Form.Label>
                 <Form.Control
                   type="text"
@@ -393,7 +412,7 @@ const UpdateCourses = () => {
               </Form.Group>
             ))}
 
-            <Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Final Semester</Form.Label>
               <Form.Control
                 type="text"
@@ -421,7 +440,41 @@ const UpdateCourses = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => !deleteLoading && setShowDeleteModal(false)}>
+        <Modal.Header closeButton className="bg-danger text-white">
+          <Modal.Title>Confirm Deletion</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="lead">Are you sure you want to delete this course?</p>
+          <p className="text-danger"><strong>This action cannot be undone.</strong></p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowDeleteModal(false)}
+            disabled={deleteLoading}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={confirmDelete}
+            disabled={deleteLoading}
+          >
+            {deleteLoading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Deleting...
+              </>
+            ) : (
+              "Confirm Delete"
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </Container>
   );
 };
 

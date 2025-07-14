@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Container, Table, Alert, InputGroup, Form, Button } from "react-bootstrap";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast"; // Import toast function
+import {
+  Container,
+  Card,
+  Row,
+  Col,
+  InputGroup,
+  Form,
+  FormControl,
+  Button,
+  Alert,
+} from "react-bootstrap";
 import LoaderPage from "../../components/LoaderPage";
 
 const AllottedCourseCoordinator = () => {
@@ -35,11 +48,13 @@ const AllottedCourseCoordinator = () => {
           setAllottedCourses(response.data);
           setFilteredCourses(response.data);
         } else {
-          throw new Error("No Allotted CourseCoordinator found.");
+          throw new Error("No Allotted Course Coordinators found.");
         }
       } catch (err) {
-        console.error("❌ API Fetch Error:", err);
-        setError(err.response?.data?.msg || err.message || "Something went wrong.");
+        console.error("API Fetch Error:", err);
+        showToast(
+          "error",
+          err.response?.data?.msg || err.message || "Something went wrong.");
       } finally {
         setLoading(false);
       }
@@ -48,7 +63,6 @@ const AllottedCourseCoordinator = () => {
     fetchAllottedCourses();
   }, []);
 
-  // Handle search input change
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
@@ -57,7 +71,7 @@ const AllottedCourseCoordinator = () => {
       (course) =>
         course.course_id.toLowerCase().includes(term.toLowerCase()) ||
         course.course_name.toLowerCase().includes(term.toLowerCase()) ||
-        course.faculty_id.toString().includes(term) ||
+        course.faculty_id.toLowerCase().includes(term.toLowerCase()) ||
         course.faculty_name.toLowerCase().includes(term.toLowerCase())
     );
 
@@ -65,71 +79,75 @@ const AllottedCourseCoordinator = () => {
   };
 
   return (
-    <Container className="mt-5">
-      {/* Full-page loader */}
+    <Container
+      className="mt-4"
+      style={{ position: "relative", minHeight: "80vh" }}
+    >
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       <LoaderPage loading={loading} />
 
-      <h2 className="text-center mb-4">Allotted Course Coordinators</h2>
+      <h2 className="text-center text-primary mb-4">
+        Allotted Course Coordinators
+      </h2>
 
       {/* Search Bar */}
-      <div className="row mb-4">
-        <div className="col-md-6 mx-auto">
-          <InputGroup>
-            <Form.Control
-              type="text"
-              placeholder="Search by Course ID, Name, or Faculty"
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-            <Button
-              variant="outline-secondary"
-              onClick={() => setSearchTerm("")}
-              disabled={!searchTerm}
-            >
-              Clear
-            </Button>
-          </InputGroup>
-        </div>
+      <div className="d-flex justify-content-center mb-4">
+        <InputGroup className="w-50">
+          <FormControl
+            placeholder="Search by Course ID, Name, or Faculty"
+            value={searchTerm}
+            onChange={handleSearch}
+            disabled={loading}
+          />
+          <Button
+            variant="outline-secondary"
+            onClick={() => {
+              setSearchTerm("");
+              setFilteredCourses(allottedCourses);
+            }}
+            disabled={!searchTerm || loading}
+          >
+            Clear
+          </Button>
+        </InputGroup>
       </div>
 
       {/* Error Message */}
-      {error && (
-        <Alert variant="danger" className="text-center">
-          {error}
-        </Alert>
-      )}
+      {error && !loading && <Alert variant="danger">{error}</Alert>}
 
-      {/* Courses Table */}
+      {/* Cards Grid */}
       {!loading && filteredCourses.length > 0 ? (
-        <Table striped bordered hover responsive className="shadow">
-          <thead className="table-dark">
-            <tr>
-              <th>Course ID</th>
-              <th>Course Name</th>
-              <th>Faculty ID</th>
-              <th>Faculty Name</th>
-              <th>Class</th>
-              <th>Semester</th>
-              <th>Academic Year</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredCourses.map((course, index) => (
-              <tr key={index}>
-                <td>{course.course_id}</td>
-                <td>{course.course_name}</td>
-                <td>{course.faculty_id}</td>
-                <td>{course.faculty_name}</td>
-                <td>{course.class}</td>
-                <td>{course.sem}</td>
-                <td>{course.academic_yr}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+        <Row className="g-4">
+          {filteredCourses.map((course, index) => (
+            <Col md={6} lg={4} key={index}>
+              <Card className="shadow-lg p-3 h-100">
+                <Card.Body className="d-flex flex-column">
+                  <h5 className="text-primary font-weight-bold mb-2">
+                    {course.course_name}
+                  </h5>
+                  <hr />
+                  <Card.Text className="flex-grow-1">
+                    <strong>Course ID:</strong> {course.course_id} <br />
+                    <strong>Faculty ID:</strong> {course.faculty_id} <br />
+                    <strong>Faculty Name:</strong> {course.faculty_name} <br />
+                    <strong>Class:</strong> {course.class} <br />
+                    <strong>Semester:</strong> {course.sem} <br />
+                    <strong>Academic Year:</strong> {course.academic_yr}
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
       ) : (
         !loading && (
-          <p className="text-center text-muted">No allotted course coordinators found.</p>
+          <p className="text-center text-muted">
+            {/* No allotted course coordinators found. */}
+          </p>
         )
       )}
     </Container>

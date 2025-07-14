@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import LoaderPage from "../../components/LoaderPage"; // Corrected import path
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast"; // Import toast function
+
 import {
   Form,
   Button,
@@ -52,7 +56,7 @@ const AddCourseAllotment = () => {
       const token = storedUser?.accessToken;
 
       if (!token) {
-        setError("Unauthorized: Please log in again.");
+        showToast('error',"Unauthorized: Please log in again.");
         setLoading(false);
         return;
       }
@@ -68,10 +72,10 @@ const AddCourseAllotment = () => {
         if (Array.isArray(response.data) && response.data.length > 0) {
           setCourses(response.data);
         } else {
-          setError("No courses found.");
+          showToast('info',"No courses found.");
         }
       } catch (err) {
-        setError("Failed to fetch courses. Please try again.");
+        showToast('error',"Failed to fetch courses. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -87,7 +91,7 @@ const AddCourseAllotment = () => {
       const token = storedUser?.accessToken;
 
       if (!token) {
-        setError("Unauthorized: Please log in again.");
+        showToast('error',"Unauthorized: Please log in again.");
         return;
       }
 
@@ -100,7 +104,7 @@ const AddCourseAllotment = () => {
         );
         setFaculty(response.data);
       } catch (err) {
-        setError("Failed to fetch faculty.");
+        showToast('info',"Failed to fetch faculty.");
       }
     };
 
@@ -120,7 +124,7 @@ const AddCourseAllotment = () => {
     const token = storedUser?.accessToken;
 
     if (!token) {
-      setError("Unauthorized: Please log in again.");
+      showToast('error',"Unauthorized: Please log in again.");
       setOperationLoading(false);
       return;
     }
@@ -128,7 +132,7 @@ const AddCourseAllotment = () => {
     const payload = {
       ...formData,
       course_id: String(formData.course_id),
-      faculty_id: Number(formData.faculty_id),
+      faculty_id: String(formData.faculty_id),
       academic_yr: Number(formData.academic_yr),
     };
 
@@ -141,7 +145,7 @@ const AddCourseAllotment = () => {
         }
       );
 
-      alert("✅ Course Coordinator Allotted Successfully!");
+      showToast('success',"Course Coordinator Allotted Successfully!");
       setFormData({
         course_id: "",
         faculty_id: "",
@@ -151,7 +155,7 @@ const AddCourseAllotment = () => {
         dept_id: storedUser?.user?.id || "",
       });
     } catch (error) {
-      setError(
+      showToast('error',
         error.response?.data?.details ||
           "Error allotting course-coordinator. Please try again."
       );
@@ -162,6 +166,7 @@ const AddCourseAllotment = () => {
 
   return (
     <Container className="d-flex justify-content-center mt-4" style={{ position: "relative" }}>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       {/* Full-page loader for both initial loading and form submission */}
       <LoaderPage loading={loading || operationLoading} />
 

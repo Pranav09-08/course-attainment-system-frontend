@@ -12,399 +12,551 @@ import {
   Modal,
   Alert,
 } from "react-bootstrap";
-import LoaderPage from "../../components/LoaderPage"; // Adjust the path as needed
+import LoaderPage from "../../components/LoaderPage";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const UpdateStudent = () => {
-  const [students, setStudents] = useState([]);
+  const [allStudents, setAllStudents] = useState([]);
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedYear, setSelectedYear] = useState("");
-  const [selectedDivision, setSelectedDivision] = useState("");
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedSem, setSelectedSem] = useState("ALL");
   const [loading, setLoading] = useState(true);
-  const [operationLoading, setOperationLoading] = useState(false); // For update operations
-  const [studentCount, setStudentCount] = useState(0);
+  const [operationLoading, setOperationLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const [academicYears, setAcademicYears] = useState([]);
-  const [years, setYears] = useState([]);
-  const [divisions, setDivisions] = useState([]);
-
+  // Modal and form state
   const [showModal, setShowModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [alert, setAlert] = useState({ show: false, message: "", variant: "success" });
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   const storedUser = JSON.parse(localStorage.getItem("user")) || {};
   const department_id = storedUser?.user?.id || "";
+  const token = storedUser?.accessToken;
+
+  // Generate academic years (current year + previous 5 years)
+  const generateAcademicYears = () => {
+    const years = [];
+    const currentYear = new Date().getFullYear();
+    for (let i = 0; i <= 5; i++) {
+      const year = currentYear - i;
+      years.push(`${year}_${(year + 1).toString().slice(-2)}`);
+    }
+    return years;
+  };
+
+  const academicYears = generateAcademicYears();
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState(
+    academicYears[0]
+  );
+
+  // Name validation function
+  const validateName = (name) => {
+    // Allows letters and spaces, requires at least 2 characters
+    return /^[A-Za-z\s]{2,}$/.test(name);
+  };
+
+  // Toast notification function
+  const showToast = (type, message) => {
+    toast[type](message, {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: true,
+      closeOnClick: true,
+    });
+  };
 
   useEffect(() => {
     if (department_id) {
-      fetchStudents();
+      fetchAllStudents();
     }
-  }, [department_id]);
+  }, [department_id, selectedAcademicYear]);
 
-  const fetchStudents = async () => {
+  const fetchAllStudents = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const response = await axios.get(
-        `https://teacher-attainment-system-backend.onrender.com/admin/student/get-students?dept_id=${department_id}`
-      );
-      const studentsData = response.data;
+      // Fetch students from both semesters
+      const [oddSemResponse, evenSemResponse] = await Promise.all([
+        axios.get(`https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`, {
+          params: {
+            dept_id: department_id,
+            sem: "ODD",
+            academic_yr: selectedAcademicYear,
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`, {
+          params: {
+            dept_id: department_id,
+            sem: "EVEN",
+            academic_yr: selectedAcademicYear,
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-      setStudents(studentsData);
-      setFilteredStudents(studentsData);
-
-      // Extract unique values for filters
-      const uniqueAcademicYears = [...new Set(studentsData.map((student) => student.academic_yr))];
-      const uniqueYears = [...new Set(studentsData.map((student) => student.class.slice(0, 2)))];
-      const uniqueDivisions = [
-        ...new Set(
-          studentsData
-            .filter((student) => !selectedYear || student.class.startsWith(selectedYear))
-            .map((student) => student.class)
-        ),
+      const combinedStudents = [
+        ...(oddSemResponse.data || []),
+        ...(evenSemResponse.data || []),
       ];
-      setDivisions(uniqueDivisions);
 
-      setAcademicYears(uniqueAcademicYears);
-      setYears(uniqueYears);
-      setDivisions(uniqueDivisions);
+      setAllStudents(combinedStudents);
+      setFilteredStudents(combinedStudents);
     } catch (error) {
       console.error("Error fetching students:", error);
-      setAlert({
-        show: true,
-        message: "❌ Failed to fetch students. Please try again.",
-        variant: "danger",
-      });
+      setError(
+        error.response?.data?.error ||
+          "Failed to load students. Please try again."
+      );
+      showToast("error", "Failed to load students data");
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter students dynamically
+  // Apply filters whenever they change
   useEffect(() => {
-    let filtered = students;
+    let filtered = [...allStudents];
 
-    if (selectedAcademicYear) {
-      filtered = filtered.filter((student) => student.academic_yr === selectedAcademicYear);
+    if (selectedClass) {
+      filtered = filtered.filter(
+        (student) => student.class.toUpperCase() === selectedClass.toUpperCase()
+      );
     }
-    if (selectedYear) {
-      filtered = filtered.filter((student) => student.class.includes(selectedYear));
+
+    if (selectedSem !== "ALL") {
+      filtered = filtered.filter(
+        (student) => student.sem.toUpperCase() === selectedSem
+      );
     }
-    if (selectedDivision) {
-      filtered = filtered.filter((student) => student.class.endsWith(selectedDivision));
-    }
+
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (student) =>
-          student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          student.roll_no.toString().includes(searchTerm)
+          student.name.toLowerCase().includes(term) ||
+          student.roll_no.toString().toLowerCase().includes(term)
       );
     }
 
     setFilteredStudents(filtered);
-    setStudentCount(filtered.length);
-  }, [selectedAcademicYear, selectedYear, selectedDivision, searchTerm, students]);
+  }, [selectedClass, selectedSem, searchTerm, allStudents]);
 
-  // Reset filters
   const resetFilters = () => {
-    setSelectedAcademicYear("");
-    setSelectedYear("");
-    setSelectedDivision("");
+    setSelectedClass("");
+    setSelectedSem("ALL");
     setSearchTerm("");
   };
 
-  // Handle opening the modal for editing a student
+  const handleRefresh = async () => {
+    setOperationLoading(true);
+    await fetchAllStudents();
+    setOperationLoading(false);
+    showToast("info", "Data refreshed");
+  };
+
+  const handleAcademicYearChange = (e) => {
+    setSelectedAcademicYear(e.target.value);
+    resetFilters();
+  };
+
+  // Modal handlers
   const handleEditClick = (student) => {
     setSelectedStudent(student);
-    setErrors({});
     setShowModal(true);
   };
 
-  // Validate inputs
-  const validateInputs = () => {
-    const newErrors = {};
-
-    // Validate name
-    if (!/^[A-Za-z\s]+$/.test(selectedStudent.name)) {
-      newErrors.name = "Name must contain only alphabets and spaces.";
-    }
-
-    // Validate email
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{3,}$/.test(selectedStudent.email)) {
-      newErrors.email = "Invalid email format.";
-    }
-
-    // Validate mobile number
-    if (!/^\d{10}$/.test(selectedStudent.mobile_no)) {
-      newErrors.mobile_no = "Mobile number must be exactly 10 digits.";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Handle updating a student
   const handleUpdateStudent = async () => {
     setOperationLoading(true);
     try {
       const response = await axios.put(
         `https://teacher-attainment-system-backend.onrender.com/admin/student/update-student/${selectedStudent.roll_no}`,
-        { ...selectedStudent, dept_id: department_id }
+        {
+          ...selectedStudent,
+          sem: selectedStudent.sem,
+          academic_yr: selectedAcademicYear,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
-      console.log("Student updated:", response.data);
 
-      setAlert({ show: true, message: "✅ Student updated successfully!", variant: "success" });
-
-      fetchStudents();
+      showToast("success", "Student updated successfully!");
+      fetchAllStudents();
       setShowModal(false);
       setShowConfirmation(false);
     } catch (error) {
       console.error("Error updating student:", error);
-      setAlert({
-        show: true,
-        message: "❌ Failed to update student. Please try again.",
-        variant: "danger",
-      });
+      showToast(
+        "error",
+        error.response?.data?.error || "Failed to update student"
+      );
     } finally {
       setOperationLoading(false);
     }
   };
 
-  // Handle update button click
   const handleUpdateClick = () => {
-    if (validateInputs()) {
-      setShowConfirmation(true);
+    // Basic validation
+    if (!selectedStudent.name || !selectedStudent.roll_no) {
+      showToast("warning", "Name and Roll No are required");
+      return;
     }
+
+    // Name validation
+    if (!validateName(selectedStudent.name)) {
+      showToast("warning", "Name should contain only letters and spaces (minimum 2 characters)");
+      return;
+    }
+
+    setShowConfirmation(true);
   };
 
+  // Determine which elective columns to show
+  const showElective1 = !selectedClass || ["TE", "BE"].includes(selectedClass);
+  const showElective2 = !selectedClass || selectedClass === "BE";
+
   return (
-    <Container fluid className="p-4" style={{ position: "relative", minHeight: "80vh" }}>
-      {/* Loader for initial loading and operations */}
-      <LoaderPage loading={loading || operationLoading} />
+    <Container
+      fluid
+      className="p-4"
+      style={{ position: "relative", minHeight: "80vh" }}
+    >
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={true}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
-      <h2 className="text-center text-primary mb-4">See Students</h2>
+      <LoaderPage loading={loading} />
 
-      {/* Alert Popup */}
-      {alert.show && (
-        <Alert
-          variant={alert.variant}
-          onClose={() => setAlert({ ...alert, show: false })}
-          dismissible
-        >
-          {alert.message}
+      <h2 className="text-center text-primary mb-4">Update Students</h2>
+
+      {error && (
+        <Alert variant="danger" onClose={() => setError(null)} dismissible>
+          {error}
         </Alert>
       )}
 
-      {/* Filters Section */}
-      <Row className="mb-4 g-3 d-flex align-items-center">
-        {/* Academic Year Filter */}
-        <Col xs={12} sm={6} md={3}>
-          <Form.Select 
-            value={selectedAcademicYear} 
-            onChange={(e) => setSelectedAcademicYear(e.target.value)}
-            disabled={loading || operationLoading}
-          >
-            <option value="">All Academic Years</option>
-            {academicYears.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </Form.Select>
-        </Col>
-
-        {/* Year Filter */}
-        <Col xs={12} sm={6} md={3}>
-          <Form.Select 
-            value={selectedYear} 
-            onChange={(e) => setSelectedYear(e.target.value)}
-            disabled={loading || operationLoading}
-          >
-            <option value="">All Years</option>
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </Form.Select>
-        </Col>
-
-        {/* Division Filter */}
-        <Col xs={12} sm={6} md={3}>
-          <Form.Select 
-            value={selectedDivision} 
-            onChange={(e) => setSelectedDivision(e.target.value)}
-            disabled={loading || operationLoading}
-          >
-            <option value="">All Divisions</option>
-            {divisions.map((div) => (
-              <option key={div} value={div}>
-                {div}
-              </option>
-            ))}
-          </Form.Select>
-        </Col>
-
-        {/* Search Bar */}
-        <Col xs={12} sm={6} md={3}>
-          <InputGroup>
+      {/* Academic Year Selection */}
+      <Row className="mb-3">
+        <Col md={4}>
+          <Form.Group>
+            <Form.Label>Academic Year</Form.Label>
             <Form.Control
-              type="text"
-              placeholder="Search by Name or Roll No."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              disabled={loading || operationLoading}
-            />
-            <Button 
-              variant="outline-secondary" 
-              onClick={() => setSearchTerm("")}
-              disabled={loading || operationLoading || !searchTerm}
+              as="select"
+              value={selectedAcademicYear}
+              onChange={handleAcademicYearChange}
+              disabled={loading}
             >
-              Clear
-            </Button>
-          </InputGroup>
+              {academicYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </Form.Control>
+          </Form.Group>
+        </Col>
+        <Col md={8} className="d-flex align-items-end justify-content-end">
+          <Button
+            variant="primary"
+            onClick={handleRefresh}
+            disabled={loading || operationLoading}
+            className="me-2"
+          >
+            {operationLoading ? (
+              <>
+                <Spinner as="span" size="sm" animation="border" />
+                <span className="ms-2">Refreshing...</span>
+              </>
+            ) : (
+              "Refresh Data"
+            )}
+          </Button>
         </Col>
       </Row>
 
-      {/* Reset Filters Button */}
+      {/* Filters Section */}
+      <Row className="mb-4 g-3">
+        <Col md={4}>
+          <Form.Group>
+            <Form.Label>Class</Form.Label>
+            <Form.Select
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+              disabled={loading}
+            >
+              <option value="">All Classes</option>
+              <option value="FE">FE</option>
+              <option value="SE">SE</option>
+              <option value="TE">TE</option>
+              <option value="BE">BE</option>
+            </Form.Select>
+          </Form.Group>
+        </Col>
+
+        <Col md={4}>
+          <Form.Group>
+            <Form.Label>Semester</Form.Label>
+            <Form.Select
+              value={selectedSem}
+              onChange={(e) => setSelectedSem(e.target.value)}
+              disabled={loading}
+            >
+              <option value="ALL">All Semesters</option>
+              <option value="ODD">ODD</option>
+              <option value="EVEN">EVEN</option>
+            </Form.Select>
+          </Form.Group>
+        </Col>
+
+        <Col md={4}>
+          <Form.Group>
+            <Form.Label>Search</Form.Label>
+            <InputGroup>
+              <Form.Control
+                type="text"
+                placeholder="Name or Roll No"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                disabled={loading}
+              />
+              <Button
+                variant="outline-secondary"
+                onClick={() => setSearchTerm("")}
+                disabled={!searchTerm || loading}
+              >
+                Clear
+              </Button>
+            </InputGroup>
+          </Form.Group>
+        </Col>
+      </Row>
+
+      {/* Reset Button */}
       <Row className="mb-3">
         <Col className="text-end">
-          <Button 
-            variant="warning" 
+          <Button
+            variant="warning"
             onClick={resetFilters}
-            disabled={loading || operationLoading}
+            disabled={
+              loading ||
+              (!selectedClass && selectedSem === "ALL" && !searchTerm)
+            }
           >
             Reset Filters
           </Button>
         </Col>
       </Row>
 
+      {/* Students Count */}
       <Row className="mb-3">
         <Col>
           <h5 className="text-secondary">
-            Total Students: <span className="text-primary">{studentCount}</span>
+            Showing:{" "}
+            <span className="text-primary">{filteredStudents.length}</span>{" "}
+            students
+            {allStudents.length !== filteredStudents.length && (
+              <span className="text-muted">
+                {" "}
+                (of {allStudents.length} total)
+              </span>
+            )}
           </h5>
         </Col>
       </Row>
 
       {/* Students Table */}
-      {!loading && !operationLoading && (
-        <Table striped bordered hover responsive>
-          <thead>
-            <tr>
-              <th>Roll No</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Mobile No</th>
-              <th>Class</th>
-              <th>Academic Year</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredStudents.length > 0 ? (
-              filteredStudents.map((student) => (
-                <tr key={student.roll_no}>
-                  <td>{student.roll_no}</td>
-                  <td>{student.name}</td>
-                  <td>{student.email}</td>
-                  <td>{student.mobile_no}</td>
-                  <td>{student.class}</td>
-                  <td>{student.academic_yr}</td>
-                  <td>
-                    <Button 
-                      variant="primary" 
-                      onClick={() => handleEditClick(student)}
-                      disabled={operationLoading}
-                    >
-                      Update
-                    </Button>
+      {!loading && (
+        <div className="table-responsive">
+          <Table striped bordered hover>
+            <thead className="table-dark">
+              <tr>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Class</th>
+                <th>Seat No</th>
+                <th>Semester</th>
+                {showElective1 && <th>Elective 1</th>}
+                {showElective2 && <th>Elective 2</th>}
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredStudents.length > 0 ? (
+                filteredStudents.map((student) => (
+                  <tr key={`${student.roll_no}-${student.sem}`}>
+                    <td>{student.roll_no}</td>
+                    <td>{student.name}</td>
+                    <td>{student.class}</td>
+                    <td>{student.seat_no || "-"}</td>
+                    <td>{student.sem.toUpperCase()}</td>
+                    {showElective1 && <td>{student.el1 || "-"}</td>}
+                    {showElective2 && <td>{student.el2 || "-"}</td>}
+                    <td>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => handleEditClick(student)}
+                        disabled={operationLoading}
+                      >
+                        Update
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={
+                      6 + (showElective1 ? 1 : 0) + (showElective2 ? 1 : 0)
+                    }
+                    className="text-center"
+                  >
+                    {allStudents.length === 0
+                      ? "No students found"
+                      : "No matching students found"}
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7" className="text-center">
-                  No students found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
+              )}
+            </tbody>
+          </Table>
+        </div>
       )}
 
       {/* Update Student Modal */}
-      <Modal show={showModal} onHide={() => !operationLoading && setShowModal(false)}>
+      <Modal
+        show={showModal}
+        onHide={() => !operationLoading && setShowModal(false)}
+      >
         <Modal.Header closeButton>
           <Modal.Title>Update Student</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedStudent && (
-            <Form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleUpdateClick();
-              }}
-            >
+            <Form>
+              <Form.Group className="mb-3">
+                <Form.Label>Roll No</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={selectedStudent.roll_no}
+                  readOnly
+                />
+              </Form.Group>
+
               <Form.Group className="mb-3">
                 <Form.Label>Name</Form.Label>
                 <Form.Control
                   type="text"
                   value={selectedStudent.name}
-                  onChange={(e) =>
-                    setSelectedStudent({ ...selectedStudent, name: e.target.value })
-                  }
-                  isInvalid={!!errors.name}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
+                      setSelectedStudent({
+                        ...selectedStudent,
+                        name: value,
+                      });
+                    }
+                  }}
+                  isInvalid={selectedStudent.name && !validateName(selectedStudent.name)}
                   disabled={operationLoading}
                 />
                 <Form.Control.Feedback type="invalid">
-                  {errors.name}
+                  Please enter a valid name (letters and spaces only, minimum 2 characters)
                 </Form.Control.Feedback>
               </Form.Group>
 
               <Form.Group className="mb-3">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  value={selectedStudent.email}
-                  onChange={(e) =>
-                    setSelectedStudent({ ...selectedStudent, email: e.target.value })
-                  }
-                  isInvalid={!!errors.email}
-                  disabled={operationLoading}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {errors.email}
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Mobile No</Form.Label>
+                <Form.Label>Seat No</Form.Label>
                 <Form.Control
                   type="text"
-                  value={selectedStudent.mobile_no}
+                  value={selectedStudent.seat_no || ""}
                   onChange={(e) =>
-                    setSelectedStudent({ ...selectedStudent, mobile_no: e.target.value })
+                    setSelectedStudent({
+                      ...selectedStudent,
+                      seat_no: e.target.value,
+                    })
                   }
-                  isInvalid={!!errors.mobile_no}
                   disabled={operationLoading}
                 />
-                <Form.Control.Feedback type="invalid">
-                  {errors.mobile_no}
-                </Form.Control.Feedback>
               </Form.Group>
 
-              <Button variant="primary" type="submit" disabled={operationLoading}>
-                {operationLoading ? "Updating..." : "Update"}
-              </Button>
+              {(selectedStudent.class === "TE" ||
+                selectedStudent.class === "BE") && (
+                <Form.Group className="mb-3">
+                  <Form.Label>Elective 1</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={selectedStudent.el1 || ""}
+                    onChange={(e) =>
+                      setSelectedStudent({
+                        ...selectedStudent,
+                        el1: e.target.value,
+                      })
+                    }
+                    disabled={operationLoading}
+                  />
+                </Form.Group>
+              )}
+
+              {selectedStudent.class === "BE" && (
+                <Form.Group className="mb-3">
+                  <Form.Label>Elective 2</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={selectedStudent.el2 || ""}
+                    onChange={(e) =>
+                      setSelectedStudent({
+                        ...selectedStudent,
+                        el2: e.target.value,
+                      })
+                    }
+                    disabled={operationLoading}
+                  />
+                </Form.Group>
+              )}
             </Form>
           )}
         </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowModal(false)}
+            disabled={operationLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleUpdateClick}
+            disabled={operationLoading || !validateName(selectedStudent?.name)}
+          >
+            {operationLoading ? (
+              <>
+                <Spinner as="span" size="sm" animation="border" />
+                <span className="ms-2">Updating...</span>
+              </>
+            ) : (
+              "Update"
+            )}
+          </Button>
+        </Modal.Footer>
       </Modal>
 
-      {/* Confirmation Popup */}
-      <Modal show={showConfirmation} onHide={() => !operationLoading && setShowConfirmation(false)}>
+      {/* Confirmation Modal */}
+      <Modal
+        show={showConfirmation}
+        onHide={() => !operationLoading && setShowConfirmation(false)}
+      >
         <Modal.Header closeButton>
           <Modal.Title>Confirm Update</Modal.Title>
         </Modal.Header>
@@ -412,19 +564,19 @@ const UpdateStudent = () => {
           Are you sure you want to update this student's details?
         </Modal.Body>
         <Modal.Footer>
-          <Button 
-            variant="secondary" 
+          <Button
+            variant="secondary"
             onClick={() => setShowConfirmation(false)}
             disabled={operationLoading}
           >
             Cancel
           </Button>
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={handleUpdateStudent}
             disabled={operationLoading}
           >
-            {operationLoading ? "Updating..." : "Confirm"}
+            {operationLoading ? "Updating..." : "Confirm Update"}
           </Button>
         </Modal.Footer>
       </Modal>
