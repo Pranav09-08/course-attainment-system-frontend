@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { showToast } from "../../components/Toast"; // Import toast function
 import { Form, InputGroup, FormControl, Button, Table, Modal,Alert } from "react-bootstrap";
 
 const DownloadReport = () => {
@@ -53,7 +54,7 @@ const DownloadReport = () => {
             })
             .catch((error) => {
                 console.error("Error fetching courses:", error.response ? error.response.data : error.message);
-                setErrorMessage("Report doesn't exist for that course. Please try again later.");
+                 showToast("error","No course found.");
             });
     }, [facultyId]);
 
@@ -148,7 +149,7 @@ const DownloadReport = () => {
 
     return (
         <div className="max-w-6xl mx-auto p-6">
-            <h2 className="text-3xl font-bold text-white mb-6 text-center">Download Report</h2>
+            <h2 className="text-5xl font-bold text-primary mb-6 text-center">Download Report</h2>
              {/* Error Message Alert */}
              {errorMessage && <Alert variant="danger" onClose={() => setErrorMessage("")} dismissible>{errorMessage}</Alert>}
 

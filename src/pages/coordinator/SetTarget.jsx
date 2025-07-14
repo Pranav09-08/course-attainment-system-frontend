@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { showToast } from "../../components/Toast"; // Import toast function
 import { InputGroup, FormControl, Button, Form } from 'react-bootstrap'; // Bootstrap components
 
 
@@ -50,6 +51,7 @@ const SetTarget = () => {
         })
         .catch(error => {
             console.error("Error fetching courses:", error);
+            showToast("error","No course found.");
         });
     }, [facultyId]);
     
