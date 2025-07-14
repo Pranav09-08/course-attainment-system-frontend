@@ -9,24 +9,25 @@ import {
   Container,
   Row,
   Col,
+  Badge,
 } from "react-bootstrap";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { showToast } from "../../components/Toast"; // Import toast function
+import { showToast } from "../../components/Toast";
 
 const AddCourseAllotment = () => {
   const [courses, setCourses] = useState([]);
   const [faculty, setFaculty] = useState([]);
   const [formData, setFormData] = useState({
     course_id: "",
-    faculty_id: "",
-    class_type: "", // New field for class type (FE/SE/TE/BE)
+    faculty_id: "", // Now as string
+    class_type: "",
     class: "",
     sem: "",
     academic_yr: "",
     dept_id: "",
   });
-
+  const [selectedDivisions, setSelectedDivisions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -37,16 +38,20 @@ const AddCourseAllotment = () => {
     }
   }, []);
 
-  const getCurrentAcademicYears = () => {
-    const currentYear = new Date().getFullYear();
-    const years = [];
+  const getAcademicYearOptions = () => {
+  const currentYear = new Date().getFullYear();
+  const years = [];
 
-    for (let i = 0; i <= 5; i++) {
-      years.push(currentYear - i);
-    }
+  // Generate academic years in format like 2024_25, 2023_24, ..., 2019_20
+  for (let i = 0; i <= 5; i++) {
+    const year1 = currentYear - i;
+    const year2 = year1 + 1;
+    years.push(`${year1}_${year2.toString().slice(-2)}`);
+  }
 
-    return years.reverse();
-  };
+  return years;
+};
+
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -56,7 +61,7 @@ const AddCourseAllotment = () => {
       const token = storedUser?.accessToken;
 
       if (!token) {
-        showToast('error',"Unauthorized: Please log in again.");
+        showToast('error', "Unauthorized: Please log in again.");
         setLoading(false);
         return;
       }
@@ -72,10 +77,10 @@ const AddCourseAllotment = () => {
         if (Array.isArray(response.data) && response.data.length > 0) {
           setCourses(response.data);
         } else {
-          showToast('info',"No courses found.");
+          showToast('info', "No courses found.");
         }
       } catch (err) {
-        showToast('error',"Failed to fetch courses. Please try again.");
+        showToast('error', "Failed to fetch courses. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -91,7 +96,7 @@ const AddCourseAllotment = () => {
       const token = storedUser?.accessToken;
 
       if (!token) {
-        showToast('error',"Unauthorized: Please log in again.");
+        showToast('error', "Unauthorized: Please log in again.");
         return;
       }
 
@@ -104,7 +109,7 @@ const AddCourseAllotment = () => {
         );
         setFaculty(response.data);
       } catch (err) {
-        showToast('error',"Failed to fetch faculty.");
+        showToast('error', "Failed to fetch faculty.");
       }
     };
 
@@ -113,12 +118,28 @@ const AddCourseAllotment = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ 
-      ...formData, 
+    setFormData({
+      ...formData,
       [name]: value,
-      // Reset class when class_type changes
-      ...(name === "class_type" && { class: "" }) 
+      ...(name === "class_type" && { class: "" }),
     });
+
+    if (name === "class_type") {
+      setSelectedDivisions([]);
+    }
+  };
+
+  const handleDivisionSelect = (e) => {
+    const division = e.target.value;
+    if (division && !selectedDivisions.includes(division)) {
+      setSelectedDivisions([...selectedDivisions, division]);
+    }
+  };
+
+  const removeDivision = (divisionToRemove) => {
+    setSelectedDivisions(
+      selectedDivisions.filter((div) => div !== divisionToRemove)
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -130,28 +151,46 @@ const AddCourseAllotment = () => {
     const token = storedUser?.accessToken;
 
     if (!token) {
-      showToast('error',"Unauthorized: Please log in again.");
+      showToast('error', "Unauthorized: Please log in again.");
       setLoading(false);
       return;
     }
 
-    const payload = {
-      ...formData,
-      course_id: String(formData.course_id),
-      faculty_id: Number(formData.faculty_id),
-      academic_yr: Number(formData.academic_yr),
-    };
+    if (
+      (formData.class_type === "TE" || formData.class_type === "BE") &&
+      selectedDivisions.length === 0
+    ) {
+      showToast('error', "Please select at least one division");
+      setLoading(false);
+      return;
+    }
+
+    const divisionsToProcess =
+      formData.class_type === "TE" || formData.class_type === "BE"
+        ? selectedDivisions
+        : [formData.class];
 
     try {
-      await axios.post(
-        "https://teacher-attainment-system-backend.onrender.com/admin/allotment/add-course-allotment",
-        payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const requests = divisionsToProcess.map((division) => {
+        const payload = {
+          course_id: formData.course_id, // Already string
+          faculty_id: formData.faculty_id, // Now as string
+          class_type: formData.class_type,
+          class: division,
+          sem: formData.sem,
+          academic_yr: formData.academic_yr, // In 2024_25 format
+          dept_id: formData.dept_id,
+        };
 
-      showToast('success',"Course Allotment Successful!");
+        return axios.post(
+          "http://localhost:5001/admin/allotment/add-course-allotment",
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      });
+
+      await Promise.all(requests);
+      showToast('success', "Course Allotment Successful!");
       setFormData({
         course_id: "",
         faculty_id: "",
@@ -161,6 +200,7 @@ const AddCourseAllotment = () => {
         academic_yr: "",
         dept_id: storedUser?.user?.id || "",
       });
+      setSelectedDivisions([]);
     } catch (error) {
       showToast('error',
         error.response?.data?.details ||
@@ -172,15 +212,15 @@ const AddCourseAllotment = () => {
   };
 
   const renderDivisionOptions = () => {
-    if (!formData.class_type) return <option value="">Select Class Type first</option>;
-    
+    if (!formData.class_type)
+      return <option value="">Select Class Type first</option>;
+
     if (formData.class_type === "FE") {
       return <option value="FE">FE</option>;
     }
 
-    // For SE/TE/BE, show divisions based on department
     const divisions = [];
-    const prefix = formData.class_type; // SE, TE, or BE
+    const prefix = formData.class_type;
 
     if (formData.dept_id === 1) {
       for (let i = 1; i <= 4; i++) {
@@ -223,6 +263,7 @@ const AddCourseAllotment = () => {
                 name="course_id"
                 value={formData.course_id}
                 onChange={handleChange}
+                required
               >
                 <option value="">Select Course</option>
                 {courses.map((course) => (
@@ -239,10 +280,11 @@ const AddCourseAllotment = () => {
                 name="faculty_id"
                 value={formData.faculty_id}
                 onChange={handleChange}
+                required
               >
                 <option value="">Select Faculty</option>
                 {faculty.map((fac) => (
-                  <option key={fac.faculty_id} value={fac.faculty_id}>
+                  <option key={fac.faculty_id} value={fac.faculty_id.toString()}>
                     {fac.faculty_id} - {fac.name}
                   </option>
                 ))}
@@ -257,6 +299,7 @@ const AddCourseAllotment = () => {
                     name="class_type"
                     value={formData.class_type}
                     onChange={handleChange}
+                    required
                   >
                     <option value="">Select Class Type</option>
                     <option value="FE">FE</option>
@@ -269,15 +312,55 @@ const AddCourseAllotment = () => {
               <Col>
                 <Form.Group className="mb-3">
                   <Form.Label>Division</Form.Label>
-                  <Form.Select
-                    name="class"
-                    value={formData.class}
-                    onChange={handleChange}
-                    disabled={!formData.class_type}
-                  >
-                    <option value="">Select Division</option>
-                    {renderDivisionOptions()}
-                  </Form.Select>
+                  {formData.class_type === "TE" || formData.class_type === "BE" ? (
+                    <>
+                      <Form.Select
+                        name="class"
+                        value=""
+                        onChange={handleDivisionSelect}
+                        disabled={!formData.class_type}
+                      >
+                        <option value="">Select Division to Add</option>
+                        {renderDivisionOptions()}
+                      </Form.Select>
+                      {selectedDivisions.length > 0 && (
+                        <div className="mt-2">
+                          <small className="text-muted">
+                            Selected Divisions:
+                          </small>
+                          <div className="d-flex flex-wrap gap-2 mt-1">
+                            {selectedDivisions.map((division) => (
+                              <Badge
+                                key={division}
+                                bg="primary"
+                                className="d-flex align-items-center"
+                              >
+                                {division}
+                                <button
+                                  type="button"
+                                  className="btn-close btn-close-white ms-2"
+                                  aria-label="Close"
+                                  style={{ fontSize: "0.5rem" }}
+                                  onClick={() => removeDivision(division)}
+                                ></button>
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Form.Select
+                      name="class"
+                      value={formData.class}
+                      onChange={handleChange}
+                      disabled={!formData.class_type}
+                      required
+                    >
+                      <option value="">Select Division</option>
+                      {renderDivisionOptions()}
+                    </Form.Select>
+                  )}
                 </Form.Group>
               </Col>
             </Row>
@@ -290,10 +373,11 @@ const AddCourseAllotment = () => {
                     name="sem"
                     value={formData.sem}
                     onChange={handleChange}
+                    required
                   >
                     <option value="">Select Semester</option>
-                    <option value="ODD">ODD</option>
                     <option value="EVEN">EVEN</option>
+                    <option value="ODD">ODD</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -304,9 +388,10 @@ const AddCourseAllotment = () => {
                     name="academic_yr"
                     value={formData.academic_yr}
                     onChange={handleChange}
+                    required
                   >
                     <option value="">Select Academic Year</option>
-                    {getCurrentAcademicYears().map((year, index) => (
+                    {getAcademicYearOptions().map((year, index) => (
                       <option key={index} value={year}>
                         {year}
                       </option>
