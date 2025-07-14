@@ -3,7 +3,7 @@ import axios from "axios";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Form, Button, InputGroup, FormControl, Modal, Table, Alert } from 'react-bootstrap';
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast"; // Import toast function
 
 const UploadMarks = () => {
   const [userData, setUserData] = useState([]);
@@ -37,7 +37,7 @@ const UploadMarks = () => {
         setUserData(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching faculty course data:", err);
-        toast.error("No Courses Found !");
+        showToast("error","No course found.");
       } finally {
         setLoading(false);
       }

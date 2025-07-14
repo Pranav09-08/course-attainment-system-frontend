@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast"; // Import toast function
 import { InputGroup, FormControl, Button, Form, Alert } from "react-bootstrap";
 
 const UpdateMarks = () => {
@@ -28,7 +28,7 @@ const UpdateMarks = () => {
         setUserData(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching faculty course data:", err);
-         toast.error("No Courses Found !");
+         showToast("error","No course found.");
       } finally {
         setLoading(false);
       }
