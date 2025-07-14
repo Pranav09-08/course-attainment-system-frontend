@@ -1,12 +1,22 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Modal, Button, Form, Table, Alert, InputGroup, Container, Row, Col } from "react-bootstrap";
+import {
+  Modal,
+  Button,
+  Form,
+  Table,
+  Alert,
+  InputGroup,
+  Container,
+  Row,
+  Col,
+} from "react-bootstrap";
 import "../../styles/SeeFaculty.css";
 import LoaderPage from "../../components/LoaderPage";
-import { ToastContainer } from 'react-toastify';
-import { showToast } from '../../components/Toast';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
+import { showToast } from "../../components/Toast";
+import "react-toastify/dist/ReactToastify.css";
 
 const ManageFaculty = () => {
   const [facultyList, setFacultyList] = useState([]);
@@ -30,7 +40,7 @@ const ManageFaculty = () => {
 
   useEffect(() => {
     if (!token) {
-      showToast('error', 'Unauthorized: Please log in again');
+      showToast("error", "Unauthorized: Please log in again");
       setLoading(false);
       return;
     }
@@ -45,7 +55,7 @@ const ManageFaculty = () => {
         setFilteredFacultyList(response.data);
       } catch (error) {
         console.error("Error fetching faculty list:", error);
-        showToast('error', "Failed to load faculty list.");
+        showToast("error", "Failed to load faculty list.");
       } finally {
         setLoading(false);
       }
@@ -122,7 +132,7 @@ const ManageFaculty = () => {
 
     if (!validateForm()) return;
     if (!token) {
-      showToast('error', "No token found, please login!");
+      showToast("error", "No token found, please login!");
       return;
     }
 
@@ -139,7 +149,7 @@ const ManageFaculty = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      showToast('success', "Faculty details updated successfully!");
+      showToast("success", "Faculty details updated successfully!");
       setShowModal(false);
 
       // Refetch faculty list
@@ -151,7 +161,12 @@ const ManageFaculty = () => {
       setFilteredFacultyList(response.data);
     } catch (error) {
       console.error("Error updating faculty:", error);
-      showToast('error', `Failed to update faculty: ${error.response?.data?.message || "Unknown error"}`);
+      showToast(
+        "error",
+        `Failed to update faculty: ${
+          error.response?.data?.message || "Unknown error"
+        }`
+      );
     } finally {
       setOperationLoading(false);
     }
@@ -164,7 +179,7 @@ const ManageFaculty = () => {
 
   const confirmDelete = async () => {
     if (!facultyToDelete) return;
-    
+
     setDeleteLoading(true);
     try {
       await axios.delete(
@@ -179,10 +194,10 @@ const ManageFaculty = () => {
       );
       setFacultyList(response.data);
       setFilteredFacultyList(response.data);
-      showToast('success', "Faculty deleted successfully!");
+      showToast("success", "Faculty deleted successfully!");
     } catch (error) {
       console.error("Error deleting faculty:", error);
-      showToast('error', "Failed to delete faculty.");
+      showToast("error", "Failed to delete faculty.");
     } finally {
       setDeleteLoading(false);
       setShowDeleteModal(false);
@@ -204,8 +219,16 @@ const ManageFaculty = () => {
   };
 
   return (
-    <Container fluid className="p-4" style={{ position: "relative", minHeight: "80vh" }}>
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+    <Container
+      fluid
+      className="p-4"
+      style={{ position: "relative", minHeight: "80vh" }}
+    >
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       <LoaderPage loading={loading || operationLoading || deleteLoading} />
 
       <h2 className="text-center text-primary mb-4">Faculty List</h2>
@@ -221,10 +244,12 @@ const ManageFaculty = () => {
               onChange={handleSearch}
               disabled={loading || operationLoading || deleteLoading}
             />
-            <Button 
-              variant="outline-secondary" 
+            <Button
+              variant="outline-secondary"
               onClick={() => setSearchTerm("")}
-              disabled={loading || operationLoading || deleteLoading || !searchTerm}
+              disabled={
+                loading || operationLoading || deleteLoading || !searchTerm
+              }
             >
               Clear
             </Button>
@@ -232,7 +257,11 @@ const ManageFaculty = () => {
         </Col>
       </Row>
 
-      {message && <Alert variant="danger" className="text-center">{message}</Alert>}
+      {message && (
+        <Alert variant="danger" className="text-center">
+          {message}
+        </Alert>
+      )}
 
       {!loading && !operationLoading && !deleteLoading && (
         <Table striped bordered hover responsive>
@@ -249,7 +278,9 @@ const ManageFaculty = () => {
             {filteredFacultyList.length === 0 ? (
               <tr>
                 <td colSpan="5" className="text-center">
-                  {facultyList.length === 0 ? "No faculty found" : "No matching faculty found"}
+                  {facultyList.length === 0
+                    ? "No faculty found"
+                    : "No matching faculty found"}
                 </td>
               </tr>
             ) : (
@@ -260,17 +291,17 @@ const ManageFaculty = () => {
                   <td>{faculty.email}</td>
                   <td>{faculty.mobile_no || "N/A"}</td>
                   <td>
-                    <Button 
-                      variant="primary" 
-                      size="sm" 
+                    <Button
+                      variant="primary"
+                      size="sm"
                       onClick={() => handleFacultySelect(faculty)}
                       disabled={operationLoading || deleteLoading}
                     >
                       Update
                     </Button>{" "}
-                    <Button 
-                      variant="danger" 
-                      size="sm" 
+                    <Button
+                      variant="danger"
+                      size="sm"
                       onClick={() => handleDeleteClick(faculty.faculty_id)}
                       disabled={operationLoading || deleteLoading}
                     >
@@ -285,7 +316,10 @@ const ManageFaculty = () => {
       )}
 
       {/* Update Faculty Modal */}
-      <Modal show={showModal} onHide={() => !operationLoading && setShowModal(false)}>
+      <Modal
+        show={showModal}
+        onHide={() => !operationLoading && setShowModal(false)}
+      >
         <Modal.Header closeButton>
           <Modal.Title>Update Faculty</Modal.Title>
         </Modal.Header>
@@ -336,15 +370,15 @@ const ManageFaculty = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button 
-            variant="secondary" 
+          <Button
+            variant="secondary"
             onClick={() => setShowModal(false)}
             disabled={operationLoading}
           >
             Cancel
           </Button>
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={handleUpdate}
             disabled={operationLoading}
           >
@@ -354,34 +388,69 @@ const ManageFaculty = () => {
       </Modal>
 
       {/* Delete Confirmation Modal */}
-      <Modal show={showDeleteModal} onHide={() => !deleteLoading && setShowDeleteModal(false)}>
-        <Modal.Header closeButton className="bg-danger text-white">
-          <Modal.Title>Confirm Deletion</Modal.Title>
+      <Modal
+        show={showDeleteModal}
+        onHide={() => !deleteLoading && setShowDeleteModal(false)}
+        size="sm" // Makes the modal more compact
+        // centered // Centers the modal vertically
+      >
+        <Modal.Header
+          closeButton
+          className="bg-primary text-white" // Changed to primary color
+          style={{ padding: "0.75rem 1rem" }} // Tighter padding
+        >
+          <Modal.Title style={{ fontSize: "1.1rem" }}>
+            {" "}
+            {/* Adjusted font size */}
+            Confirm Deletion
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <p className="lead">Are you sure you want to delete this faculty member?</p>
-          <p className="text-danger"><strong>This action cannot be undone.</strong></p>
+
+        <Modal.Body style={{ padding: "1rem" }}>
+          {" "}
+          {/* Reduced padding */}
+          <p style={{ marginBottom: "0.5rem", fontSize: "0.95rem" }}>
+            {" "}
+            {/* Adjusted typography */}
+            Are you sure you want to delete this faculty member?
+          </p>
+          <p style={{ fontSize: "0.85rem", marginBottom: 0 }}>
+            {" "}
+            {/* Danger color for warning */}
+            <strong>This action cannot be undone.</strong>
+          </p>
         </Modal.Body>
-        <Modal.Footer>
-          <Button 
-            variant="secondary" 
+
+        <Modal.Footer style={{ padding: "0.75rem" }}>
+          {" "}
+          {/* Tighter footer padding */}
+          <Button
+            variant="outline-secondary"
             onClick={() => setShowDeleteModal(false)}
             disabled={deleteLoading}
+            size="sm" // Smaller button
+            style={{ fontSize: "0.85rem", minWidth: "80px" }} // Consistent sizing
           >
             Cancel
           </Button>
-          <Button 
-            variant="danger" 
+          <Button
+            variant="danger"
             onClick={confirmDelete}
             disabled={deleteLoading}
+            size="sm" // Smaller button
+            style={{ fontSize: "0.85rem", minWidth: "100px" }} // Consistent sizing
           >
             {deleteLoading ? (
               <>
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
                 Deleting...
               </>
             ) : (
-              "Confirm Delete"
+              "Delete" // Shortened from "Confirm Delete"
             )}
           </Button>
         </Modal.Footer>

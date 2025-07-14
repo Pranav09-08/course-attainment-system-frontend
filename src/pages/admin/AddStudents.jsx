@@ -3,9 +3,12 @@ import axios from "axios";
 import { saveAs } from "file-saver";
 import Papa from "papaparse";
 import { Form, Button, Alert, Card, Container, Table } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
-import "bootstrap/dist/css/bootstrap.min.css";
+// import { ToastContainer, toast } from "react-toastify";
+// import "bootstrap/dist/css/bootstrap.min.css";
+// import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast";
 
 const AddStudents = () => {
   const [file, setFile] = useState(null);
@@ -28,16 +31,6 @@ const AddStudents = () => {
     const year = currentYear - i;
     return `${year}_${(year + 1).toString().slice(-2)}`;
   });
-
-  // Toast configuration
-  const showToast = (type, message) => {
-    toast[type](message, {
-      position: "top-right",
-      autoClose: type === "error" ? 5000 : 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-    });
-  };
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user")) || {};
@@ -178,7 +171,11 @@ const AddStudents = () => {
 
   return (
     <Container className="mt-5 d-flex justify-content-center">
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       
       <Card className="shadow-lg p-4" style={{ width: '75%' }}>
         <Card.Title className="text-center text-primary mb-4">Add Students using CSV</Card.Title>

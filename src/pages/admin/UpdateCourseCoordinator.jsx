@@ -318,34 +318,60 @@ const CourseCoordinators = () => {
       <Modal
         show={showDeleteModal}
         onHide={() => !modalLoading && setShowDeleteModal(false)}
+        size="sm" // Makes the modal smaller
       >
-        <Modal.Header closeButton className="bg-danger text-white">
-          <Modal.Title>Confirm Deletion</Modal.Title>
+        <Modal.Header closeButton className="bg-primary text-white">
+          {" "}
+          {/* Changed to primary color */}
+          <Modal.Title style={{ fontSize: "1.1rem" }}>
+            Confirm Deletion
+          </Modal.Title>{" "}
+          {/* Adjusted font size */}
         </Modal.Header>
-        <Modal.Body>
-          <p className="lead">Are you sure you want to delete this course coordinator?</p>
-          <p className="text-danger"><strong>This action cannot be undone.</strong></p>
+        <Modal.Body style={{ padding: "1rem" }}>
+          {" "}
+          {/* Reduced padding */}
+          <p style={{ marginBottom: "0.5rem", fontSize: "0.9rem" }}>
+            {" "}
+            {/* Adjusted font size and spacing */}
+            Are you sure you want to delete this course coordinator?
+          </p>
+          <p style={{ fontSize: "0.85rem", marginBottom: "0" }}>
+            {" "}
+            {/* Adjusted font size and spacing */}
+            <strong>This action cannot be undone.</strong>
+          </p>
         </Modal.Body>
-        <Modal.Footer>
+        <Modal.Footer style={{ padding: "0.75rem" }}>
+          {" "}
+          {/* Reduced padding */}
           <Button
-            variant="secondary"
+            variant="outline-secondary"
             onClick={() => setShowDeleteModal(false)}
             disabled={modalLoading}
+            size="sm" // Smaller button
+            style={{ fontSize: "0.8rem" }} // Adjusted font size
           >
             Cancel
           </Button>
           <Button
-            variant="danger"
+            variant="danger" // Kept danger variant for delete button
             onClick={confirmDelete}
             disabled={modalLoading}
+            size="sm" // Smaller button
+            style={{ fontSize: "0.8rem" }} // Adjusted font size
           >
             {modalLoading ? (
               <>
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
                 Deleting...
               </>
             ) : (
-              "Confirm Delete"
+              "Delete" // Changed from "Confirm Delete" to "Delete" for consistency
             )}
           </Button>
         </Modal.Footer>

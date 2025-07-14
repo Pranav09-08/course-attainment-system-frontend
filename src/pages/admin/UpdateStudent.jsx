@@ -13,8 +13,9 @@ import {
   Alert,
 } from "react-bootstrap";
 import LoaderPage from "../../components/LoaderPage";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast";
 
 const UpdateStudent = () => {
   const [allStudents, setAllStudents] = useState([]);
@@ -57,16 +58,6 @@ const UpdateStudent = () => {
     return /^[A-Za-z\s]{2,}$/.test(name);
   };
 
-  // Toast notification function
-  const showToast = (type, message) => {
-    toast[type](message, {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: true,
-      closeOnClick: true,
-    });
-  };
-
   useEffect(() => {
     if (department_id) {
       fetchAllStudents();
@@ -79,22 +70,28 @@ const UpdateStudent = () => {
     try {
       // Fetch students from both semesters
       const [oddSemResponse, evenSemResponse] = await Promise.all([
-        axios.get(`https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`, {
-          params: {
-            dept_id: department_id,
-            sem: "ODD",
-            academic_yr: selectedAcademicYear,
-          },
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get(`https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`, {
-          params: {
-            dept_id: department_id,
-            sem: "EVEN",
-            academic_yr: selectedAcademicYear,
-          },
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        axios.get(
+          `https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`,
+          {
+            params: {
+              dept_id: department_id,
+              sem: "ODD",
+              academic_yr: selectedAcademicYear,
+            },
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        ),
+        axios.get(
+          `https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`,
+          {
+            params: {
+              dept_id: department_id,
+              sem: "EVEN",
+              academic_yr: selectedAcademicYear,
+            },
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        ),
       ]);
 
       const combinedStudents = [
@@ -106,7 +103,7 @@ const UpdateStudent = () => {
       setFilteredStudents(combinedStudents);
     } catch (error) {
       console.error("Error fetching students:", error);
-      setError(
+      showToast('error',
         error.response?.data?.error ||
           "Failed to load students. Please try again."
       );
@@ -207,7 +204,10 @@ const UpdateStudent = () => {
 
     // Name validation
     if (!validateName(selectedStudent.name)) {
-      showToast("warning", "Name should contain only letters and spaces (minimum 2 characters)");
+      showToast(
+        "warning",
+        "Name should contain only letters and spaces (minimum 2 characters)"
+      );
       return;
     }
 
@@ -228,13 +228,7 @@ const UpdateStudent = () => {
       <ToastContainer
         position="top-right"
         autoClose={3000}
-        hideProgressBar={true}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
+        hideProgressBar={false}
       />
 
       <LoaderPage loading={loading} />
@@ -467,11 +461,14 @@ const UpdateStudent = () => {
                       });
                     }
                   }}
-                  isInvalid={selectedStudent.name && !validateName(selectedStudent.name)}
+                  isInvalid={
+                    selectedStudent.name && !validateName(selectedStudent.name)
+                  }
                   disabled={operationLoading}
                 />
                 <Form.Control.Feedback type="invalid">
-                  Please enter a valid name (letters and spaces only, minimum 2 characters)
+                  Please enter a valid name (letters and spaces only, minimum 2
+                  characters)
                 </Form.Control.Feedback>
               </Form.Group>
 
@@ -556,18 +553,29 @@ const UpdateStudent = () => {
       <Modal
         show={showConfirmation}
         onHide={() => !operationLoading && setShowConfirmation(false)}
+        size="sm"
       >
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm Update</Modal.Title>
+        <Modal.Header
+          closeButton
+          className="bg-primary text-white"
+          style={{ padding: "0.75rem 1rem" }}
+        >
+          <Modal.Title style={{ fontSize: "1.1rem" }}>
+            Confirm Update
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+
+        <Modal.Body style={{ padding: "1rem", fontSize: "0.95rem" }}>
           Are you sure you want to update this student's details?
         </Modal.Body>
-        <Modal.Footer>
+
+        <Modal.Footer style={{ padding: "0.75rem" }}>
           <Button
-            variant="secondary"
+            variant="outline-secondary"
             onClick={() => setShowConfirmation(false)}
             disabled={operationLoading}
+            size="sm"
+            style={{ fontSize: "0.85rem", minWidth: "80px" }}
           >
             Cancel
           </Button>
@@ -575,8 +583,21 @@ const UpdateStudent = () => {
             variant="primary"
             onClick={handleUpdateStudent}
             disabled={operationLoading}
+            size="sm"
+            style={{ fontSize: "0.85rem", minWidth: "100px" }}
           >
-            {operationLoading ? "Updating..." : "Confirm Update"}
+            {operationLoading ? (
+              <>
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                Updating...
+              </>
+            ) : (
+              "Update"
+            )}
           </Button>
         </Modal.Footer>
       </Modal>

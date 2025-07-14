@@ -1,10 +1,20 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Modal, Button, Form, Table, Alert, InputGroup, Container, Row, Col } from "react-bootstrap";
+import {
+  Modal,
+  Button,
+  Form,
+  Table,
+  Alert,
+  InputGroup,
+  Container,
+  Row,
+  Col,
+} from "react-bootstrap";
 import LoaderPage from "../../components/LoaderPage";
-import { ToastContainer } from 'react-toastify';
-import { showToast } from '../../components/Toast';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
+import { showToast } from "../../components/Toast";
+import "react-toastify/dist/ReactToastify.css";
 
 const UpdateCourses = () => {
   const [courses, setCourses] = useState([]);
@@ -41,7 +51,7 @@ const UpdateCourses = () => {
     const token = storedUser?.accessToken;
 
     if (!token) {
-      showToast('error','Unauthorized: Please log in again.');
+      showToast("error", "Unauthorized: Please log in again.");
       setLoading(false);
       return;
     }
@@ -63,11 +73,11 @@ const UpdateCourses = () => {
         setCourses(sortedCourses);
         setFilteredCourses(sortedCourses);
       } else {
-        showToast('info','No courses found.');
+        showToast("info", "No courses found.");
       }
     } catch (err) {
       console.error("❌ API Error:", err.response?.data || err.message);
-      showToast('error','Failed to fetch courses. Please try again.');
+      showToast("error", "Failed to fetch courses. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -124,7 +134,8 @@ const UpdateCourses = () => {
         if (!value.trim()) {
           errorMessage = "Course Name is required.";
         } else if (!/^[A-Za-z\s]+$/.test(value)) {
-          errorMessage = "Course Name should contain only alphabets and spaces.";
+          errorMessage =
+            "Course Name should contain only alphabets and spaces.";
         }
         break;
 
@@ -152,13 +163,15 @@ const UpdateCourses = () => {
     if (!formData.course_id.trim()) {
       newErrors.course_id = "Course ID is required.";
     } else if (!/^[A-Za-z0-9]+$/.test(formData.course_id)) {
-      newErrors.course_id = "Course ID should contain only alphabets and numbers.";
+      newErrors.course_id =
+        "Course ID should contain only alphabets and numbers.";
     }
 
     if (!formData.course_name.trim()) {
       newErrors.course_name = "Course Name is required.";
     } else if (!/^[A-Za-z0-9]+$/.test(formData.course_name)) {
-      newErrors.course_name = "Course Name should contain only alphabets and spaces.";
+      newErrors.course_name =
+        "Course Name should contain only alphabets and spaces.";
     }
 
     ["ut", "insem", "endsem"].forEach((field) => {
@@ -198,12 +211,12 @@ const UpdateCourses = () => {
         }
       );
 
-      showToast('success',"Course updated successfully!");
+      showToast("success", "Course updated successfully!");
       setShowModal(false);
       fetchCourses();
     } catch (error) {
       console.error("❌ Update Error:", error.response?.data || error.message);
-      showToast('error',"Failed to update course.");
+      showToast("error", "Failed to update course.");
     } finally {
       setModalLoading(false);
     }
@@ -229,12 +242,16 @@ const UpdateCourses = () => {
         }
       );
 
-      showToast('success',"Course deleted successfully!");
-      setCourses(courses.filter((course) => course.course_id !== courseToDelete));
-      setFilteredCourses(filteredCourses.filter((course) => course.course_id !== courseToDelete));
+      showToast("success", "Course deleted successfully!");
+      setCourses(
+        courses.filter((course) => course.course_id !== courseToDelete)
+      );
+      setFilteredCourses(
+        filteredCourses.filter((course) => course.course_id !== courseToDelete)
+      );
     } catch (error) {
       console.error("❌ Delete Error:", error.response?.data || error.message);
-      showToast('error',"Failed to delete course.");
+      showToast("error", "Failed to delete course.");
     } finally {
       setDeleteLoading(false);
       setShowDeleteModal(false);
@@ -261,8 +278,16 @@ const UpdateCourses = () => {
   };
 
   return (
-    <Container fluid className="p-4" style={{ position: "relative", minHeight: "80vh" }}>
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+    <Container
+      fluid
+      className="p-4"
+      style={{ position: "relative", minHeight: "80vh" }}
+    >
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       <LoaderPage loading={loading || modalLoading || deleteLoading} />
 
       <h2 className="text-center mb-4">All Courses</h2>
@@ -289,7 +314,11 @@ const UpdateCourses = () => {
         </Col>
       </Row>
 
-      {error && <Alert variant="danger" className="text-center">{error}</Alert>}
+      {error && (
+        <Alert variant="danger" className="text-center">
+          {error}
+        </Alert>
+      )}
 
       {!loading && !modalLoading && !deleteLoading && (
         <Table striped bordered hover responsive>
@@ -309,7 +338,9 @@ const UpdateCourses = () => {
             {filteredCourses.length === 0 ? (
               <tr>
                 <td colSpan="8" className="text-center">
-                  {courses.length === 0 ? "No courses found" : "No matching courses found"}
+                  {courses.length === 0
+                    ? "No courses found"
+                    : "No matching courses found"}
                 </td>
               </tr>
             ) : (
@@ -323,17 +354,17 @@ const UpdateCourses = () => {
                   <td>{course.endsem}</td>
                   <td>{course.finalsem}</td>
                   <td>
-                    <Button 
-                      variant="primary" 
-                      size="sm" 
+                    <Button
+                      variant="primary"
+                      size="sm"
                       onClick={() => handleUpdateClick(course)}
                       disabled={modalLoading || deleteLoading}
                     >
                       Update
                     </Button>{" "}
-                    <Button 
-                      variant="danger" 
-                      size="sm" 
+                    <Button
+                      variant="danger"
+                      size="sm"
                       onClick={() => handleDeleteClick(course.course_id)}
                       disabled={modalLoading || deleteLoading}
                     >
@@ -348,7 +379,10 @@ const UpdateCourses = () => {
       )}
 
       {/* Update Course Modal */}
-      <Modal show={showModal} onHide={() => !modalLoading && setShowModal(false)}>
+      <Modal
+        show={showModal}
+        onHide={() => !modalLoading && setShowModal(false)}
+      >
         <Modal.Header closeButton>
           <Modal.Title>Update Course</Modal.Title>
         </Modal.Header>
@@ -424,15 +458,15 @@ const UpdateCourses = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button 
-            variant="secondary" 
+          <Button
+            variant="secondary"
             onClick={() => setShowModal(false)}
             disabled={modalLoading}
           >
             Cancel
           </Button>
-          <Button 
-            variant="success" 
+          <Button
+            variant="success"
             onClick={handleUpdateSubmit}
             disabled={modalLoading}
           >
@@ -442,34 +476,64 @@ const UpdateCourses = () => {
       </Modal>
 
       {/* Delete Confirmation Modal */}
-      <Modal show={showDeleteModal} onHide={() => !deleteLoading && setShowDeleteModal(false)}>
-        <Modal.Header closeButton className="bg-danger text-white">
-          <Modal.Title>Confirm Deletion</Modal.Title>
+      
+      <Modal
+        show={showDeleteModal}
+        onHide={() => !deleteLoading && setShowDeleteModal(false)}
+        size="sm" // Added size="sm" to make the modal smaller
+      >
+        <Modal.Header closeButton className="bg-primary text-white">
+          {" "}
+          {/* Changed bg-danger to bg-primary */}
+          <Modal.Title style={{ fontSize: "1.1rem" }}>
+            Confirm Deletion
+          </Modal.Title>{" "}
+          {/* Adjusted font size */}
         </Modal.Header>
-        <Modal.Body>
-          <p className="lead">Are you sure you want to delete this course?</p>
-          <p className="text-danger"><strong>This action cannot be undone.</strong></p>
+        <Modal.Body style={{ padding: "1rem" }}>
+          {" "}
+          {/* Reduced padding */}
+          <p style={{ marginBottom: "0.5rem", fontSize: "0.9rem" }}>
+            {" "}
+            {/* Adjusted font size and spacing */}
+            Are you sure you want to delete this course?
+          </p>
+          <p style={{ fontSize: "0.85rem", marginBottom: "0" }}>
+            {" "}
+            {/* Adjusted font size and spacing */}
+            <strong>This action cannot be undone.</strong>
+          </p>
         </Modal.Body>
-        <Modal.Footer>
-          <Button 
-            variant="secondary" 
+        <Modal.Footer style={{ padding: "0.75rem" }}>
+          {" "}
+          {/* Reduced padding */}
+          <Button
+            variant="outline-secondary"
             onClick={() => setShowDeleteModal(false)}
             disabled={deleteLoading}
+            size="sm" // Added size="sm" for smaller button
+            style={{ fontSize: "0.8rem" }} // Adjusted font size
           >
             Cancel
           </Button>
-          <Button 
-            variant="danger" 
+          <Button
+            variant="danger" // Kept danger variant for the delete button
             onClick={confirmDelete}
             disabled={deleteLoading}
+            size="sm" // Added size="sm" for smaller button
+            style={{ fontSize: "0.8rem" }} // Adjusted font size
           >
             {deleteLoading ? (
               <>
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
                 Deleting...
               </>
             ) : (
-              "Confirm Delete"
+              "Delete"
             )}
           </Button>
         </Modal.Footer>
