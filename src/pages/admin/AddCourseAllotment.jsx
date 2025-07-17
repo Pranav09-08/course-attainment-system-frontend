@@ -183,7 +183,7 @@ const AddCourseAllotment = () => {
         };
 
         return axios.post(
-          "http://localhost:5001/admin/allotment/add-course-allotment",
+          "https://teacher-attainment-system-backend.onrender.com/admin/allotment/add-course-allotment",
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );

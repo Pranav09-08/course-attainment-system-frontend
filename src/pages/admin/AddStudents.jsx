@@ -154,18 +154,21 @@ const AddStudents = () => {
         throw new Error("Invalid response format from server");
       }
     } catch (error) {
-      let errorMsg = "Error uploading student data";
+      // let errorMsg = "Error uploading student data";
       
-      if (error.response) {
-        errorMsg = error.response.data?.message || 
-                  `Server Error: ${error.response.status}`;
-      } else if (error.request) {
-        errorMsg = "No response from server - check backend connection";
-      } else if (error.code === "ECONNABORTED") {
-        errorMsg = "Request timeout - server took too long to respond";
-      }
+      // if (error.response) {
+      //   errorMsg = error.response.data?.message || 
+      //             `Server Error: ${error.response.status}`;
+      // } else if (error.request) {
+      //   errorMsg = "No response from server - check backend connection";
+      // } else if (error.code === "ECONNABORTED") {
+      //   errorMsg = "Request timeout - server took too long to respond";
+      // }
 
-      showToast("error", errorMsg);
+      // showToast("error", errorMsg);
+      console.error("Error adding students:", error.response?.data || error.message);
+      const errorMsg = error.response?.data?.error || "Students already present in Database";
+      showToast('error', errorMsg);
     }
   };
 
