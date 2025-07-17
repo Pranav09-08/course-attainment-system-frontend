@@ -6,17 +6,18 @@ import { faLinkedin, faGithub } from '@fortawesome/free-brands-svg-icons';
 import Dipali from '../assets/Dipali.jpg';
 import Pranav from '../assets/Pranav.jpg';
 import Jagruti from '../assets/Jagruti.jpg';
+import Mentor1 from '../assets/logo.png';
+import Mentor2 from '../assets/logo.png';
 
 const AboutUs = () => {
-  // Inline styles
   const styles = {
     container: {
       maxWidth: '1200px',
       margin: '0 auto',
       padding: '40px 20px',
       fontFamily: '"Poppins", sans-serif',
-      backgroundColor: '#1D222B', // Dark background
-      color: '#f4f4f4', // Light text
+      backgroundColor: '#1D222B',
+      color: '#f4f4f4',
       lineHeight: '1.8',
     },
     heading: {
@@ -25,7 +26,7 @@ const AboutUs = () => {
       fontSize: '2.8rem',
       fontWeight: '700',
       marginBottom: '40px',
-      background: 'linear-gradient(90deg, #3498db, #8e44ad)', // Gradient background
+      background: 'linear-gradient(90deg, #3498db, #8e44ad)',
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
     },
@@ -36,10 +37,18 @@ const AboutUs = () => {
       marginBottom: '20px',
       textAlign: 'center',
     },
+    subHeadingTeam: {
+      color: '#ffffff',
+      fontSize: '2rem',
+      fontWeight: '600',
+      marginTop: '60px',
+      marginBottom: '20px',
+      textAlign: 'center',
+    },
     projectInfo: {
       backgroundColor: '#2c3e50',
       borderRadius: '12px',
-      border: '2px solid #505AC9', // Border added
+      border: '2px solid #505AC9',
       padding: '30px',
       margin: '40px 0',
       transition: 'transform 0.3s ease, box-shadow 0.3s ease',
@@ -58,9 +67,19 @@ const AboutUs = () => {
     teamMember: {
       backgroundColor: '#2c3e50',
       borderRadius: '12px',
-      border: '2px solid #505AC9', // Border added
+      border: '2px solid #505AC9',
       padding: '25px',
       width: '280px',
+      textAlign: 'center',
+      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+    },
+    mentorCard: {
+      backgroundColor: '#2c3e50',
+      borderRadius: '12px',
+      border: '2px solid #505AC9',
+      padding: '18px',
+      width: '380px',
       textAlign: 'center',
       transition: 'transform 0.3s ease, box-shadow 0.3s ease',
       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
@@ -108,14 +127,13 @@ const AboutUs = () => {
     },
   };
 
-  // Team member data
   const teamMembers = [
     {
       name: 'Dipali Deore',
       role: 'Frontend Developer | UI/UX Designer',
       bio: 'Responsible for designing and developing the user interface, ensuring a seamless and responsive user experience while integrating the frontend with backend APIs.',
       email: 'deepalideore2005@gmail.com',
-      linkedin: 'https://www.linkedin.com/in/dipali-deore-72a34230b?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app',
+      linkedin: 'https://www.linkedin.com/in/dipali-deore-72a34230b',
       github: 'https://github.com/DipaliDeore',
       image: Dipali,
     },
@@ -139,6 +157,27 @@ const AboutUs = () => {
     },
   ];
 
+  const mentors = [
+    {
+      name: 'Dr. Emmanuel Mark',
+      role: 'Head of Department | Project Mentor',
+      bio: 'Guides the project with domain expertise, ensuring academic standards, and offering strategic direction throughout development.',
+      email: 'anilpatil@college.edu',
+      linkedin: 'https://www.linkedin.com/in/dr-emmanuel-mark-568a4316/',
+      github: '',
+      image: Mentor1,
+    },
+    {
+      name: 'Prof. Sumitra Jakhete',
+      role: 'Faculty Advisor | System Analyst',
+      bio: 'Provides continuous support and analysis feedback, helping align the system design with institutional objectives.',
+      email: 'snehakulkarni@college.edu',
+      linkedin: 'https://www.linkedin.com/in/sneha-kulkarni-mentor/',
+      github: '',
+      image: Mentor2,
+    },
+  ];
+
   return (
     <div style={styles.container}>
       <h1 style={styles.heading}>About Us</h1>
@@ -150,12 +189,64 @@ const AboutUs = () => {
         onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
       >
         <p>
-        Welcome to the Course Attainment System, a project developed to enhance the tracking and evaluation of student learning outcomes. Our team has worked diligently to build a robust, efficient, and user-friendly platform that streamlines course performance assessment for educators and institutions.we have built a system that enables faculty members to track course outcomes effectively, analyze student performance, and generate insightful reports.
+          Welcome to the Course Attainment System, a project developed to enhance the tracking and evaluation of student learning outcomes. Our team has worked diligently to build a robust, efficient, and user-friendly platform that streamlines course performance assessment for educators and institutions. We have built a system that enables faculty members to track course outcomes effectively, analyze student performance, and generate insightful reports.
         </p>
       </div>
 
-      {/* Team Members */}
-      <h2 style={styles.subHeading}>Meet Our Team</h2>
+      {/* Mentors Section */}
+      <h2 style={styles.subHeading}>Meet Our Mentors</h2>
+      <div style={styles.team}>
+        {mentors.map((mentor, index) => (
+          <div
+            style={styles.mentorCard}
+            key={index}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = styles.teamMemberHover.transform)}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
+          >
+            <img src={mentor.image} alt={mentor.name} style={styles.teamMemberImage} />
+            <h3 style={styles.teamMemberName}>{mentor.name}</h3>
+            <p style={styles.teamMemberRole}>{mentor.role}</p>
+            <p style={styles.teamMemberBio}>{mentor.bio}</p>
+            <div style={styles.socialLinks}>
+              <a
+                href={`mailto:${mentor.email}`}
+                style={styles.socialLink}
+                onMouseEnter={(e) => (e.currentTarget.style.color = styles.socialLinkHover.color)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = styles.socialLink.color)}
+              >
+                <FontAwesomeIcon icon={faEnvelope} />
+              </a>
+              {mentor.linkedin && (
+                <a
+                  href={mentor.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={styles.socialLink}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = styles.socialLinkHover.color)}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = styles.socialLink.color)}
+                >
+                  <FontAwesomeIcon icon={faLinkedin} />
+                </a>
+              )}
+              {mentor.github && (
+                <a
+                  href={mentor.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={styles.socialLink}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = styles.socialLinkHover.color)}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = styles.socialLink.color)}
+                >
+                  <FontAwesomeIcon icon={faGithub} />
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Team Members Section */}
+      <h2 style={styles.subHeadingTeam}>Meet Our Team</h2>
       <div style={styles.team}>
         {teamMembers.map((member, index) => (
           <div
