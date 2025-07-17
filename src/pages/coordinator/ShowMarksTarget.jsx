@@ -28,7 +28,7 @@ const ShowMarksTarget = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:5001/report/show-marktarget?courseId=${courseId}&deptId=${dept_id}&academicYear=${academicYear}&sem=${sem}`,
+          `https://teacher-attainment-system-backend.onrender.com/report/show-marktarget?courseId=${courseId}&deptId=${dept_id}&academicYear=${academicYear}&sem=${sem}`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -91,7 +91,7 @@ const ShowMarksTarget = () => {
       console.log("Sending Payload:", payload);
 
       const response = await axios.post(
-        "http://localhost:5001/attainment/update-level-targets",
+        "https://teacher-attainment-system-backend.onrender.com/attainment/update-level-targets",
         payload,
         {
           headers: {

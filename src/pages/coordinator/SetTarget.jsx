@@ -33,7 +33,7 @@ const SetTarget = () => {
             return;
         }
 
-        axios.get(`http://localhost:5001/set_target/course-coordinator/courses/${facultyId}`, {
+        axios.get(`https://teacher-attainment-system-backend.onrender.com/set_target/course-coordinator/courses/${facultyId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -86,7 +86,7 @@ const SetTarget = () => {
         });
 
 
-        axios.post('http://localhost:5001/set_target/course-target/set-targets', {
+        axios.post('https://teacher-attainment-system-backend.onrender.com/set_target/course-target/set-targets', {
             course_id,
             dept_id,
             academic_yr,
