@@ -6,8 +6,7 @@ import { faLinkedin, faGithub } from '@fortawesome/free-brands-svg-icons';
 import Dipali from '../assets/Dipali.jpg';
 import Pranav from '../assets/Pranav.jpg';
 import Jagruti from '../assets/Jagruti.jpg';
-import Mentor1 from '../assets/logo.png';
-import Mentor2 from '../assets/logo.png';
+
 
 const AboutUs = () => {
   const styles = {
@@ -165,7 +164,7 @@ const AboutUs = () => {
       email: 'anilpatil@college.edu',
       linkedin: 'https://www.linkedin.com/in/dr-emmanuel-mark-568a4316/',
       github: '',
-      image: Mentor1,
+      image: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
     },
     {
       name: 'Prof. Sumitra Jakhete',
@@ -174,7 +173,7 @@ const AboutUs = () => {
       email: 'snehakulkarni@college.edu',
       linkedin: 'https://www.linkedin.com/in/sneha-kulkarni-mentor/',
       github: '',
-      image: Mentor2,
+      image: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
     },
   ];
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { showToast } from "../../components/Toast"; // Import toast function
-import { Form, InputGroup, FormControl, Button, Table, Modal,Alert } from "react-bootstrap";
+import { Form, InputGroup, FormControl, Button, Table, Modal, Alert } from "react-bootstrap";
 
 const DownloadReport = () => {
     const [courses, setCourses] = useState([]);
@@ -17,6 +17,7 @@ const DownloadReport = () => {
     const [errorMessage, setErrorMessage] = useState(""); // Store error messages
 
     const storedUser = JSON.parse(localStorage.getItem("user"));
+    const token = storedUser?.accessToken;
     const { user } = storedUser;
     const { id: facultyId } = user;
 
@@ -25,7 +26,7 @@ const DownloadReport = () => {
             const timer = setTimeout(() => {
                 setErrorMessage("");
             }, 10000); // 12 seconds (adjust within 10-15s as needed)
-    
+
             return () => clearTimeout(timer);
         }
     }, [errorMessage]);
@@ -33,8 +34,7 @@ const DownloadReport = () => {
     useEffect(() => {
         console.log("Fetching courses for faculty ID:", facultyId);
 
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        const token = storedUser?.accessToken;
+
 
         if (!token) {
             console.error("No authentication token found.");
@@ -54,79 +54,89 @@ const DownloadReport = () => {
             })
             .catch((error) => {
                 console.error("Error fetching courses:", error.response ? error.response.data : error.message);
-                 showToast("error","No course found.");
+                showToast("error", "No course found.");
             });
     }, [facultyId]);
 
-    const handleDownloadReport = async (courseId, academicYear, deptId) => {
+    const handleDownloadReport = async (courseId, academicYear, deptId, sem) => {
         console.log("Downloading report for courseId:", courseId, "and academicYear:", academicYear);
-    
-        const reportUrl = `https://teacher-attainment-system-backend.onrender.com/report/generate-report?courseId=${courseId}&deptId=${deptId}&academicYear=${academicYear}`;
-    
+
+        const reportUrl = `http://localhost:5001/report/generate-report?courseId=${courseId}&deptId=${deptId}&academicYear=${academicYear}&sem=${sem}`;
+
         try {
-            const response = await axios.get(reportUrl);
-    
+            const response = await axios.get(reportUrl, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
             // Log the entire response for debugging
             console.log("Backend Response:", response.data);
-    
+
             // Extract target and marks data from the response
             const { target, marks } = response.data.data;
-    
+
             console.log("Target Data:", target);
             console.log("Marks Data:", marks);
-    
+
             // Update state for target data
             setTargetData([
                 { Target: "Level 3", "Unit Test": target.target1, SPPU: target.sppu1 },
                 { Target: "Level 2", "Unit Test": target.target2, SPPU: target.sppu2 },
                 { Target: "Level 1", "Unit Test": target.target3, SPPU: target.sppu3 },
             ]);
-    
+
             // Update state for marks data
             setMarksData(marks);
-    
+
             // Update selected course state
             setSelectedCourse({
                 courseId,
                 academicYear,
                 deptId,
+                sem, // <-- Add this line
                 courseName: courses.find((course) => course.course_id === courseId)?.course_name,
             });
-    
+
+
             // Show the modal
             setShowModal(true);
         } catch (error) {
             console.error("Error fetching report:", error);
-            showToast("error","Report doesn't exist for that course. Please try again later.");
+            showToast("error", "Report doesn't exist for that course. Please try again later.");
         }
     };
 
     const handleExcelDownload = async () => {
-        const reportUrl = `https://teacher-attainment-system-backend.onrender.com/report/download-report?courseId=${selectedCourse?.courseId}&deptId=${selectedCourse?.deptId}&academicYear=${selectedCourse?.academicYear}`;
-    
+        const reportUrl = `http://localhost:5001/report/download-report?courseId=${selectedCourse?.courseId}&deptId=${selectedCourse?.deptId}&academicYear=${selectedCourse?.academicYear}&sem=${selectedCourse?.sem}`;
+
         try {
-            const response = await axios.get(reportUrl, { responseType: "blob" });
-    
+            const response = await axios.get(reportUrl, {
+                responseType: "blob",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
             // Check if the response is successful
             if (response.status !== 200) {
                 throw new Error("Failed to generate report");
             }
-    
+
             // Create a Blob from the response data
             const fileBlob = new Blob([response.data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-    
+
             // Create a temporary URL for the Blob
             const url = window.URL.createObjectURL(fileBlob);
-    
+
             // Create a link element to trigger the download
             const link = document.createElement("a");
             link.href = url;
             link.download = `${selectedCourse?.courseName}_Download_Report.xlsx`;
             document.body.appendChild(link);
-    
+
             // Trigger the download
             link.click();
-    
+
             // Clean up
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
@@ -140,7 +150,7 @@ const DownloadReport = () => {
             course.course_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             course.course_id.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesYear = selectedYear ? course.academic_yr === selectedYear : true;
-        const matchesSem = selectedSem ? course.sem === selectedSem : true;
+        const matchesSem = selectedSem ? course.sem === parseInt(selectedSem) : true;
         return matchesSearch && matchesYear && matchesSem;
     });
 
@@ -150,8 +160,8 @@ const DownloadReport = () => {
     return (
         <div className="max-w-6xl mx-auto p-6">
             <h2 className="text-5xl font-bold text-primary mb-6 text-center">Download Report</h2>
-             {/* Error Message Alert */}
-             {errorMessage && <Alert variant="danger" onClose={() => setErrorMessage("")} dismissible>{errorMessage}</Alert>}
+            {/* Error Message Alert */}
+            {errorMessage && <Alert variant="danger" onClose={() => setErrorMessage("")} dismissible>{errorMessage}</Alert>}
 
             <div className="d-flex justify-content-center mb-4">
                 <InputGroup className="w-50">
@@ -188,11 +198,12 @@ const DownloadReport = () => {
                 >
                     <option value="">Select Semester</option>
                     {uniqueSems.map((sem) => (
-                        <option key={sem} value={sem}>
+                        <option key={sem} value={sem.toString()}>
                             {sem}
                         </option>
                     ))}
                 </Form.Select>
+
             </div>
 
             {filteredCourses.length === 0 ? (
@@ -223,7 +234,7 @@ const DownloadReport = () => {
                                     </p>
 
                                     <button
-                                        onClick={() => handleDownloadReport(course.course_id, course.academic_yr, course.dept_id)}
+                                        onClick={() => handleDownloadReport(course.course_id, course.academic_yr, course.dept_id, course.sem)}
                                         className="btn btn-outline-primary w-100 mb-2"
                                     >
                                         Download Report

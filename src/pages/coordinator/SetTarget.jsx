@@ -24,37 +24,38 @@ const SetTarget = () => {
             console.error("Faculty ID is missing!");
             return;
         }
-    
+
         const storedUser = JSON.parse(localStorage.getItem("user"));
         const token = storedUser?.accessToken;
-    
+
         if (!token) {
             console.error("No authentication token found.");
             return;
         }
-    
-        axios.get(`https://teacher-attainment-system-backend.onrender.com/set_target/course-coordinator/courses/${facultyId}`, {
+
+        axios.get(`http://localhost:5001/set_target/course-coordinator/courses/${facultyId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         })
-        .then(response => {
-            const fetchedCourses = response.data || [];
-            setCourses(fetchedCourses);
-    
-            // Dynamically set years and semesters based on fetched courses
-            const yearsList = Array.from(new Set(fetchedCourses.map(course => course.academic_yr)));
-            const semestersList = Array.from(new Set(fetchedCourses.map(course => course.sem)));
-    
-            setYears(yearsList);
-            setSemesters(semestersList);
-        })
-        .catch(error => {
-            console.error("Error fetching courses:", error);
-            showToast("error","No course found.");
-        });
+            .then(response => {
+                const fetchedCourses = response.data || [];
+                setCourses(fetchedCourses);
+                console.log(fetchedCourses);
+
+                // Dynamically set years and semesters based on fetched courses
+                const yearsList = Array.from(new Set(fetchedCourses.map(course => course.academic_yr)));
+                const semestersList = Array.from(new Set(fetchedCourses.map(course => course.sem)));
+
+                setYears(yearsList);
+                setSemesters(semestersList);
+            })
+            .catch(error => {
+                console.error("Error fetching courses:", error);
+                showToast("error", "No course found.");
+            });
     }, [facultyId]);
-    
+
 
     const handleTargetChange = (course_id, field, value) => {
         setTargets(prev => ({
@@ -77,6 +78,13 @@ const SetTarget = () => {
         }
 
         const courseTargets = targets[course_id] || {};
+        console.log("Sending to backend:", {
+            course_id,
+            dept_id,
+            academic_yr,
+            ...courseTargets
+        });
+
 
         axios.post('http://localhost:5001/set_target/course-target/set-targets', {
             course_id,
@@ -88,7 +96,7 @@ const SetTarget = () => {
                 'Authorization': `Bearer ${token}`
             }
         }).then(() => {
-            alert('Targets updated successfully');
+            showToast("success", "Targets updated successfully.");
             setSelectedCourse(null);
         }).catch(error => console.error("Error updating targets:", error));
     };
@@ -104,8 +112,8 @@ const SetTarget = () => {
     // Filtered courses based on search term and selected year/semester
     const filteredCourses = courses.filter(course => {
         return (
-            (course.course_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-             course.course_id.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            (course.course_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                course.course_id.toLowerCase().includes(searchTerm.toLowerCase())) &&
             (selectedYear ? course.academic_yr === selectedYear : true) &&
             (selectedSemester ? course.sem === selectedSemester : true)
         );
@@ -130,9 +138,9 @@ const SetTarget = () => {
             </div>
 
             <div className="d-flex justify-content-center mb-4">
-                <Form.Select 
-                    className="w-25 mx-2" 
-                    value={selectedYear} 
+                <Form.Select
+                    className="w-25 mx-2"
+                    value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}>
                     <option value="">Select Academic Year</option>
                     {years.map(year => (
@@ -140,9 +148,9 @@ const SetTarget = () => {
                     ))}
                 </Form.Select>
 
-                <Form.Select 
-                    className="w-25 mx-2" 
-                    value={selectedSemester} 
+                <Form.Select
+                    className="w-25 mx-2"
+                    value={selectedSemester}
                     onChange={(e) => setSelectedSemester(e.target.value)}>
                     <option value="">Select Semester</option>
                     {semesters.map(sem => (
