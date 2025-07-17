@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Form, Button, InputGroup, FormControl, Modal, Spinner } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { showToast } from "../../components/Toast";
 
 const Uploadmarks = () => {
   const [userData, setUserData] = useState([]);
@@ -31,7 +32,7 @@ const Uploadmarks = () => {
         setUserData(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching faculty course data:", err);
-        toast.error("Failed to fetch course allotment data!");
+        showToast("error","Failed to fetch course allotment data!");
       } finally {
         setLoading(false);
       }
@@ -97,7 +98,7 @@ const Uploadmarks = () => {
     }
   };
 
-  const handleDetails = async (courseId, academic_yr, dept_id, studentClass) => {
+  const handleDetails = async (courseId, academic_yr, dept_id, studentClass,semester) => {
     try {
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const token = storedUser?.accessToken;
@@ -106,7 +107,7 @@ const Uploadmarks = () => {
         return;
       }
 
-      const url = `https://teacher-attainment-system-backend.onrender.com/get_student/marks?class=${studentClass}&dept_id=${dept_id}&academic_yr=${academic_yr}&course_id=${courseId}`;
+     const url = `https://teacher-attainment-system-backend.onrender.com/get_student/marks?class=${studentClass}&dept_id=${dept_id}&academic_yr=${academic_yr}&course_id=${courseId}&sem=${semester}`;
       const response = await axios.get(url);
 
       if (response.data && response.data.length > 0) {
@@ -210,19 +211,21 @@ const Uploadmarks = () => {
                     <strong>Semester:</strong> {course.sem}
                   </p>
                   <p className="card-text">
-                    <strong>Department:</strong> {course.dept_name} | <strong>Academic Year:</strong>{" "}
-                    {course.academic_yr}
+                    <strong>Department:</strong> {course.dept_name} 
+                  </p>
+                   <p className="card-text">
+                    <strong>Academic Year:</strong> {course.academic_yr} 
                   </p>
 
                   <Button
-                    onClick={() => handleViewAttainment(course.course_id, course.academic_yr, course.dept_id)}
+                    onClick={() => handleViewAttainment(course.course_id, course.academic_yr, course.dept_id,course.sem)}
                     variant="outline-primary"
                     className="me-3"
                   >
                     View Attainment
                   </Button>
                   <Button
-                    onClick={() => handleDetails(course.course_id, course.academic_yr, course.dept_id, course.class)}
+                    onClick={() => handleDetails(course.course_id, course.academic_yr, course.dept_id, course.class,course.sem)}
                     variant="outline-secondary"
                   >
                     Details

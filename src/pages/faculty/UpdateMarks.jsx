@@ -136,8 +136,8 @@ const UpdateMarks = () => {
                   <p className="card-text"><strong>Course ID:</strong> {course.course_id}</p>
                   <p className="card-text"><strong>Class:</strong> {course.class}</p>
                   <p className="card-text"><strong>Semester:</strong> {course.sem}</p>
-                  <p className="card-text"><strong>Department:</strong> {course.dept_name} | <strong>Academic Year:</strong> {course.academic_yr}</p>
-
+                  <p className="card-text"><strong>Department:</strong> {course.dept_name} </p>
+                   <p className="card-text"><strong>Academic Year:</strong> {course.academic_yr}</p>
                   <Button 
                     onClick={() => handleUpdateMarks(course)} 
                     variant="outline-primary" 

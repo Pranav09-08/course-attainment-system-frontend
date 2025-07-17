@@ -28,10 +28,13 @@ const UploadMarks = () => {
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const { accessToken, user } = storedUser || {};
   const { id: user_id } = user || {};
-
+// 🔍 Debug logs
+console.log("Stored user:", storedUser);
+console.log("Extracted faculty id:", user_id);
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+          
         const API_URL = `https://teacher-attainment-system-backend.onrender.com/marks/faculty_addmarks/${user_id}`;
         const response = await axios.get(API_URL);
         setUserData(Array.isArray(response.data) ? response.data : []);
@@ -130,10 +133,7 @@ const UploadMarks = () => {
 
     for (let i = 0; i < dataRows.length; i++) {
       const row = dataRows[i];
-      if (row.length !== headers.length) {
-        errors[i] = { __row: `Row ${i + 1} has incorrect number of columns` };
-        continue;
-      }
+     
 
       for (let j = 0; j < headers.length; j++) {
         const header = headers[j];
@@ -254,7 +254,7 @@ const UploadMarks = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${selectedMarkType}_template.csv`);
+    link.setAttribute("download", `${selectedMarkType}_${selectedCourse.class}_template.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -385,8 +385,8 @@ const UploadMarks = () => {
                   <p className="card-text"><strong>Course ID:</strong> {course.course_id}</p>
                   <p className="card-text"><strong>Class:</strong> {course.class}</p>
                   <p className="card-text"><strong>Semester:</strong> {course.sem}</p>
-                  <p className="card-text"><strong>Department:</strong> {course.dept_name} | <strong>Academic Year:</strong> {course.academic_yr}</p>
-
+                  <p className="card-text"><strong>Department:</strong> {course.dept_name} </p>
+                  <p className="card-text"><strong>Academic Year:</strong> {course.academic_yr}</p>
                   <Button
                     onClick={() => handleAddMarks(course)}
                     variant="outline-primary"
