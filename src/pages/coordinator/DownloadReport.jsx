@@ -97,7 +97,7 @@ const DownloadReport = () => {
             setShowModal(true);
         } catch (error) {
             console.error("Error fetching report:", error);
-            setErrorMessage("Report doesn't exist for that course. Please try again later.");
+            showToast("error","Report doesn't exist for that course. Please try again later.");
         }
     };
 

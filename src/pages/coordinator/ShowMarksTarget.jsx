@@ -22,9 +22,17 @@ const ShowMarksTarget = () => {
         return;
       }
 
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      const token = storedUser?.accessToken;
+
       try {
         const response = await axios.get(
-          `https://teacher-attainment-system-backend.onrender.com/report/show-marktarget?courseId=${courseId}&deptId=${dept_id}&academicYear=${academicYear}`
+          `https://teacher-attainment-system-backend.onrender.com/report/show-marktarget?courseId=${courseId}&deptId=${dept_id}&academicYear=${academicYear}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
         );
 
         console.log("Backend Response:", response.data);
@@ -33,18 +41,18 @@ const ShowMarksTarget = () => {
 
         const targetData = target
           ? Object.keys(target)
-              .filter((key) => key.startsWith("target") || key.startsWith("sppu"))
-              .reduce((acc, key, index, arr) => {
-                const targetKey = arr[index % 2 === 0 ? index : index - 1];
-                const sppuKey = arr[index % 2 === 1 ? index : index + 1];
-                if (index % 2 === 0) {
-                  acc.push({
-                    target: target[targetKey],
-                    sppu: target[sppuKey],
-                  });
-                }
-                return acc;
-              }, [])
+            .filter((key) => key.startsWith("target") || key.startsWith("sppu"))
+            .reduce((acc, key, index, arr) => {
+              const targetKey = arr[index % 2 === 0 ? index : index - 1];
+              const sppuKey = arr[index % 2 === 1 ? index : index + 1];
+              if (index % 2 === 0) {
+                acc.push({
+                  target: target[targetKey],
+                  sppu: target[sppuKey],
+                });
+              }
+              return acc;
+            }, [])
           : [];
 
         const marksData = Array.isArray(marks) ? marks : [];
@@ -91,13 +99,13 @@ const ShowMarksTarget = () => {
       setAttainmentData(response.data.message);
 
       // Show success toast notification
-      showToast("success","Attainment calculated successfully!");
+      showToast("success", "Attainment calculated successfully!");
     } catch (error) {
       console.error("Error calculating attainment:", error);
       setAttainmentData("Failed to calculate attainment");
 
       // Show error toast notification
-      showToast("error","Failed to calculate attainment");
+      showToast("error", "Failed to calculate attainment");
     } finally {
       setAttainmentLoading(false);
     }

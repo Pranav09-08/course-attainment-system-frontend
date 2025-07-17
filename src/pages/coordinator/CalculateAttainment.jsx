@@ -70,10 +70,12 @@ const CalculateAttainment = () => {
           setShowModal(true); // Show the modal with faculty details
         } else {
           console.error("No faculty found for the selected course.");
+          // showToast("error","No faculty found for the selected course");
         }
       })
       .catch((error) => {
         console.error("Error fetching faculty details:", error.response ? error.response.data : error.message);
+        showToast("error","No faculty found for the selected course");
       });
   };
 

@@ -33,13 +33,18 @@ const AddCourseAllotment = () => {
   const [error, setError] = useState("");
 
   const getCurrentAcademicYears = () => {
-    const currentYear = new Date().getFullYear();
-    const years = [];
-    for (let i = 0; i <= 5; i++) {
-      years.push(currentYear - i);
-    }
-    return years.reverse();
-  };
+  const currentYear = new Date().getFullYear();
+  const years = [];
+
+  for (let i = 0; i <= 5; i++) {
+    const year1 = currentYear - i;
+    const year2 = year1 + 1;
+    years.push(`${year1}_${year2.toString().slice(-2)}`);
+  }
+
+  return years.reverse(); // Optional: if you want from oldest to latest
+};
+
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -133,7 +138,7 @@ const AddCourseAllotment = () => {
       ...formData,
       course_id: String(formData.course_id),
       faculty_id: String(formData.faculty_id),
-      academic_yr: Number(formData.academic_yr),
+      academic_yr: String(formData.academic_yr),
     };
 
     try {
