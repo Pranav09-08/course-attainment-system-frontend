@@ -4,8 +4,8 @@ import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify"; // Import ToastContainer
 import { showToast } from "../../components/Toast";  // Import showToast
 const ShowMarksTarget = () => {
-  const { courseId, dept_id, academicYear } = useParams();
-  console.log("Extracted Params:", { courseId, dept_id, academicYear });
+  const { courseId, dept_id, academicYear, sem } = useParams();
+  console.log("Extracted Params:", { courseId, dept_id, academicYear, sem });
 
   const [marksData, setMarksData] = useState(null);
   const [targetData, setTargetData] = useState(null);
@@ -13,21 +13,22 @@ const ShowMarksTarget = () => {
   const [error, setError] = useState(null);
   const [attainmentLoading, setAttainmentLoading] = useState(false);
   const [attainmentData, setAttainmentData] = useState(null);
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const token = storedUser?.accessToken;
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!courseId || !academicYear || !dept_id) {
+      if (!courseId || !academicYear || !dept_id || !sem) {
         setLoading(false);
         setError("Missing Course ID or Academic Year");
         return;
       }
 
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      const token = storedUser?.accessToken;
+      
 
       try {
         const response = await axios.get(
-          `https://teacher-attainment-system-backend.onrender.com/report/show-marktarget?courseId=${courseId}&deptId=${dept_id}&academicYear=${academicYear}`,
+          `http://localhost:5001/report/show-marktarget?courseId=${courseId}&deptId=${dept_id}&academicYear=${academicYear}&sem=${sem}`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -90,8 +91,13 @@ const ShowMarksTarget = () => {
       console.log("Sending Payload:", payload);
 
       const response = await axios.post(
-        "https://teacher-attainment-system-backend.onrender.com/attainment/update-level-targets",
-        payload
+        "http://localhost:5001/attainment/update-level-targets",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       console.log("API Response:", response.data);

@@ -84,14 +84,16 @@ const CalculateAttainment = () => {
   const handleCloseModal = () => setShowModal(false);
 
 
-  const handleViewAttainment = (courseId, academicYear, deptId) => {
+  const handleViewAttainment = (courseId, academicYear, deptId,sem) => {
     console.log(
       "Navigating to Attainment with courseId:",
       courseId,
       "and academicYear:",
-      academicYear
+      academicYear,
+      "sem :",
+      sem
     );
-    navigate(`/coordinator-dashboard/showmarks/${courseId}/${academicYear}/${deptId}`);
+    navigate(`/coordinator-dashboard/showmarks/${courseId}/${academicYear}/${deptId}/${sem}`);
   };
 
   // Filter Courses based on Search Term, Academic Year, and Semester
@@ -203,7 +205,7 @@ const CalculateAttainment = () => {
 
                   <button
                     onClick={() =>
-                      handleViewAttainment(course.course_id, course.academic_yr, course.dept_id)
+                      handleViewAttainment(course.course_id, course.academic_yr, course.dept_id,course.sem)
                     }
                     className="btn btn-outline-primary w-100 mb-2"
                   >

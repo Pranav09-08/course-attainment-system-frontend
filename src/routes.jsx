@@ -100,7 +100,7 @@ const AppRoutes = () => {
         <Route path="/coordinator-dashboard" element={<ProtectedRoute roles={["coordinator", "admin"]}><CoordinatorDashboard /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/mycourses" element={<ProtectedRoute roles={["coordinator", "admin"]}><CoursesCoordinated /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/attainment/:courseId/:academicYear/:dept_id" element={<ProtectedRoute roles={["coordinator", "admin"]}><CourseAttainment /></ProtectedRoute>} />
-        <Route path="/coordinator-dashboard/showmarks/:courseId/:academicYear/:dept_id" element={<ProtectedRoute roles={["coordinator", "admin"]}><ShowMarksTarget /></ProtectedRoute>} />
+        <Route path="/coordinator-dashboard/showmarks/:courseId/:academicYear/:dept_id/:sem" element={<ProtectedRoute roles={["coordinator", "admin"]}><ShowMarksTarget /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/profile" element={<ProtectedRoute roles={["coordinator", "admin"]}><Profile /></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/setTarget" element={<ProtectedRoute roles={["coordinator", "admin"]}><SetTarget/></ProtectedRoute>} />
         <Route path="/coordinator-dashboard/calculate-attainment" element={<ProtectedRoute roles={["coordinator", "admin"]}><CalculateAttainment/></ProtectedRoute>} />
