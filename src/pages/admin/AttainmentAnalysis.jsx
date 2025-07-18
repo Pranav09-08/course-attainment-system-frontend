@@ -1,47 +1,71 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Spinner } from 'react-bootstrap';
+import { Alert, Spinner, Container, Row, Col, Card } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { 
     ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid 
 } from 'recharts';
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { showToast } from "../../components/Toast"; // Import toast function
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AttainmentAnalysis = () => {
     const { courseId } = useParams();
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [error, setError] = useState(null);
     const [summary, setSummary] = useState({ max: {}, min: {} });
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`https://teacher-attainment-system-backend.onrender.com/admin/course-attainment-analysis/${courseId}`);
-                if (response.data && response.data.length > 0) {
-                    // Check if any attainment data is missing (e.g., total, or other relevant fields)
-                    const missingData = response.data.some(item => 
-                        !item.total || !item.ut_attainment || !item.insem_attainment || !item.endsem_attainment || !item.final_attainment
-                    );
-
-                    if (missingData) {
-                        showToast('error','The attainment calculation is currently in progress. Please come back later for updated results.');
-                    } else {
-                        setData(response.data);
-
-                        // Calculate summary (highest & lowest attainment)
-                        const maxAttainment = response.data.reduce((max, item) => (parseFloat(item.total) > parseFloat(max.total) ? item : max), response.data[0]);
-                        const minAttainment = response.data.reduce((min, item) => (parseFloat(item.total) < parseFloat(min.total) ? item : min), response.data[0]);
-                        setSummary({ max: maxAttainment, min: minAttainment });
-                    }
-                } else {
-                    showToast('error','No data found for the selected course.');
+                setLoading(true);
+                setError(null);
+                
+                // Get token from localStorage
+                const storedUser = JSON.parse(localStorage.getItem("user")) || {};
+                const token = storedUser?.accessToken;
+                
+                if (!token) {
+                    throw new Error('Authentication token not found. Please login again.');
                 }
+
+                const response = await axios.get(
+                    `https://teacher-attainment-system-backend.onrender.com/admin/course-attainment-analysis/${courseId}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (!response.data || response.data.length === 0) {
+                    throw new Error('No attainment data available for this course');
+                }
+
+                // Process data without department validation
+                const processedData = response.data.map(item => ({
+                    ...item,
+                    ut_attainment: parseFloat(item.ut_attainment) || 0,
+                    insem_attainment: parseFloat(item.insem_attainment) || 0,
+                    endsem_attainment: parseFloat(item.endsem_attainment) || 0,
+                    final_attainment: parseFloat(item.final_attainment) || 0,
+                    total: parseFloat(item.total) || 0
+                }));
+
+                setData(processedData);
+                
+                // Calculate summary
+                const maxAttainment = processedData.reduce((max, item) => 
+                    (item.total > max.total ? item : max), processedData[0]);
+                const minAttainment = processedData.reduce((min, item) => 
+                    (item.total < min.total ? item : min), processedData[0]);
+                setSummary({ max: maxAttainment, min: minAttainment });
+
             } catch (err) {
-                showToast('error','The attainment calculation is currently in progress. Please come back later for updated results.');
                 console.error('Error fetching data:', err);
+                setError(err.message);
+                toast.error(err.message);
             } finally {
                 setLoading(false);
             }
@@ -68,10 +92,6 @@ const AttainmentAnalysis = () => {
         );
     }
 
-    // Ensure 'total' is a number before calling toFixed
-    const maxTotal = summary.max.total ? parseFloat(summary.max.total) : 0;
-    const minTotal = summary.min.total ? parseFloat(summary.min.total) : 0;
-
     return (
         <div className="container mt-4">
             <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
@@ -82,13 +102,13 @@ const AttainmentAnalysis = () => {
                 <div className="col-md-6">
                     <div className="p-3 border rounded shadow-sm">
                         <h5>Highest Attainment Year: {summary.max.academic_yr}</h5>
-                        <p className="fs-4 text-success">{maxTotal.toFixed(2)}</p>
+                        <p className="fs-4 text-success">{summary.max.total?.toFixed(2)}</p>
                     </div>
                 </div>
                 <div className="col-md-6">
                     <div className="p-3 border rounded shadow-sm">
                         <h5>Lowest Attainment Year: {summary.min.academic_yr}</h5>
-                        <p className="fs-4 text-danger">{minTotal.toFixed(2)}</p>
+                        <p className="fs-4 text-danger">{summary.min.total?.toFixed(2)}</p>
                     </div>
                 </div>
             </div>

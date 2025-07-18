@@ -3,9 +3,6 @@ import axios from "axios";
 import { saveAs } from "file-saver";
 import Papa from "papaparse";
 import { Form, Button, Alert, Card, Container, Table } from "react-bootstrap";
-// import { ToastContainer, toast } from "react-toastify";
-// import "bootstrap/dist/css/bootstrap.min.css";
-// import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { showToast } from "../../components/Toast";
@@ -15,6 +12,7 @@ const AddStudents = () => {
   const [students, setStudents] = useState([]);
   const [deptId, setDeptId] = useState(null);
   const [token, setToken] = useState(null);
+  const [isUploading, setIsUploading] = useState(false); // Loading state
   
   // Selection states
   const [selectedClass, setSelectedClass] = useState("");
@@ -42,7 +40,7 @@ const AddStudents = () => {
   }, []);
 
   const generateSampleCSV = () => {
-    let headers = "roll_no,seat_no,name";
+    let headers = "roll_no,seat_no,name,class"; 
     
     if (selectedClass === "TE") {
       headers += ",el1";
@@ -51,8 +49,8 @@ const AddStudents = () => {
     }
     
     let content = headers + "\n";
-    content += `1001,1,Student One${selectedClass === "TE" ? ",Elective 1" : selectedClass === "BE" ? ",Elective 1,Elective 2" : ""}\n`;
-    content += `1002,2,Student Two${selectedClass === "TE" ? ",Elective 1" : selectedClass === "BE" ? ",Elective 1,Elective 2" : ""}`;
+    content += `1001,1,Student One,${selectedClass}9${selectedClass === "TE" ? ",Elective 1" : selectedClass === "BE" ? ",Elective 1,Elective 2" : ""}\n`;
+    content += `1002,2,Student Two,${selectedClass}10${selectedClass === "TE" ? ",Elective 1" : selectedClass === "BE" ? ",Elective 1,Elective 2" : ""}`;
     
     return content;
   };
@@ -83,37 +81,101 @@ const AddStudents = () => {
       complete: (results) => {
         const errors = [];
         const parsedStudents = results.data
-          .filter(row => row.roll_no && row.name)
+          .filter(row => row.roll_no && row.name && row.class)
           .map((row, index) => {
-            if (!row.roll_no) errors.push(`Row ${index+1}: Missing roll_no`);
-            if (!row.name) errors.push(`Row ${index+1}: Missing name`);
+            const rowNumber = index + 1;
             
-            if (selectedClass === "TE" && !row.el1) {
-              errors.push(`Row ${index+1}: TE students require el1`);
+            // Validate required fields
+            if (!row.roll_no) {
+              errors.push(`Row ${rowNumber}: Roll number is required`);
             }
-            if (selectedClass === "BE" && (!row.el1 || !row.el2)) {
-              errors.push(`Row ${index+1}: BE students require both el1 and el2`);
+            
+            if (!row.name) {
+              errors.push(`Row ${rowNumber}: Student name is required`);
+            }
+            
+            if (!row.class) {
+              errors.push(`Row ${rowNumber}: Class is required (e.g., ${selectedClass}9, ${selectedClass}10)`);
+            }
+            
+            // Validate class format and matching with dropdown
+            if (row.class && !row.class.startsWith(selectedClass)) {
+              errors.push(
+                `Row ${rowNumber}: Class "${row.class}" is invalid. ` +
+                `It should start with "${selectedClass}" (e.g., ${selectedClass}9, ${selectedClass}10)`
+              );
+            }
+            
+            // Validate class format (should be letters followed by numbers)
+            if (row.class && !/^[A-Za-z]+\d+$/.test(row.class)) {
+              errors.push(
+                `Row ${rowNumber}: Class "${row.class}" has invalid format. ` +
+                `It should be letters followed by numbers (e.g., ${selectedClass}9, ${selectedClass}10)`
+              );
+            }
+
+            // Validate electives based on selected class
+            if (selectedClass === "TE" && !row.el1) {
+              errors.push(
+                `Row ${rowNumber}: Elective 1 is required for TE students. ` +
+                `Please provide a subject for el1 column`
+              );
+            }
+            
+            if (selectedClass === "BE") {
+              if (!row.el1) {
+                errors.push(
+                  `Row ${rowNumber}: Elective 1 is required for BE students. ` +
+                  `Please provide a subject for el1 column`
+                );
+              }
+              if (!row.el2) {
+                errors.push(
+                  `Row ${rowNumber}: Elective 2 is required for BE students. ` +
+                  `Please provide a subject for el2 column`
+                );
+              }
             }
 
             return {
               ...row,
               dept_id: deptId,
-              class: selectedClass,
               sem: selectedSem,
               academic_yr: selectedAcademicYear
             };
           });
 
         if (errors.length > 0) {
-          showToast("error", `CSV contains ${errors.length} validation errors`);
+          // Show first 3 errors in toast and log all to console
+          const errorPreview = errors.slice(0, 3).join('\n');
+          const moreErrors = errors.length > 3 ? `\n...and ${errors.length - 3} more errors` : '';
+          
+          showToast(
+            "error", 
+            `Found ${errors.length} issues in your CSV:\n${errorPreview}${moreErrors}\n\nPlease check and try again.`,
+            { autoClose: 8000 }
+          );
+          
+          console.groupCollapsed('CSV Validation Errors');
+          errors.forEach((error, i) => console.log(`${i+1}. ${error}`));
+          console.groupEnd();
+          
           return;
         }
 
         setStudents(parsedStudents);
-        showToast("success", `Parsed ${parsedStudents.length} students ready for upload`);
+        showToast(
+          "success", 
+          `Successfully parsed ${parsedStudents.length} students. ` +
+          `Review the data below and click "Add Students" to confirm.`
+        );
       },
       error: (error) => {
-        showToast("error", `CSV parsing error: ${error.message}`);
+        showToast(
+          "error", 
+          `Failed to read CSV file: ${error.message}. ` +
+          `Please make sure the file is a valid CSV format and try again.`
+        );
       }
     });
   };
@@ -129,6 +191,8 @@ const AddStudents = () => {
       return;
     }
 
+    setIsUploading(true); // Show loading state
+
     try {
       const response = await axios.post(
         "https://teacher-attainment-system-backend.onrender.com/admin/student/upload-students",
@@ -142,33 +206,53 @@ const AddStudents = () => {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
           },
-          timeout: 10000
+          timeout: 20000
         }
       );
 
-      if (response.data && response.data.message) {
-        showToast("success", `${students.length} students added successfully!`);
+      if (response.data) {
+        let successMessage = `${response.data.insertedCount} students added successfully!`;
+        
+        if (response.data.duplicateCount > 0) {
+          successMessage += ` (${response.data.duplicateCount} duplicates skipped)`;
+          
+          // Show detailed info about duplicates in console
+          console.group('Duplicate Students Skipped');
+          console.log('Count:', response.data.duplicateCount);
+          console.log('Roll Numbers:', response.data.duplicateRollNos);
+          console.groupEnd();
+        }
+
+        showToast("success", successMessage);
+        
+        // Reset form after successful upload
+        setSelectedClass("");
+        setSelectedSem("");
+        setSelectedAcademicYear("");
         setStudents([]);
         setFile(null);
       } else {
         throw new Error("Invalid response format from server");
       }
     } catch (error) {
-      // let errorMsg = "Error uploading student data";
-      
-      // if (error.response) {
-      //   errorMsg = error.response.data?.message || 
-      //             `Server Error: ${error.response.status}`;
-      // } else if (error.request) {
-      //   errorMsg = "No response from server - check backend connection";
-      // } else if (error.code === "ECONNABORTED") {
-      //   errorMsg = "Request timeout - server took too long to respond";
-      // }
-
-      // showToast("error", errorMsg);
       console.error("Error adding students:", error.response?.data || error.message);
-      const errorMsg = error.response?.data?.error || "Students already present in Database";
-      showToast('error', errorMsg);
+      
+      // Handle different error scenarios
+      if (error.response?.data?.error) {
+        showToast('error', error.response.data.error);
+      } else if (error.response?.data?.warning) {
+        // Treat warnings as success with additional info
+        showToast('success', 
+          `${error.response.data.insertedCount || 0} students added. ${error.response.data.warning}`,
+          { autoClose: 5000 }
+        );
+        setStudents([]);
+        setFile(null);
+      } else {
+        showToast('error', 'Failed to upload students. Please try again.');
+      }
+    } finally {
+      setIsUploading(false); // Always reset loading state
     }
   };
 
@@ -240,7 +324,7 @@ const AddStudents = () => {
           variant="success" 
           className="w-100 mb-3 py-3" 
           onClick={handleDownloadSample}
-          disabled={!selectedClass}
+          disabled={!selectedClass || isUploading}
         >
           Download Sample CSV for {selectedClass || 'Selected Class'}
         </Button>
@@ -252,7 +336,7 @@ const AddStudents = () => {
             type="file" 
             accept=".csv" 
             onChange={handleFileChange}
-            disabled={!selectedClass || !selectedSem || !selectedAcademicYear}
+            disabled={!selectedClass || !selectedSem || !selectedAcademicYear || isUploading}
           />
         </Form.Group>
 
@@ -267,6 +351,7 @@ const AddStudents = () => {
                     <th>Roll No</th>
                     <th>Seat No</th>
                     <th>Name</th>
+                    <th>Class</th>
                     {selectedClass === "TE" || selectedClass === "BE" ? <th>Elective 1</th> : null}
                     {selectedClass === "BE" ? <th>Elective 2</th> : null}
                   </tr>
@@ -277,6 +362,7 @@ const AddStudents = () => {
                       <td>{student.roll_no}</td>
                       <td>{student.seat_no || '-'}</td>
                       <td>{student.name}</td>
+                      <td>{student.class}</td>
                       {selectedClass === "TE" || selectedClass === "BE" ? <td>{student.el1 || '-'}</td> : null}
                       {selectedClass === "BE" ? <td>{student.el2 || '-'}</td> : null}
                     </tr>
@@ -293,8 +379,16 @@ const AddStudents = () => {
             variant="primary" 
             className="w-100 py-3 mt-3" 
             onClick={handleUpload}
+            disabled={isUploading}
           >
-            Add {students.length} Students
+            {isUploading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Adding...
+              </>
+            ) : (
+              `Add ${students.length} Students`
+            )}
           </Button>
         )}
       </Card>

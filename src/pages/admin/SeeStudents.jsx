@@ -21,6 +21,7 @@ const SeeStudents = () => {
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
+  const [selectedDivision, setSelectedDivision] = useState("");
   const [selectedSem, setSelectedSem] = useState("ALL");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -97,14 +98,60 @@ const SeeStudents = () => {
     }
   };
 
+  // Generate division options based on selected class and department
+  const generateDivisionOptions = () => {
+    if (!selectedClass) return [];
+
+    if (selectedClass === "FE") {
+      return ["FE"];
+    }
+
+    const divisions = [];
+    const prefix = selectedClass;
+
+    if (department_id === 1) {
+      for (let i = 1; i <= 4; i++) {
+        divisions.push(`${prefix}${i}`);
+      }
+    } else if (department_id === 2) {
+      for (let i = 5; i <= 8; i++) {
+        divisions.push(`${prefix}${i}`);
+      }
+    } else if (department_id === 3) {
+      for (let i = 9; i <= 11; i++) {
+        divisions.push(`${prefix}${i}`);
+      }
+    } else if (department_id === 4) {
+      divisions.push(`${prefix}12`);
+    } else if (department_id === 5) {
+      divisions.push(`${prefix}13`);
+    }
+
+    return divisions;
+  };
+
+  // Reset division when class changes
+  useEffect(() => {
+    setSelectedDivision("");
+  }, [selectedClass]);
+
   // Apply filters
   useEffect(() => {
     let filtered = [...allStudents];
 
     if (selectedClass) {
-      filtered = filtered.filter(
-        (student) => student.class.toUpperCase() === selectedClass.toUpperCase()
-      );
+      if (selectedDivision) {
+        // Filter by specific division if selected
+        filtered = filtered.filter(
+          (student) => student.class.toUpperCase() === selectedDivision.toUpperCase()
+        );
+      } else {
+        // Filter by class only (show all divisions of that class)
+        const classPrefix = selectedClass.toUpperCase();
+        filtered = filtered.filter(
+          (student) => student.class.toUpperCase().startsWith(classPrefix)
+        );
+      }
     }
 
     if (selectedSem !== "ALL") {
@@ -123,10 +170,11 @@ const SeeStudents = () => {
     }
 
     setFilteredStudents(filtered);
-  }, [selectedClass, selectedSem, searchTerm, allStudents]);
+  }, [selectedClass, selectedDivision, selectedSem, searchTerm, allStudents]);
 
   const resetFilters = () => {
     setSelectedClass("");
+    setSelectedDivision("");
     setSelectedSem("ALL");
     setSearchTerm("");
   };
@@ -214,7 +262,7 @@ const SeeStudents = () => {
 
       {/* Filters Section */}
       <Row className="mb-4 g-3">
-        <Col md={4}>
+        <Col md={3}>
           <Form.Group>
             <Form.Label>Class</Form.Label>
             <Form.Select
@@ -231,7 +279,25 @@ const SeeStudents = () => {
           </Form.Group>
         </Col>
 
-        <Col md={4}>
+        <Col md={3}>
+          <Form.Group>
+            <Form.Label>Division</Form.Label>
+            <Form.Select
+              value={selectedDivision}
+              onChange={(e) => setSelectedDivision(e.target.value)}
+              disabled={loading || !selectedClass}
+            >
+              <option value="">All Divisions</option>
+              {generateDivisionOptions().map((division) => (
+                <option key={division} value={division}>
+                  {division}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+        </Col>
+
+        <Col md={3}>
           <Form.Group>
             <Form.Label>Semester</Form.Label>
             <Form.Select
@@ -246,7 +312,7 @@ const SeeStudents = () => {
           </Form.Group>
         </Col>
 
-        <Col md={4}>
+        <Col md={3}>
           <Form.Group>
             <Form.Label>Search</Form.Label>
             <InputGroup>
@@ -277,7 +343,7 @@ const SeeStudents = () => {
             onClick={resetFilters}
             disabled={
               loading ||
-              (!selectedClass && selectedSem === "ALL" && !searchTerm)
+              (!selectedClass && !selectedDivision && selectedSem === "ALL" && !searchTerm)
             }
           >
             Reset Filters
