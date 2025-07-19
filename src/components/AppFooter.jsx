@@ -8,7 +8,7 @@ const AppFooter = () => {
         <a href="https://pict.edu/" target="_blank" rel="noopener noreferrer">
           PICT
         </a>
-        <span className="ms-1">&copy; 2024 Educated Eagles.</span>
+        <span className="ms-1">&copy; 2025 401 Authorized.</span>
       </div>
       <div className="ms-auto">
         <span className="me-1">Powered by</span>

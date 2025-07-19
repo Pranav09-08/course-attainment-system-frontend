@@ -57,27 +57,39 @@ const CalculateAttainment = () => {
 
   // Function to handle fetching faculty details when clicking on the "Details" button
   const handleShowFacultyDetails = (courseId, academic_yr, dept_id) => {
-    setSelectedCourseId(courseId);
+  setSelectedCourseId(courseId);
 
-    axios
-      .get(
-        `https://teacher-attainment-system-backend.onrender.com/attainment/get-faculty?courseId=${courseId}&deptId=${dept_id}&academicYr=${academic_yr}`
-      )
-      .then((response) => {
-        console.log("Faculty Details API Response:", response);
-        if (response.data && response.data.length > 0) {
-          setFacultyDetails(response.data);
-          setShowModal(true); // Show the modal with faculty details
-        } else {
-          console.error("No faculty found for the selected course.");
-          // showToast("error","No faculty found for the selected course");
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching faculty details:", error.response ? error.response.data : error.message);
-        showToast("error","No faculty found for the selected course");
-      });
-  };
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const token = storedUser?.accessToken;
+
+  axios
+    .get(
+      `https://teacher-attainment-system-backend.onrender.com/attainment/get-faculty?courseId=${courseId}&deptId=${dept_id}&academicYr=${academic_yr}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // <-- Add your token here
+        },
+      }
+    )
+    .then((response) => {
+      console.log("Faculty Details API Response:", response);
+      if (response.data && response.data.length > 0) {
+        setFacultyDetails(response.data);
+        setShowModal(true); // Show the modal with faculty details
+      } else {
+        console.error("No faculty found for the selected course.");
+        // showToast("error","No faculty found for the selected course");
+      }
+    })
+    .catch((error) => {
+      console.error(
+        "Error fetching faculty details:",
+        error.response ? error.response.data : error.message
+      );
+      showToast("error", "No faculty found for the selected course");
+    });
+};
+
 
 
   // Function to close the modal

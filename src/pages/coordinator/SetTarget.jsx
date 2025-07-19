@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import 'react-toastify/dist/ReactToastify.css';
 import { showToast } from "../../components/Toast"; // Import toast function
 import { InputGroup, FormControl, Button, Form } from 'react-bootstrap'; // Bootstrap components
 
@@ -96,7 +97,7 @@ const SetTarget = () => {
                 'Authorization': `Bearer ${token}`
             }
         }).then(() => {
-            showToast("success", "Targets updated successfully.");
+             showToast("success", "Targets updated successfully.");
             setSelectedCourse(null);
         }).catch(error => console.error("Error updating targets:", error));
     };

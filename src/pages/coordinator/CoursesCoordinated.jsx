@@ -74,7 +74,7 @@ const CoursesCoordinated = () => {
     const token = JSON.parse(localStorage.getItem("user"))?.accessToken;
 
     axios
-      .get(`https://teacher-attainment-system-backend.onrender.com/faculty_courses/faculties-for-course`, {
+      .get(`http://localhost:5001/faculty_courses/faculties-for-course`, {
         params: {
           course_id: course.course_id,
           academic_yr: course.academic_yr,

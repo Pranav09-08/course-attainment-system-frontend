@@ -1,12 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Course Attainment System</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+
+<head>
+  <script>
+    // Force dark theme on page load
+    document.addEventListener('DOMContentLoaded', function () {
+      document.body.setAttribute('data-coreui-theme', 'dark');
+      localStorage.setItem('coreui-theme', 'dark');
+
+      // If using CoreUI's theme switcher component
+      if (typeof window.coreui !== 'undefined' && window.coreui.Theme) {
+        window.coreui.Theme.setTheme('dark');
+      }
+    });
+  </script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Course Attainment System</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>
