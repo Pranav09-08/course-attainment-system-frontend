@@ -5,6 +5,7 @@ import DashboardLayout from "./layout/DashboardLayout";
 import ProtectedRoute from "./components/Protectedroutes";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
+import ForgotPassword from "./pages/ForgetPassword";
 import Profile from "./pages/ProfilePage";
 import AdminDashBoard from "./pages/admin/Dashboard";
 import FacultyDashboard from "./pages/faculty/FacultyDashboard";
@@ -40,7 +41,6 @@ import CalculateAttainment from "./pages/coordinator/CalculateAttainment";
 import ShowMarksTarget from "./pages/coordinator/ShowMarksTarget";
 import ReportAnalysis from "./pages/admin/ReportAnalysis";
 import AttainmentAnalysis from "./pages/admin/AttainmentAnalysis";
-
 import MarksAnalysis from './pages/faculty/MarksAnalysis';
 
  
@@ -50,6 +50,7 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
 
       {/* 🔹 Admin Dashboard */}

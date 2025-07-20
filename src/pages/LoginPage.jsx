@@ -13,12 +13,13 @@ import {
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { Link } from "react-router-dom";
 import { getCurrentUser, login } from "../services/authServices";
 import { useNavigate } from "react-router-dom";
 import "../styles/LoginPage.css";
 import bg from "../assets/signin.svg";
 import bgimg from "../assets/backimg.jpg";
-import { useDispatch } from "react-redux"; 
+import { useDispatch } from "react-redux";
 
 const darkTheme = createTheme({ palette: { mode: "dark" } });
 
@@ -56,16 +57,16 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       const user = await login(email, password);
       console.log("Login Successful: ", user);
-  
+
       if (user && user.user && user.user.role) {
         dispatch({ type: "setRole", userRole: user.user.role });
         // setUser(user); // ✅ Update local state
         localStorage.setItem("user", JSON.stringify(user)); // ✅ Store in localStorage
-  
+
         // Redirect based on role
         switch (user.user.role) {
           case "admin":
@@ -84,8 +85,8 @@ const Login = () => {
       console.error("Login Error:", err.response?.data || err.message);
       setError("❌ Invalid Credentials! Try again.");
     }
-  };    
-  
+  };
+
 
   return (
     <div className="login-container" style={{ backgroundImage: `url(${bgimg})` }}>
@@ -141,6 +142,11 @@ const Login = () => {
                         <Button type="submit" variant="contained" fullWidth size="large">
                           Sign in
                         </Button>
+                      </Grid>
+                      <Grid item xs={12} sx={{ textAlign: "right" }}>
+                        <Link to="/forgot-password" style={{ textDecoration: "none", color: "#90caf9" }}>
+                          <Typography variant="body2">Forgot Password?</Typography>
+                        </Link>
                       </Grid>
                     </Grid>
                   </Box>

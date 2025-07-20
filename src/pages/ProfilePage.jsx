@@ -150,7 +150,7 @@ const Profile = () => {
   if (error) return <div className="text-danger text-center mt-5">{error}</div>;
 
   return (
-    <div className="d-flex justify-content-center align-items-center min-vh-100 p-4" style={{ 
+    <div className="d-flex justify-content-center align-items-center min-vh-10 p-4" style={{ 
      // position: "fixed",
       top: 0,
       left: 0,
