@@ -3,8 +3,8 @@ import axios from "axios";
 import { Row, Col, Table, Container, Alert, Form, InputGroup, Button } from "react-bootstrap";
 import LoaderPage from "../../components/LoaderPage";
 import { ToastContainer } from 'react-toastify';
-import { showToast } from '../../components/Toast'; // Your custom toast function
-import 'react-toastify/dist/ReactToastify.css'; // Default toast styles
+import { showToast } from '../../components/Toast';
+import 'react-toastify/dist/ReactToastify.css';
 
 const SeeFaculty = () => {
   const [facultyList, setFacultyList] = useState([]);
@@ -20,25 +20,23 @@ const SeeFaculty = () => {
   useEffect(() => {
     const token = storedUser?.accessToken;
     if (!token) {
-      showToast('error','Unauthorized: Please Log in again');
+      showToast('error', 'Unauthorized: Please Log in again');
       setLoading(false);
       return;
     }
 
+    // Fetch faculty list from API for the current department
     const fetchFacultyList = async () => {
       try {
         const response = await axios.get(
           `https://teacher-attainment-system-backend.onrender.com/profile/faculty/department/${dept_id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-        
         setFacultyList(response.data);
         setFilteredFacultyList(response.data);
       } catch (error) {
         console.error("Error fetching faculty list:", error);
-        showToast('error',error.response?.data?.message || "Failed to load faculty list.");
+        showToast('error', error.response?.data?.message || "Failed to load faculty list.");
       } finally {
         setLoading(false);
       }
@@ -49,10 +47,10 @@ const SeeFaculty = () => {
     }
   }, [dept_id, storedUser]);
 
+  // Filter faculty list based on search input
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
-
     const filtered = facultyList.filter(
       (faculty) =>
         faculty.faculty_id.toString().includes(term) ||
@@ -64,12 +62,11 @@ const SeeFaculty = () => {
   return (
     <Container fluid className="p-4" style={{ position: "relative", minHeight: "80vh" }}>
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
-      {/* Loader positioned absolutely within the container */}
       <LoaderPage loading={loading} />
 
       <h2 className="text-center text-primary mb-4">Faculty List</h2>
 
-      {/* Search Bar */}
+      {/* Search bar to filter faculty by ID or Name */}
       <Row className="mb-4">
         <Col md={6} className="mx-auto">
           <InputGroup>
@@ -90,12 +87,14 @@ const SeeFaculty = () => {
         </Col>
       </Row>
 
+      {/* Show error message if any */}
       {message && (
         <Alert variant="danger" className="text-center">
           {message}
         </Alert>
       )}
 
+      {/* Faculty Table */}
       {!loading && (
         <Table striped bordered hover responsive className="mt-3">
           <thead className="table-dark">
@@ -110,8 +109,8 @@ const SeeFaculty = () => {
             {filteredFacultyList.length === 0 ? (
               <tr>
                 <td colSpan="4" className="text-center text-muted">
-                  {facultyList.length === 0 
-                    ? "No faculty members found" 
+                  {facultyList.length === 0
+                    ? "No faculty members found"
                     : "No matching faculty found"}
                 </td>
               </tr>

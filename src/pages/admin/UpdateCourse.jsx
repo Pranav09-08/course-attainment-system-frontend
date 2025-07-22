@@ -16,7 +16,9 @@ import { ToastContainer } from "react-toastify";
 import { showToast } from "../../components/Toast";
 import "react-toastify/dist/ReactToastify.css";
 
+// Component to view, update, and delete all courses
 const UpdateCourses = () => {
+  // State declarations
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,10 +41,12 @@ const UpdateCourses = () => {
   const [modalLoading, setModalLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Fetch courses on initial render
   useEffect(() => {
     fetchCourses();
   }, []);
 
+  // Fetch all courses from backend
   const fetchCourses = async () => {
     setLoading(true);
     setError("");
@@ -65,6 +69,7 @@ const UpdateCourses = () => {
       );
 
       if (Array.isArray(response.data) && response.data.length > 0) {
+        // Sort courses by class order
         const sortedCourses = response.data.sort((a, b) => {
           const classOrder = { SE: 1, TE: 2, BE: 3 };
           return classOrder[a.class] - classOrder[b.class];
@@ -83,6 +88,7 @@ const UpdateCourses = () => {
     }
   };
 
+  // Triggered when 'Update' is clicked on a course row
   const handleUpdateClick = (course) => {
     setSelectedCourse(course);
     setFormData({
@@ -98,16 +104,15 @@ const UpdateCourses = () => {
     setShowModal(true);
   };
 
+  // Handles change in form inputs and updates finalsem if needed
   const handleChange = (e) => {
     const { name, value } = e.target;
     validateField(name, value);
 
     setFormData((prevData) => {
-      const updatedData = {
-        ...prevData,
-        [name]: value,
-      };
+      const updatedData = { ...prevData, [name]: value };
 
+      // Auto-calculate finalsem
       if (name === "insem" || name === "endsem") {
         const insem = parseInt(updatedData.insem, 10) || 0;
         const endsem = parseInt(updatedData.endsem, 10) || 0;
@@ -118,6 +123,7 @@ const UpdateCourses = () => {
     });
   };
 
+  // Validates individual input field
   const validateField = (name, value) => {
     let errorMessage = "";
 
@@ -157,6 +163,7 @@ const UpdateCourses = () => {
     }));
   };
 
+  // Validates the whole form before submission
   const validateForm = () => {
     const newErrors = {};
 
@@ -184,6 +191,7 @@ const UpdateCourses = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Submit updated course data to backend
   const handleUpdateSubmit = async () => {
     if (!selectedCourse) return;
     if (!validateForm()) return;
@@ -222,11 +230,13 @@ const UpdateCourses = () => {
     }
   };
 
+  // Handle delete button click
   const handleDeleteClick = (course_id) => {
     setCourseToDelete(course_id);
     setShowDeleteModal(true);
   };
 
+  // Confirm and perform delete
   const confirmDelete = async () => {
     if (!courseToDelete) return;
 
@@ -259,6 +269,7 @@ const UpdateCourses = () => {
     }
   };
 
+  // Handle search bar filtering
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
@@ -277,22 +288,20 @@ const UpdateCourses = () => {
     setFilteredCourses(sortedFilteredCourses);
   };
 
+  // JSX render
   return (
     <Container
       fluid
       className="p-4"
       style={{ position: "relative", minHeight: "80vh" }}
     >
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-      />
+      {/* Toast and loader */}
+      <ToastContainer position="top-right" autoClose={3000} />
       <LoaderPage loading={loading || modalLoading || deleteLoading} />
 
       <h2 className="text-center mb-4">All Courses</h2>
 
-      {/* Search Bar */}
+      {/* Search bar */}
       <Row className="mb-4">
         <Col md={6} className="mx-auto">
           <InputGroup>
@@ -306,7 +315,7 @@ const UpdateCourses = () => {
             <Button
               variant="outline-secondary"
               onClick={() => setSearchTerm("")}
-              disabled={loading || modalLoading || deleteLoading || !searchTerm}
+              disabled={!searchTerm || loading || modalLoading || deleteLoading}
             >
               Clear
             </Button>
@@ -314,12 +323,14 @@ const UpdateCourses = () => {
         </Col>
       </Row>
 
+      {/* Error display */}
       {error && (
         <Alert variant="danger" className="text-center">
           {error}
         </Alert>
       )}
 
+      {/* Courses Table */}
       {!loading && !modalLoading && !deleteLoading && (
         <Table striped bordered hover responsive>
           <thead className="table-dark">

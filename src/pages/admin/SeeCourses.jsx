@@ -1,33 +1,44 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Table, Alert, InputGroup, Form, Button, Container } from "react-bootstrap";
-import LoaderPage from "../../components/LoaderPage"; // Adjust the import path as needed
-import { ToastContainer } from 'react-toastify';
-import { showToast } from '../../components/Toast'; // Your custom toast function
-import 'react-toastify/dist/ReactToastify.css'; // Default toast styles
+import {
+  Table,
+  Alert,
+  InputGroup,
+  Form,
+  Button,
+  Container,
+} from "react-bootstrap";
+import LoaderPage from "../../components/LoaderPage"; // Full-page loader
+import { ToastContainer } from "react-toastify";
+import { showToast } from "../../components/Toast"; // Custom toast handler
+import "react-toastify/dist/ReactToastify.css"; // Toast styling
 
 const AllCourses = () => {
-  const [courses, setCourses] = useState([]); // Original courses list
-  const [filteredCourses, setFilteredCourses] = useState([]); // Filtered courses list
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState(""); // State for search term
+  // State variables
+  const [courses, setCourses] = useState([]); // Full course list
+  const [filteredCourses, setFilteredCourses] = useState([]); // Filtered list for search
+  const [loading, setLoading] = useState(true); // Loader state
+  const [error, setError] = useState(""); // Error message
+  const [searchTerm, setSearchTerm] = useState(""); // Current search input
 
+  // Fetch all courses on component mount
   useEffect(() => {
     const fetchCourses = async () => {
       setLoading(true);
-      setError(""); // Reset error before fetching
+      setError("");
 
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const token = storedUser?.accessToken;
 
+      // Abort if token is missing
       if (!token) {
-        showToast('error',"Unauthorized: Please log in again.");
+        showToast("error", "Unauthorized: Please log in again.");
         setLoading(false);
         return;
       }
 
       try {
+        // API call to fetch courses
         const response = await axios.get(
           "https://teacher-attainment-system-backend.onrender.com/admin/course/get-courses",
           {
@@ -35,23 +46,23 @@ const AllCourses = () => {
           }
         );
 
-        console.log("📢 API Response:", response.data); // Debugging
+        console.log("📢 API Response:", response.data); // Debug log
 
+        // Sort courses by class: SE → TE → BE
         if (Array.isArray(response.data) && response.data.length > 0) {
-          // Sort courses by class: SE -> TE -> BE
           const sortedCourses = response.data.sort((a, b) => {
             const classOrder = { SE: 1, TE: 2, BE: 3 };
             return classOrder[a.class] - classOrder[b.class];
           });
 
           setCourses(sortedCourses);
-          setFilteredCourses(sortedCourses); // Initialize filtered list with sorted courses
+          setFilteredCourses(sortedCourses);
         } else {
-          showToast('info', 'No courses found');
+          showToast("info", "No courses found");
         }
       } catch (err) {
         console.error("❌ API Error:", err.response?.data || err.message);
-        showToast('error',"Failed to fetch courses. Please try again.");
+        showToast("error", "Failed to fetch courses. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -60,16 +71,16 @@ const AllCourses = () => {
     fetchCourses();
   }, []);
 
-  // Handle search input change
+  // Handle user search input
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
 
-    // Filter courses based on search term
+    // Filter based on course_id or course_name
     const filtered = courses.filter(
       (course) =>
-        course.course_id.toString().includes(term) || // Search by course_id
-        course.course_name.toLowerCase().includes(term.toLowerCase()) // Search by course_name
+        course.course_id.toString().includes(term) ||
+        course.course_name.toLowerCase().includes(term.toLowerCase())
     );
 
     setFilteredCourses(filtered);
@@ -77,13 +88,16 @@ const AllCourses = () => {
 
   return (
     <Container className="mt-5">
+      {/* Toast notification container */}
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
-      {/* Loader Component */}
+
+      {/* Loader overlay */}
       <LoaderPage loading={loading} />
 
+      {/* Page title */}
       <h2 className="text-center mb-4">All Courses</h2>
 
-      {/* Search Bar */}
+      {/* Search bar */}
       <div className="row mb-4">
         <div className="col-md-6 mx-auto">
           <InputGroup>
@@ -103,14 +117,14 @@ const AllCourses = () => {
         </div>
       </div>
 
-      {/* Error Message */}
+      {/* Error display */}
       {error && (
         <Alert variant="danger" className="text-center">
           {error}
         </Alert>
       )}
 
-      {/* Courses Table */}
+      {/* Display course data in table format */}
       {!loading && filteredCourses.length > 0 ? (
         <Table striped bordered hover responsive className="shadow">
           <thead className="table-dark">
@@ -139,6 +153,7 @@ const AllCourses = () => {
           </tbody>
         </Table>
       ) : (
+        // No course match message
         !loading && (
           <p className="text-center text-muted">No courses found.</p>
         )

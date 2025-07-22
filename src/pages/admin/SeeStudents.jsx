@@ -17,6 +17,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { showToast } from "../../components/Toast";
 
 const SeeStudents = () => {
+  // States for managing student data and filters
   const [allStudents, setAllStudents] = useState([]);
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,11 +28,12 @@ const SeeStudents = () => {
   const [error, setError] = useState(null);
   const [operationLoading, setOperationLoading] = useState(false);
 
+  // Extract user and token from localStorage
   const storedUser = JSON.parse(localStorage.getItem("user")) || {};
   const department_id = storedUser?.user?.id || "";
   const token = storedUser?.accessToken;
 
-  // Generate academic years
+  // Generate academic years (e.g. "2024_25", "2023_24", ...)
   const generateAcademicYears = () => {
     const years = [];
     const currentYear = new Date().getFullYear();
@@ -43,43 +45,37 @@ const SeeStudents = () => {
   };
 
   const academicYears = generateAcademicYears();
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState(
-    academicYears[0]
-  );
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState(academicYears[0]);
 
+  // Fetch students when department ID or academic year changes
   useEffect(() => {
     if (department_id) {
       fetchAllStudents();
     }
   }, [department_id, selectedAcademicYear]);
 
+  // Fetch ODD and EVEN semester students for the selected academic year
   const fetchAllStudents = async () => {
     setLoading(true);
     setError(null);
     try {
       const [oddSemResponse, evenSemResponse] = await Promise.all([
-        axios.get(
-          `https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`,
-          {
-            params: {
-              dept_id: department_id,
-              sem: "ODD",
-              academic_yr: selectedAcademicYear,
-            },
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        ),
-        axios.get(
-          `https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`,
-          {
-            params: {
-              dept_id: department_id,
-              sem: "EVEN",
-              academic_yr: selectedAcademicYear,
-            },
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        ),
+        axios.get(`https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`, {
+          params: {
+            dept_id: department_id,
+            sem: "ODD",
+            academic_yr: selectedAcademicYear,
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`https://teacher-attainment-system-backend.onrender.com/admin/student/get-students`, {
+          params: {
+            dept_id: department_id,
+            sem: "EVEN",
+            academic_yr: selectedAcademicYear,
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
       const combinedStudents = [
@@ -92,35 +88,27 @@ const SeeStudents = () => {
     } catch (error) {
       console.error("Error fetching students:", error);
       const errorMsg = error.response?.data?.error || "Failed to load students";
-      showToast('error',errorMsg);
+      showToast('error', errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
-  // Generate division options based on selected class and department
+  // Generate division dropdown options based on selected class and department
   const generateDivisionOptions = () => {
     if (!selectedClass) return [];
 
-    if (selectedClass === "FE") {
-      return ["FE"];
-    }
+    if (selectedClass === "FE") return ["FE"];
 
     const divisions = [];
     const prefix = selectedClass;
 
     if (department_id === 1) {
-      for (let i = 1; i <= 4; i++) {
-        divisions.push(`${prefix}${i}`);
-      }
+      for (let i = 1; i <= 4; i++) divisions.push(`${prefix}${i}`);
     } else if (department_id === 2) {
-      for (let i = 5; i <= 8; i++) {
-        divisions.push(`${prefix}${i}`);
-      }
+      for (let i = 5; i <= 8; i++) divisions.push(`${prefix}${i}`);
     } else if (department_id === 3) {
-      for (let i = 9; i <= 11; i++) {
-        divisions.push(`${prefix}${i}`);
-      }
+      for (let i = 9; i <= 11; i++) divisions.push(`${prefix}${i}`);
     } else if (department_id === 4) {
       divisions.push(`${prefix}12`);
     } else if (department_id === 5) {
@@ -130,23 +118,21 @@ const SeeStudents = () => {
     return divisions;
   };
 
-  // Reset division when class changes
+  // Clear selected division when class changes
   useEffect(() => {
     setSelectedDivision("");
   }, [selectedClass]);
 
-  // Apply filters
+  // Apply filters: class, division, semester, and search
   useEffect(() => {
     let filtered = [...allStudents];
 
     if (selectedClass) {
       if (selectedDivision) {
-        // Filter by specific division if selected
         filtered = filtered.filter(
           (student) => student.class.toUpperCase() === selectedDivision.toUpperCase()
         );
       } else {
-        // Filter by class only (show all divisions of that class)
         const classPrefix = selectedClass.toUpperCase();
         filtered = filtered.filter(
           (student) => student.class.toUpperCase().startsWith(classPrefix)
@@ -155,9 +141,7 @@ const SeeStudents = () => {
     }
 
     if (selectedSem !== "ALL") {
-      filtered = filtered.filter(
-        (student) => student.sem.toUpperCase() === selectedSem
-      );
+      filtered = filtered.filter((student) => student.sem.toUpperCase() === selectedSem);
     }
 
     if (searchTerm) {
@@ -172,6 +156,7 @@ const SeeStudents = () => {
     setFilteredStudents(filtered);
   }, [selectedClass, selectedDivision, selectedSem, searchTerm, allStudents]);
 
+  // Reset all filters to default state
   const resetFilters = () => {
     setSelectedClass("");
     setSelectedDivision("");
@@ -179,50 +164,47 @@ const SeeStudents = () => {
     setSearchTerm("");
   };
 
+  // Manual refresh button handler
   const handleRefresh = async () => {
     setOperationLoading(true);
     try {
       await fetchAllStudents();
       showToast("info", "Data refreshed");
     } catch (error) {
-      showToast('error',"Failed to refresh data");
+      showToast('error', "Failed to refresh data");
     } finally {
       setOperationLoading(false);
     }
   };
 
+  // Handle academic year change and reset filters
   const handleAcademicYearChange = (e) => {
     setSelectedAcademicYear(e.target.value);
     resetFilters();
   };
 
+  // Determine whether elective columns should be displayed
   const showElective1 = !selectedClass || ["TE", "BE"].includes(selectedClass);
   const showElective2 = !selectedClass || selectedClass === "BE";
 
   return (
-    <Container
-      fluid
-      className="p-4"
-      style={{ position: "relative", minHeight: "80vh" }}
-    >
-      {/* Toast Container - only shows essential messages */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-      />
+    <Container fluid className="p-4" style={{ position: "relative", minHeight: "80vh" }}>
+      {/* Toasts */}
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
+      {/* Page loader */}
       <LoaderPage loading={loading} />
 
       <h2 className="text-center text-primary mb-4">See Students</h2>
 
+      {/* Error Alert */}
       {error && (
         <Alert variant="danger" onClose={() => setError(null)} dismissible>
           {error}
         </Alert>
       )}
 
-      {/* Academic Year Selection */}
+      {/* Academic Year Dropdown + Refresh Button */}
       <Row className="mb-3">
         <Col md={4}>
           <Form.Group>
@@ -241,6 +223,7 @@ const SeeStudents = () => {
             </Form.Control>
           </Form.Group>
         </Col>
+
         <Col md={8} className="d-flex align-items-end justify-content-end">
           <Button
             variant="primary"
@@ -260,7 +243,7 @@ const SeeStudents = () => {
         </Col>
       </Row>
 
-      {/* Filters Section */}
+      {/* Filters: Class, Division, Sem, Search */}
       <Row className="mb-4 g-3">
         <Col md={3}>
           <Form.Group>
@@ -335,7 +318,7 @@ const SeeStudents = () => {
         </Col>
       </Row>
 
-      {/* Reset Button */}
+      {/* Reset Filters Button */}
       <Row className="mb-3">
         <Col className="text-end">
           <Button
@@ -351,7 +334,7 @@ const SeeStudents = () => {
         </Col>
       </Row>
 
-      {/* Students Count */}
+      {/* Filtered Count */}
       <Row className="mb-3">
         <Col>
           <h5 className="text-secondary">
@@ -359,16 +342,13 @@ const SeeStudents = () => {
             <span className="text-primary">{filteredStudents.length}</span>{" "}
             students
             {allStudents.length !== filteredStudents.length && (
-              <span className="text-muted">
-                {" "}
-                (of {allStudents.length} total)
-              </span>
+              <span className="text-muted"> (of {allStudents.length} total)</span>
             )}
           </h5>
         </Col>
       </Row>
 
-      {/* Students Table */}
+      {/* Student Table */}
       {!loading && (
         <div className="table-responsive">
           <Table striped bordered hover>
@@ -399,9 +379,7 @@ const SeeStudents = () => {
               ) : (
                 <tr>
                   <td
-                    colSpan={
-                      5 + (showElective1 ? 1 : 0) + (showElective2 ? 1 : 0)
-                    }
+                    colSpan={5 + (showElective1 ? 1 : 0) + (showElective2 ? 1 : 0)}
                     className="text-center"
                   >
                     {allStudents.length === 0
