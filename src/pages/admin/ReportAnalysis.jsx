@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import LoaderPage from "../../components/LoaderPage"; // Adjust the path as needed
+import LoaderPage from "../../components/LoaderPage"; // Spinner overlay component
 import {
   Container,
   Card,
@@ -16,22 +16,25 @@ import {
 } from "react-bootstrap";
 
 const ReportAnalysis = () => {
-  const [allottedCourses, setAllottedCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [operationLoading, setOperationLoading] = useState(false); // For any future operations
-  const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedYear, setSelectedYear] = useState("");
-  const [selectedSem, setSelectedSem] = useState("");
+  // ======================= STATE =======================
+  const [allottedCourses, setAllottedCourses] = useState([]);   // All allotted courses fetched from API
+  const [loading, setLoading] = useState(true);                 // Initial page loading state
+  const [operationLoading, setOperationLoading] = useState(false); // For view navigation or other async ops
+  const [error, setError] = useState("");                       // Stores API or logic error
+  const [searchTerm, setSearchTerm] = useState("");             // User input for search
+  const [selectedYear, setSelectedYear] = useState("");         // Filter: academic year
+  const [selectedSem, setSelectedSem] = useState("");           // Filter: semester
 
   const navigate = useNavigate();
 
+  // ======================= FETCH COURSES =======================
   useEffect(() => {
     const fetchAllottedCourses = async () => {
       setLoading(true);
       setError("");
 
       try {
+        // Get auth token and department ID from local storage
         const storedUser = JSON.parse(localStorage.getItem("user")) || {};
         const token = storedUser?.accessToken;
         const dept_id = storedUser?.user?.id;
@@ -40,6 +43,7 @@ const ReportAnalysis = () => {
           throw new Error("Unauthorized: Please log in again.");
         }
 
+        // Fetch allotted courses from backend
         const response = await axios.get(
           `https://teacher-attainment-system-backend.onrender.com/admin/allotment/get-allotted-courses/${dept_id}`,
           {
@@ -52,9 +56,13 @@ const ReportAnalysis = () => {
         } else {
           throw new Error("No course allotments found.");
         }
+
       } catch (err) {
         console.error("❌ API Fetch Error:", err);
-        setError(err.response?.data?.msg || err.message || "Failed to fetch course allotments. Please try again.");
+        setError(
+          err.response?.data?.msg || err.message || 
+          "Failed to fetch course allotments. Please try again."
+        );
       } finally {
         setLoading(false);
       }
@@ -63,18 +71,20 @@ const ReportAnalysis = () => {
     fetchAllottedCourses();
   }, []);
 
-  // Filter unique courses based on course_id
+  // ======================= FILTER LOGIC =======================
+
+  // Deduplicate courses by course_id
   const uniqueCourses = Array.from(
     new Set(allottedCourses.map((course) => course.course_id))
-  ).map((course_id) => {
-    return allottedCourses.find((course) => course.course_id === course_id);
-  });
+  ).map((course_id) =>
+    allottedCourses.find((course) => course.course_id === course_id)
+  );
 
-  const uniqueYears = [
-    ...new Set(uniqueCourses.map((course) => course.academic_yr)),
-  ];
-  const uniqueSems = [...new Set(uniqueCourses.map((course) => course.sem))];
+  // Get distinct academic years and semesters for filter dropdowns
+  const uniqueYears = [...new Set(uniqueCourses.map(course => course.academic_yr))];
+  const uniqueSems = [...new Set(uniqueCourses.map(course => course.sem))];
 
+  // Apply search and filters
   const filteredCourses = uniqueCourses.filter((course) => {
     return (
       (searchTerm === "" ||
@@ -85,19 +95,25 @@ const ReportAnalysis = () => {
     );
   });
 
+  // ======================= HANDLERS =======================
+
+  // Navigate to analysis page for selected course
   const handleViewAnalysis = (course_id, academic_yr) => {
     setOperationLoading(true);
     navigate(`/admin/attainment-analysis/${course_id}/${academic_yr}`);
   };
 
+  // ======================= RENDER =======================
+
   return (
     <Container className="mt-4" style={{ position: "relative", minHeight: "80vh" }}>
-      {/* Full-page loader for operations */}
+      
+      {/* Full-page overlay loader */}
       <LoaderPage loading={loading || operationLoading} />
 
       <h2 className="text-center text-primary mb-4">📚 Courses for Report and Analysis</h2>
 
-      {/* Search Bar */}
+      {/* ========== Search Bar ========== */}
       <div className="d-flex justify-content-center mb-4">
         <InputGroup className="w-50">
           <FormControl
@@ -116,7 +132,7 @@ const ReportAnalysis = () => {
         </InputGroup>
       </div>
 
-      {/* Filter UI */}
+      {/* ========== Filter Dropdowns ========== */}
       <div className="d-flex justify-content-center mb-4">
         <Form.Select
           className="w-25 mx-2"
@@ -126,9 +142,7 @@ const ReportAnalysis = () => {
         >
           <option value="">Select Academic Year</option>
           {uniqueYears.map((year) => (
-            <option key={year} value={year}>
-              {year}
-            </option>
+            <option key={year} value={year}>{year}</option>
           ))}
         </Form.Select>
 
@@ -140,14 +154,12 @@ const ReportAnalysis = () => {
         >
           <option value="">Select Semester</option>
           {uniqueSems.map((sem) => (
-            <option key={sem} value={sem}>
-              {sem}
-            </option>
+            <option key={sem} value={sem}>{sem}</option>
           ))}
         </Form.Select>
       </div>
 
-      {/* Content */}
+      {/* ========== Course List or Message ========== */}
       {!loading && !operationLoading && (
         <>
           {error ? (

@@ -16,9 +16,21 @@ import {
   Col,
 } from "react-bootstrap";
 
+/**
+ * AddCourseCoordinator Component - Allows administrators to allot course coordinators to courses
+ * 
+ * Features:
+ * - Dynamic form with course and faculty dropdowns
+ * - Auto-populated academic year options
+ * - Department-specific faculty loading
+ * - Toast notifications for user feedback
+ * - Loading states for better UX
+ * - Responsive layout with validation
+ */
 const AddCourseAllotment = () => {
-  const [courses, setCourses] = useState([]);
-  const [faculty, setFaculty] = useState([]);
+  // State management
+  const [courses, setCourses] = useState([]); // Stores list of available courses
+  const [faculty, setFaculty] = useState([]); // Stores list of faculty members
   const [formData, setFormData] = useState({
     course_id: "",
     faculty_id: "",
@@ -27,25 +39,29 @@ const AddCourseAllotment = () => {
     academic_yr: "",
     dept_id: "",
   });
-
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // For initial data loading
   const [operationLoading, setOperationLoading] = useState(false); // For form submission
-  const [error, setError] = useState("");
+  const [error, setError] = useState(""); // Error message storage
 
+  /**
+   * Generates current and previous academic years in format "YYYY_YY"
+   * @returns {Array} Array of academic year strings
+   */
   const getCurrentAcademicYears = () => {
-  const currentYear = new Date().getFullYear();
-  const years = [];
+    const currentYear = new Date().getFullYear();
+    const years = [];
 
-  for (let i = 0; i <= 5; i++) {
-    const year1 = currentYear - i;
-    const year2 = year1 + 1;
-    years.push(`${year1}_${year2.toString().slice(-2)}`);
-  }
+    // Generate academic years for current year and previous 5 years
+    for (let i = 0; i <= 5; i++) {
+      const year1 = currentYear - i;
+      const year2 = year1 + 1;
+      years.push(`${year1}_${year2.toString().slice(-2)}`);
+    }
 
-  return years.reverse(); // Optional: if you want from oldest to latest
-};
+    return years.reverse(); // Returns years from oldest to latest
+  };
 
-
+  // Set department ID from logged-in user on component mount
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser?.user) {
@@ -53,6 +69,7 @@ const AddCourseAllotment = () => {
     }
   }, []);
 
+  // Fetch available courses on component mount
   useEffect(() => {
     const fetchCourses = async () => {
       setLoading(true);
@@ -61,7 +78,7 @@ const AddCourseAllotment = () => {
       const token = storedUser?.accessToken;
 
       if (!token) {
-        showToast('error',"Unauthorized: Please log in again.");
+        showToast('error', "Unauthorized: Please log in again.");
         setLoading(false);
         return;
       }
@@ -77,10 +94,10 @@ const AddCourseAllotment = () => {
         if (Array.isArray(response.data) && response.data.length > 0) {
           setCourses(response.data);
         } else {
-          showToast('info',"No courses found.");
+          showToast('info', "No courses found.");
         }
       } catch (err) {
-        showToast('error',"Failed to fetch courses. Please try again.");
+        showToast('error', "Failed to fetch courses. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -89,6 +106,7 @@ const AddCourseAllotment = () => {
     fetchCourses();
   }, []);
 
+  // Fetch faculty when department ID changes
   useEffect(() => {
     const fetchFaculty = async () => {
       if (!formData.dept_id) return;
@@ -96,7 +114,7 @@ const AddCourseAllotment = () => {
       const token = storedUser?.accessToken;
 
       if (!token) {
-        showToast('error',"Unauthorized: Please log in again.");
+        showToast('error', "Unauthorized: Please log in again.");
         return;
       }
 
@@ -109,17 +127,25 @@ const AddCourseAllotment = () => {
         );
         setFaculty(response.data);
       } catch (err) {
-        showToast('info',"Failed to fetch faculty.");
+        showToast('info', "Failed to fetch faculty.");
       }
     };
 
     fetchFaculty();
   }, [formData.dept_id]);
 
+  /**
+   * Handles form field changes
+   * @param {Object} e - Change event from form inputs
+   */
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  /**
+   * Handles form submission for course coordinator allotment
+   * @param {Object} e - Form submit event
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setOperationLoading(true);
@@ -129,11 +155,12 @@ const AddCourseAllotment = () => {
     const token = storedUser?.accessToken;
 
     if (!token) {
-      showToast('error',"Unauthorized: Please log in again.");
+      showToast('error', "Unauthorized: Please log in again.");
       setOperationLoading(false);
       return;
     }
 
+    // Prepare payload with stringified values
     const payload = {
       ...formData,
       course_id: String(formData.course_id),
@@ -150,7 +177,9 @@ const AddCourseAllotment = () => {
         }
       );
 
-      showToast('success',"Course Coordinator Allotted Successfully!");
+      showToast('success', "Course Coordinator Allotted Successfully!");
+      
+      // Reset form on success
       setFormData({
         course_id: "",
         faculty_id: "",
@@ -171,7 +200,9 @@ const AddCourseAllotment = () => {
 
   return (
     <Container className="d-flex justify-content-center mt-4" style={{ position: "relative" }}>
+      {/* Toast notification container */}
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      
       {/* Full-page loader for both initial loading and form submission */}
       <LoaderPage loading={loading || operationLoading} />
 
@@ -185,6 +216,7 @@ const AddCourseAllotment = () => {
 
           {!loading && (
             <Form onSubmit={handleSubmit}>
+              {/* Course Selection Dropdown */}
               <Form.Group className="mb-3">
                 <Form.Label>Select Course</Form.Label>
                 <Form.Select
@@ -192,6 +224,7 @@ const AddCourseAllotment = () => {
                   value={formData.course_id}
                   onChange={handleChange}
                   disabled={operationLoading}
+                  required
                 >
                   <option value="">Select Course</option>
                   {courses.map((course) => (
@@ -202,6 +235,7 @@ const AddCourseAllotment = () => {
                 </Form.Select>
               </Form.Group>
 
+              {/* Faculty Selection Dropdown */}
               <Form.Group className="mb-3">
                 <Form.Label>Select Faculty</Form.Label>
                 <Form.Select
@@ -209,6 +243,7 @@ const AddCourseAllotment = () => {
                   value={formData.faculty_id}
                   onChange={handleChange}
                   disabled={operationLoading}
+                  required
                 >
                   <option value="">Select Faculty</option>
                   {faculty.map((fac) => (
@@ -219,6 +254,7 @@ const AddCourseAllotment = () => {
                 </Form.Select>
               </Form.Group>
 
+              {/* Class and Semester Selection */}
               <Row>
                 <Col>
                   <Form.Group className="mb-3">
@@ -228,6 +264,7 @@ const AddCourseAllotment = () => {
                       value={formData.class}
                       onChange={handleChange}
                       disabled={operationLoading}
+                      required
                     >
                       <option value="">Select Class</option>
                       <option value="FE">FE</option>
@@ -245,6 +282,7 @@ const AddCourseAllotment = () => {
                       value={formData.sem}
                       onChange={handleChange}
                       disabled={operationLoading}
+                      required
                     >
                       <option value="">Select Semester</option>
                       <option value="Even">EVEN</option>
@@ -254,6 +292,7 @@ const AddCourseAllotment = () => {
                 </Col>
               </Row>
 
+              {/* Academic Year Selection */}
               <Form.Group className="mb-3">
                 <Form.Label>Academic Year</Form.Label>
                 <Form.Select
@@ -261,6 +300,7 @@ const AddCourseAllotment = () => {
                   value={formData.academic_yr}
                   onChange={handleChange}
                   disabled={operationLoading}
+                  required
                 >
                   <option value="">Select Academic Year</option>
                   {getCurrentAcademicYears().map((year, index) => (
@@ -271,6 +311,7 @@ const AddCourseAllotment = () => {
                 </Form.Select>
               </Form.Group>
 
+              {/* Submit Button with loading state */}
               <Button
                 variant="primary"
                 type="submit"

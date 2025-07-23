@@ -15,22 +15,34 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { showToast } from "../../components/Toast";
 
+/**
+ * AddCourseAllotment Component - Allows administrators to allot courses to faculty members
+ * 
+ * Features:
+ * - Dynamic form with dependent dropdowns (class type affects division options)
+ * - Multiple division selection for TE/BE classes
+ * - Academic year auto-generation
+ * - Responsive layout with validation
+ * - Toast notifications for success/error feedback
+ */
 const AddCourseAllotment = () => {
-  const [courses, setCourses] = useState([]);
-  const [faculty, setFaculty] = useState([]);
+  // State management
+  const [courses, setCourses] = useState([]); // Available courses
+  const [faculty, setFaculty] = useState([]); // Faculty members
   const [formData, setFormData] = useState({
     course_id: "",
-    faculty_id: "", // Now as string
+    faculty_id: "",
     class_type: "",
     class: "",
     sem: "",
     academic_yr: "",
     dept_id: "",
   });
-  const [selectedDivisions, setSelectedDivisions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [selectedDivisions, setSelectedDivisions] = useState([]); // For TE/BE multiple divisions
+  const [loading, setLoading] = useState(false); // Loading state
+  const [error, setError] = useState(""); // Error message
 
+  // Set department ID from logged-in user on component mount
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser?.user) {
@@ -38,21 +50,22 @@ const AddCourseAllotment = () => {
     }
   }, []);
 
+
   const getAcademicYearOptions = () => {
-  const currentYear = new Date().getFullYear();
-  const years = [];
+    const currentYear = new Date().getFullYear();
+    const years = [];
 
-  // Generate academic years in format like 2024_25, 2023_24, ..., 2019_20
-  for (let i = 0; i <= 5; i++) {
-    const year1 = currentYear - i;
-    const year2 = year1 + 1;
-    years.push(`${year1}_${year2.toString().slice(-2)}`);
-  }
+    // Generate academic years for current year and previous 5 years
+    for (let i = 0; i <= 5; i++) {
+      const year1 = currentYear - i;
+      const year2 = year1 + 1;
+      years.push(`${year1}_${year2.toString().slice(-2)}`);
+    }
 
-  return years;
-};
+    return years;
+  };
 
-
+  // Fetch available courses on component mount
   useEffect(() => {
     const fetchCourses = async () => {
       setLoading(true);
@@ -89,6 +102,7 @@ const AddCourseAllotment = () => {
     fetchCourses();
   }, []);
 
+  // Fetch faculty when department ID changes
   useEffect(() => {
     const fetchFaculty = async () => {
       if (!formData.dept_id) return;
@@ -116,19 +130,27 @@ const AddCourseAllotment = () => {
     fetchFaculty();
   }, [formData.dept_id]);
 
+  /**
+   * Handles form field changes
+   * param {Object} e - Change event
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
-      ...(name === "class_type" && { class: "" }),
+      ...(name === "class_type" && { class: "" }), // Reset class when type changes
     });
 
     if (name === "class_type") {
-      setSelectedDivisions([]);
+      setSelectedDivisions([]); // Reset divisions when class type changes
     }
   };
 
+  /**
+   * Adds a division to the selected divisions list
+   * param {Object} e - Change event from division select
+   */
   const handleDivisionSelect = (e) => {
     const division = e.target.value;
     if (division && !selectedDivisions.includes(division)) {
@@ -136,12 +158,20 @@ const AddCourseAllotment = () => {
     }
   };
 
+  /**
+   * Removes a division from the selected divisions list
+   * param {string} divisionToRemove - Division to remove
+   */
   const removeDivision = (divisionToRemove) => {
     setSelectedDivisions(
       selectedDivisions.filter((div) => div !== divisionToRemove)
     );
   };
 
+  /**
+   * Handles form submission
+   * param {Object} e - Form submit event
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -156,6 +186,7 @@ const AddCourseAllotment = () => {
       return;
     }
 
+    // Validate TE/BE divisions
     if (
       (formData.class_type === "TE" || formData.class_type === "BE") &&
       selectedDivisions.length === 0
@@ -165,20 +196,22 @@ const AddCourseAllotment = () => {
       return;
     }
 
+    // Determine which divisions to process
     const divisionsToProcess =
       formData.class_type === "TE" || formData.class_type === "BE"
         ? selectedDivisions
         : [formData.class];
 
     try {
+      // Create allotment requests for each division
       const requests = divisionsToProcess.map((division) => {
         const payload = {
-          course_id: formData.course_id, // Already string
-          faculty_id: formData.faculty_id, // Now as string
+          course_id: formData.course_id,
+          faculty_id: formData.faculty_id,
           class_type: formData.class_type,
           class: division,
           sem: formData.sem,
-          academic_yr: formData.academic_yr, // In 2024_25 format
+          academic_yr: formData.academic_yr,
           dept_id: formData.dept_id,
         };
 
@@ -191,6 +224,8 @@ const AddCourseAllotment = () => {
 
       await Promise.all(requests);
       showToast('success', "Course Allotment Successful!");
+      
+      // Reset form on success
       setFormData({
         course_id: "",
         faculty_id: "",
@@ -211,6 +246,10 @@ const AddCourseAllotment = () => {
     }
   };
 
+  /**
+   * Generates division options based on class type and department
+   * @returns {Array} Array of React option elements
+   */
   const renderDivisionOptions = () => {
     if (!formData.class_type)
       return <option value="">Select Class Type first</option>;
@@ -222,6 +261,7 @@ const AddCourseAllotment = () => {
     const divisions = [];
     const prefix = formData.class_type;
 
+    // Department-specific division mapping
     if (formData.dept_id === 1) {
       for (let i = 1; i <= 4; i++) {
         divisions.push(`${prefix}${i}`);
@@ -257,6 +297,7 @@ const AddCourseAllotment = () => {
           {error && <Alert variant="danger">{error}</Alert>}
 
           <Form onSubmit={handleSubmit}>
+            {/* Course Selection */}
             <Form.Group className="mb-3">
               <Form.Label>Select Course</Form.Label>
               <Form.Select
@@ -274,6 +315,7 @@ const AddCourseAllotment = () => {
               </Form.Select>
             </Form.Group>
 
+            {/* Faculty Selection */}
             <Form.Group className="mb-3">
               <Form.Label>Select Faculty</Form.Label>
               <Form.Select
@@ -291,6 +333,7 @@ const AddCourseAllotment = () => {
               </Form.Select>
             </Form.Group>
 
+            {/* Class Type and Division Selection */}
             <Row>
               <Col>
                 <Form.Group className="mb-3">
@@ -314,6 +357,7 @@ const AddCourseAllotment = () => {
                   <Form.Label>Division</Form.Label>
                   {formData.class_type === "TE" || formData.class_type === "BE" ? (
                     <>
+                      {/* Multiple division selection for TE/BE */}
                       <Form.Select
                         name="class"
                         value=""
@@ -350,6 +394,7 @@ const AddCourseAllotment = () => {
                       )}
                     </>
                   ) : (
+                    // Single division selection for FE/SE
                     <Form.Select
                       name="class"
                       value={formData.class}
@@ -365,6 +410,7 @@ const AddCourseAllotment = () => {
               </Col>
             </Row>
 
+            {/* Semester and Academic Year Selection */}
             <Row>
               <Col>
                 <Form.Group className="mb-3">
@@ -401,6 +447,7 @@ const AddCourseAllotment = () => {
               </Col>
             </Row>
 
+            {/* Submit Button */}
             <Button
               variant="primary"
               type="submit"

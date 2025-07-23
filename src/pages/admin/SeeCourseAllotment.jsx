@@ -12,21 +12,23 @@ import {
   Spinner,
   Alert,
 } from "react-bootstrap";
-import LoaderPage from "../../components/LoaderPage"; // Adjust the path as needed
+import LoaderPage from "../../components/LoaderPage"; // Loader component for full-page spinner
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { showToast } from "../../components/Toast"; // Import toast function
+import { showToast } from "../../components/Toast"; // Custom toast notification function
 
 const AllottedCourses = () => {
+  // State to store fetched course data
   const [allottedCourses, setAllottedCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [operationLoading, setOperationLoading] = useState(false); // For any future operations
-  const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedYear, setSelectedYear] = useState("");
-  const [selectedSem, setSelectedSem] = useState("");
+  const [loading, setLoading] = useState(true); // Initial loading state
+  const [operationLoading, setOperationLoading] = useState(false); // For future operations
+  const [error, setError] = useState(""); // To show API or logical errors
+  const [searchTerm, setSearchTerm] = useState(""); // Course search input
+  const [selectedYear, setSelectedYear] = useState(""); // Filter: Academic year
+  const [selectedSem, setSelectedSem] = useState(""); // Filter: Semester
 
   useEffect(() => {
+    // Fetches allotted courses for the logged-in department
     const fetchAllottedCourses = async () => {
       setLoading(true);
       setError("");
@@ -36,12 +38,14 @@ const AllottedCourses = () => {
       const dept_id = storedUser?.user?.id;
 
       if (!token) {
-        showToast('error',"Unauthorized: Please log in again.");
+        // Show error toast and exit early if not authenticated
+        showToast('error', "Unauthorized: Please log in again.");
         setLoading(false);
         return;
       }
 
       try {
+        // Make GET request to fetch courses by department ID
         const response = await axios.get(
           `https://teacher-attainment-system-backend.onrender.com/admin/allotment/get-allotted-courses/${dept_id}`,
           {
@@ -49,13 +53,15 @@ const AllottedCourses = () => {
           }
         );
 
+        // Update state with response or show appropriate message
         if (response.data?.data.length > 0) {
           setAllottedCourses(response.data.data);
         } else {
-          showToast('error',"No course allotments found.");
+          showToast('error', "No course allotments found.");
         }
       } catch (err) {
-        showToast('error',"Failed to fetch course allotments. Please try again.");
+        // Show error toast on failure
+        showToast('error', "Failed to fetch course allotments. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -64,13 +70,13 @@ const AllottedCourses = () => {
     fetchAllottedCourses();
   }, []);
 
-  // Get unique Academic Years and Semesters for filtering
+  // Extract unique academic years and semesters for filter dropdowns
   const uniqueYears = [
     ...new Set(allottedCourses.map((course) => course.academic_yr)),
   ];
   const uniqueSems = [...new Set(allottedCourses.map((course) => course.sem))];
 
-  // Filter courses based on search and dropdown selection
+  // Filter logic based on search input and dropdown filters
   const filteredCourses = allottedCourses.filter((course) => {
     return (
       (searchTerm === "" ||
@@ -83,8 +89,10 @@ const AllottedCourses = () => {
 
   return (
     <Container className="mt-4" style={{ position: "relative", minHeight: "80vh" }}>
+      {/* Toast notification container */}
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
-      {/* Loader for initial loading and operations */}
+
+      {/* Loader component to block UI during fetch or operations */}
       <LoaderPage loading={loading || operationLoading} />
 
       <h2 className="text-center text-primary mb-4">📚 My Allotted Courses</h2>
@@ -108,7 +116,7 @@ const AllottedCourses = () => {
         </InputGroup>
       </div>
 
-      {/* Filter UI */}
+      {/* Filter dropdowns for Academic Year and Semester */}
       <div className="d-flex justify-content-center mb-4">
         <Form.Select
           className="w-25 mx-2"
@@ -139,12 +147,12 @@ const AllottedCourses = () => {
         </Form.Select>
       </div>
 
-      {/* Error Message */}
+      {/* Error Message UI */}
       {error && !loading && !operationLoading && (
         <Alert variant="danger">{error}</Alert>
       )}
 
-      {/* Content */}
+      {/* Course Cards Section */}
       {!loading && !operationLoading && (
         <>
           {filteredCourses.length === 0 ? (

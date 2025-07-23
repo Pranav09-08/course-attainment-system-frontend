@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { showToast } from "../../components/Toast"; // Import toast function
+import { showToast } from "../../components/Toast"; // Toast for notifications
 import {
   Container,
   Card,
@@ -14,29 +14,34 @@ import {
   Button,
   Alert,
 } from "react-bootstrap";
-import LoaderPage from "../../components/LoaderPage";
+import LoaderPage from "../../components/LoaderPage"; // Loader spinner for full page
 
 const AllottedCourseCoordinator = () => {
-  const [allottedCourses, setAllottedCourses] = useState([]);
-  const [filteredCourses, setFilteredCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+  // State variables for storing API data and UI control
+  const [allottedCourses, setAllottedCourses] = useState([]); // Raw fetched data
+  const [filteredCourses, setFilteredCourses] = useState([]); // Filtered data based on search
+  const [loading, setLoading] = useState(true); // Controls loader
+  const [error, setError] = useState(""); // Error state for display
+  const [searchTerm, setSearchTerm] = useState(""); // Search input state
 
   useEffect(() => {
+    // Fetch allotted course coordinators on component mount
     const fetchAllottedCourses = async () => {
       setLoading(true);
       setError("");
 
       try {
+        // Retrieve user info from localStorage
         const storedUser = JSON.parse(localStorage.getItem("user")) || {};
         const token = storedUser?.accessToken;
         const dept_id = storedUser?.user?.id;
 
+        // Abort if token or dept_id is missing
         if (!token || !dept_id) {
           throw new Error("Unauthorized: Please log in again.");
         }
 
+        // API call to get coordinator data
         const response = await axios.get(
           `https://teacher-attainment-system-backend.onrender.com/admin/coordinator/get-course-coordinators/${dept_id}`,
           {
@@ -44,6 +49,7 @@ const AllottedCourseCoordinator = () => {
           }
         );
 
+        // Handle response
         if (Array.isArray(response.data) && response.data.length > 0) {
           setAllottedCourses(response.data);
           setFilteredCourses(response.data);
@@ -54,7 +60,8 @@ const AllottedCourseCoordinator = () => {
         console.error("API Fetch Error:", err);
         showToast(
           "error",
-          err.response?.data?.msg || err.message || "Something went wrong.");
+          err.response?.data?.msg || err.message || "Something went wrong."
+        );
       } finally {
         setLoading(false);
       }
@@ -63,6 +70,7 @@ const AllottedCourseCoordinator = () => {
     fetchAllottedCourses();
   }, []);
 
+  // Search handler to filter courses by ID, name, or faculty
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
@@ -83,13 +91,17 @@ const AllottedCourseCoordinator = () => {
       className="mt-4"
       style={{ position: "relative", minHeight: "80vh" }}
     >
+      {/* Toast container for feedback messages */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
       />
+
+      {/* Loader shown during API fetch */}
       <LoaderPage loading={loading} />
 
+      {/* Page title */}
       <h2 className="text-center text-primary mb-4">
         Allotted Course Coordinators
       </h2>
@@ -116,7 +128,7 @@ const AllottedCourseCoordinator = () => {
         </InputGroup>
       </div>
 
-      {/* Error Message */}
+      {/* Display error if any */}
       {error && !loading && <Alert variant="danger">{error}</Alert>}
 
       {/* Cards Grid */}

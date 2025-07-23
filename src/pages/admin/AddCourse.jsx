@@ -3,9 +3,20 @@ import axios from "axios";
 import LoaderPage from "../../components/LoaderPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { showToast } from "../../components/Toast"; // Import toast function
+import { showToast } from "../../components/Toast";
 
+/**
+ * AddCourse Component - Allows administrators to add new courses to the system
+ * 
+ * Features:
+ * - Form validation with real-time feedback
+ * - Auto-calculation of final semester marks
+ * - Tooltips for form field guidance
+ * - Responsive design with loading states
+ * - Error handling with user-friendly messages
+ */
 const AddCourse = () => {
+  // State management for form data
   const [course, setCourse] = useState({
     course_id: "",
     course_name: "",
@@ -13,71 +24,63 @@ const AddCourse = () => {
     ut: "",
     insem: "",
     endsem: "",
-    finalsem: "",
+    finalsem: "", // Auto-calculated field
   });
 
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+  // State for form validation and UI
+  const [errors, setErrors] = useState({});       // Stores validation errors
+  const [touched, setTouched] = useState({});    // Tracks touched fields
+  const [loading, setLoading] = useState(false); // Loading state for API calls
 
-  const validate = () => {
-    const newErrors = {};
-
-    if (!course.course_id.trim()) {
-      newErrors.course_id = "Course ID is required.";
-    } else if (!/^[A-Za-z0-9]+$/.test(course.course_id)) {
-      newErrors.course_id = "Course ID should contain only alphabets and numbers.";
-    }
-
-    if (!course.course_name.trim()) {
-      newErrors.course_name = "Course Name is required.";
-    } else if (!/^[A-Za-z\s]+$/.test(course.course_name)) {
-      newErrors.course_name = "Course Name should contain only alphabets and spaces.";
-    }
-
-    if (!course.class) {
-      newErrors.class = "Class is required.";
-    } else if (!["FE", "SE", "TE", "BE"].includes(course.class)) {
-      newErrors.class = "Invalid class selected.";
-    }
-
-    if (!course.ut) {
-      newErrors.ut = "Unit Test marks are required.";
-    } else if (!/^\d+$/.test(course.ut) || parseInt(course.ut, 10) < 0) {
-      newErrors.ut = "Unit Test marks must be a valid positive integer.";
-    }
-
-    if (!course.insem) {
-      newErrors.insem = "In-Semester marks are required.";
-    } else if (!/^\d+$/.test(course.insem) || parseInt(course.insem, 10) < 0) {
-      newErrors.insem = "In-Semester marks must be a valid positive integer.";
-    }
-
-    if (!course.endsem) {
-      newErrors.endsem = "End-Semester marks are required.";
-    } else if (!/^\d+$/.test(course.endsem) || parseInt(course.endsem, 10) < 0) {
-      newErrors.endsem = "End-Semester marks must be a valid positive integer.";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  // Help text for form fields (shown as tooltips on hover)
+  const fieldTooltips = {
+    course_id: "Enter course ID (letters and numbers only)",
+    course_name: "Enter course name (letters and spaces only)",
+    class: "Select FE, SE, TE, or BE",
+    ut: "Enter unit test marks (numbers only)",
+    insem: "Enter in-semester marks (numbers only)",
+    endsem: "Enter end-semester marks (numbers only)"
   };
 
+  const validateField = (name, value) => {
+    switch (name) {
+      case "course_id":
+        if (!value.trim()) return "Course ID is required";
+        if (!/^[A-Za-z0-9]+$/.test(value)) return "Only letters and numbers allowed";
+        break;
+      case "course_name":
+        if (!value.trim()) return "Course name is required";
+        if (!/^[A-Za-z\s]+$/.test(value)) return "Only letters and spaces allowed";
+        break;
+      case "class":
+        if (!value) return "Class is required";
+        if (!["FE", "SE", "TE", "BE"].includes(value)) return "Select a valid class";
+        break;
+      case "ut":
+      case "insem":
+      case "endsem":
+        if (!value) return "Marks are required";
+        if (!/^\d+$/.test(value)) return "Only numbers allowed";
+        if (parseInt(value, 10) < 0) return "Must be positive";
+        break;
+      default:
+        break;
+    }
+    return ""; // No error
+  };
+
+  /**
+   * Handles form field changes and triggers validation
+   * @param {Object} e - Change event from form input
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (["ut", "insem", "endsem"].includes(name)) {
-      if (!/^\d*$/.test(value)) {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          [name]: "Only positive integers are allowed.",
-        }));
-        return;
-      }
-    }
+    // Update course state with new value
+    setCourse(prev => {
+      const updatedCourse = { ...prev, [name]: value };
 
-    setCourse((prevCourse) => {
-      let updatedCourse = { ...prevCourse, [name]: value };
-
+      // Auto-calculate finalsem when insem or endsem changes
       if (name === "insem" || name === "endsem") {
         const insemVal = parseInt(updatedCourse.insem, 10) || 0;
         const endsemVal = parseInt(updatedCourse.endsem, 10) || 0;
@@ -87,17 +90,66 @@ const AddCourse = () => {
       return updatedCourse;
     });
 
-    setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
+    // Validate the changed field
+    const error = validateField(name, value);
+    setErrors(prev => ({ ...prev, [name]: error }));
+    
+    // Mark field as touched if it has a value
+    if (value) setTouched(prev => ({ ...prev, [name]: true }));
   };
+
+  /**
+   * Marks a field as touched when it loses focus
+   * @param {Object} e - Blur event from form input
+   */
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+  };
+
+  /**
+   * Validates the entire form before submission
+   * @returns {boolean} True if form is valid, false otherwise
+   */
+  const validateForm = () => {
+    const newErrors = {};
+    let isValid = true;
+
+    // Validate all fields except finalsem (which is auto-calculated)
+    Object.keys(course).forEach(key => {
+      if (key !== "finalsem") {
+        const error = validateField(key, course[key]);
+        if (error) {
+          newErrors[key] = error;
+          isValid = false;
+        }
+      }
+    });
+
+    setErrors(newErrors);
+    // Mark all fields as touched to show errors
+    setTouched({
+      course_id: true,
+      course_name: true,
+      class: true,
+      ut: true,
+      insem: true,
+      endsem: true
+    });
+    
+    return isValid;
+  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validate()) {
+    if (!validateForm()) {
       showToast('error', 'Please fix the form errors before submitting');
       return;
     }
 
+    // Get authentication token from local storage
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = storedUser?.accessToken;
 
@@ -109,6 +161,7 @@ const AddCourse = () => {
     try {
       setLoading(true);
 
+      // Prepare data for API request
       const formattedData = {
         course_id: course.course_id,
         course_name: course.course_name,
@@ -119,14 +172,14 @@ const AddCourse = () => {
         finalsem: parseInt(course.finalsem, 10),
       };
 
+      // Make API call to add course
       await axios.post(
         "https://teacher-attainment-system-backend.onrender.com/admin/course/add-course",
         formattedData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      // Reset form on success
       showToast('success', 'Course added successfully!');
       setCourse({
         course_id: "",
@@ -138,8 +191,9 @@ const AddCourse = () => {
         finalsem: "",
       });
       setErrors({});
+      setTouched({});
     } catch (error) {
-      console.error("Error adding course:", error.response?.data || error.message);
+      // Handle API errors
       const errorMsg = error.response?.data?.error || "Failed to add course. Please try again.";
       showToast('error', errorMsg);
     } finally {
@@ -147,6 +201,7 @@ const AddCourse = () => {
     }
   };
 
+  // Show loading spinner during API calls
   if (loading) {
     return (
       <div className="text-center mt-5">
@@ -157,15 +212,19 @@ const AddCourse = () => {
 
   return (
     <div className="container mt-5">
-    <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      {/* Toast notifications container */}
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      
       <div className="row justify-content-center">
         <div className="col-md-6">
           <div className="card shadow-lg border-light rounded">
             <div className="card-header bg-primary text-white text-center">
               <h3>Add New Course</h3>
             </div>
+            
             <div className="card-body">
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} noValidate>
+                {/* Course ID Field */}
                 <div className="mb-3">
                   <label htmlFor="course_id" className="form-label">Course ID</label>
                   <input
@@ -175,14 +234,17 @@ const AddCourse = () => {
                     placeholder="Enter Course ID"
                     value={course.course_id}
                     onChange={handleChange}
-                    className={`form-control ${errors.course_id ? "is-invalid" : ""}`}
+                    onBlur={handleBlur}
+                    className={`form-control ${errors.course_id && touched.course_id ? "is-invalid" : ""}`}
                     required
+                    title={fieldTooltips.course_id}
                   />
-                  {errors.course_id && (
-                    <div className="invalid-feedback">{errors.course_id}</div>
+                  {errors.course_id && touched.course_id && (
+                    <div className="text-danger small mt-1">{errors.course_id}</div>
                   )}
                 </div>
 
+                {/* Course Name Field */}
                 <div className="mb-3">
                   <label htmlFor="course_name" className="form-label">Course Name</label>
                   <input
@@ -192,14 +254,17 @@ const AddCourse = () => {
                     placeholder="Enter Course Name"
                     value={course.course_name}
                     onChange={handleChange}
-                    className={`form-control ${errors.course_name ? "is-invalid" : ""}`}
+                    onBlur={handleBlur}
+                    className={`form-control ${errors.course_name && touched.course_name ? "is-invalid" : ""}`}
                     required
+                    title={fieldTooltips.course_name}
                   />
-                  {errors.course_name && (
-                    <div className="invalid-feedback">{errors.course_name}</div>
+                  {errors.course_name && touched.course_name && (
+                    <div className="text-danger small mt-1">{errors.course_name}</div>
                   )}
                 </div>
 
+                {/* Class Selection Field */}
                 <div className="mb-3">
                   <label htmlFor="class" className="form-label">Class</label>
                   <select
@@ -207,8 +272,10 @@ const AddCourse = () => {
                     id="class"
                     value={course.class}
                     onChange={handleChange}
-                    className={`form-control ${errors.class ? "is-invalid" : ""}`}
+                    onBlur={handleBlur}
+                    className={`form-control ${errors.class && touched.class ? "is-invalid" : ""}`}
                     required
+                    title={fieldTooltips.class}
                   >
                     <option value="">Select Class</option>
                     <option value="FE">FE</option>
@@ -216,11 +283,12 @@ const AddCourse = () => {
                     <option value="TE">TE</option>
                     <option value="BE">BE</option>
                   </select>
-                  {errors.class && (
-                    <div className="invalid-feedback">{errors.class}</div>
+                  {errors.class && touched.class && (
+                    <div className="text-danger small mt-1">{errors.class}</div>
                   )}
                 </div>
 
+                {/* Unit Test Marks Field */}
                 <div className="mb-3">
                   <label htmlFor="ut" className="form-label">Unit Test Marks</label>
                   <input
@@ -230,14 +298,17 @@ const AddCourse = () => {
                     placeholder="Enter Unit Test Marks"
                     value={course.ut}
                     onChange={handleChange}
-                    className={`form-control ${errors.ut ? "is-invalid" : ""}`}
+                    onBlur={handleBlur}
+                    className={`form-control ${errors.ut && touched.ut ? "is-invalid" : ""}`}
                     required
+                    title={fieldTooltips.ut}
                   />
-                  {errors.ut && (
-                    <div className="invalid-feedback">{errors.ut}</div>
+                  {errors.ut && touched.ut && (
+                    <div className="text-danger small mt-1">{errors.ut}</div>
                   )}
                 </div>
 
+                {/* In-Semester Marks Field */}
                 <div className="mb-3">
                   <label htmlFor="insem" className="form-label">In-Semester Marks</label>
                   <input
@@ -247,14 +318,17 @@ const AddCourse = () => {
                     placeholder="Enter In-Semester Marks"
                     value={course.insem}
                     onChange={handleChange}
-                    className={`form-control ${errors.insem ? "is-invalid" : ""}`}
+                    onBlur={handleBlur}
+                    className={`form-control ${errors.insem && touched.insem ? "is-invalid" : ""}`}
                     required
+                    title={fieldTooltips.insem}
                   />
-                  {errors.insem && (
-                    <div className="invalid-feedback">{errors.insem}</div>
+                  {errors.insem && touched.insem && (
+                    <div className="text-danger small mt-1">{errors.insem}</div>
                   )}
                 </div>
 
+                {/* End-Semester Marks Field */}
                 <div className="mb-3">
                   <label htmlFor="endsem" className="form-label">End-Semester Marks</label>
                   <input
@@ -264,14 +338,17 @@ const AddCourse = () => {
                     placeholder="Enter End-Semester Marks"
                     value={course.endsem}
                     onChange={handleChange}
-                    className={`form-control ${errors.endsem ? "is-invalid" : ""}`}
+                    onBlur={handleBlur}
+                    className={`form-control ${errors.endsem && touched.endsem ? "is-invalid" : ""}`}
                     required
+                    title={fieldTooltips.endsem}
                   />
-                  {errors.endsem && (
-                    <div className="invalid-feedback">{errors.endsem}</div>
+                  {errors.endsem && touched.endsem && (
+                    <div className="text-danger small mt-1">{errors.endsem}</div>
                   )}
                 </div>
 
+                {/* Final Semester Marks (Read-only) */}
                 <div className="mb-3">
                   <label htmlFor="finalsem" className="form-label">Final Semester Marks</label>
                   <input
@@ -284,6 +361,7 @@ const AddCourse = () => {
                   />
                 </div>
 
+                {/* Submit Button */}
                 <div className="text-center">
                   <button type="submit" className="btn btn-primary w-100">
                     Add Course
