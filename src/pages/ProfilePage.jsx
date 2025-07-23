@@ -17,7 +17,7 @@ import { FaCamera } from "react-icons/fa";
 
 const Profile = () => {
   // Constants
-  const backendBaseUrl = "https://teacher-attainment-system-backend.onrender.com";
+  const backendBaseUrl =   "https://teacher-attainment-system-backend.onrender.com";
   const defaultImage = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
   // State

@@ -1,3 +1,5 @@
+
+
 import React, { useState } from "react";
 import {
   Box,
@@ -5,36 +7,39 @@ import {
   Typography,
   TextField,
   Button,
-  Tooltip,
   Alert,
-  Collapse,
   CircularProgress,
   IconButton,
   InputAdornment,
 } from "@mui/material";
 import {
-  Visibility,
-  VisibilityOff,
   Email as EmailIcon,
   Key as KeyIcon,
   Lock as LockIcon,
   LockOpen as LockOpenIcon,
-  Send as SendIcon,
-  RestartAlt as ResetIcon,
 } from "@mui/icons-material";
-import { styled } from "@mui/material/styles";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { Link } from "react-router-dom";
 import axios from "axios";
 
-// Styled container
-const StyledBox = styled(Box)(({ theme }) => ({
-  backgroundColor: "#20232a",
-  borderRadius: "16px",
-  padding: theme.spacing(5),
-  maxWidth: 600,
-  margin: "80px auto",
-  color: "#fff",
-  boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
-}));
+const glassTheme = createTheme({
+  palette: {
+    mode: "dark",
+    primary: {
+      main: "#4a80f0",
+    },
+    secondary: {
+      main: "#ff6b6b",
+    },
+    background: {
+      default: "#121212",
+      paper: "rgba(30, 30, 30, 0.8)",
+    },
+  },
+  typography: {
+    fontFamily: "'Poppins', sans-serif",
+  },
+});
 
 const ResetPassword = () => {
   const [email, setEmail] = useState("");
@@ -42,11 +47,9 @@ const ResetPassword = () => {
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState("success");
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -75,7 +78,7 @@ const ResetPassword = () => {
     setMessage("");
 
     if (newPassword !== confirmPassword) {
-      setMessage("❌ Passwords do not match");
+      setMessage("Passwords do not match");
       setSeverity("error");
       setLoading(false);
       return;
@@ -104,183 +107,208 @@ const ResetPassword = () => {
   };
 
   return (
-    <Container>
-      <StyledBox>
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
-          Forgot / Reset Password
-        </Typography>
-        <Typography variant="body1" sx={{ color: "#ccc", mb: 3 }}>
-          {otpSent
-            ? "Enter OTP and your new password below."
-            : "Enter your registered email to receive an OTP."}
-        </Typography>
-
-        <form onSubmit={otpSent ? handleResetPassword : handleSendOTP}>
-          {/* Email */}
-          <Tooltip title="Faculty registered email" placement="top-start" arrow>
-            <TextField
-              fullWidth
-              label="Email"
-              type="email"
-              required
-              margin="normal"
-              variant="filled"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EmailIcon sx={{ color: "#ccc" }} />
-                  </InputAdornment>
-                ),
-              }}
-              InputLabelProps={{ style: { color: "#aaa" } }}
+    <ThemeProvider theme={glassTheme}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
+        }}
+      >
+        <Container maxWidth="sm">
+          <Box
+            sx={{
+              borderRadius: "16px",
+              padding: 4,
+              backdropFilter: "blur(16px)",
+              backgroundColor: "rgba(30, 30, 45, 0.7)",
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+            }}
+          >
+            <Box
               sx={{
-                backgroundColor: "#2c2f36",
-                borderRadius: 1,
-                input: { color: "#fff" },
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                mb: 4,
               }}
-              disabled={otpSent}
-            />
-          </Tooltip>
-
-          {/* OTP */}
-          {otpSent && (
-            <Tooltip title="OTP sent to your email" arrow>
-              <TextField
-                fullWidth
-                label="OTP"
-                type="text"
-                required
-                margin="normal"
-                variant="filled"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <KeyIcon sx={{ color: "#ccc" }} />
-                    </InputAdornment>
-                  ),
-                }}
-                InputLabelProps={{ style: { color: "#aaa" } }}
-                sx={{
-                  backgroundColor: "#2c2f36",
-                  borderRadius: 1,
-                  input: { color: "#fff" },
-                }}
-              />
-            </Tooltip>
-          )}
-
-          {/* New Password */}
-          {otpSent && (
-            <Tooltip title="Create new password" arrow>
-              <TextField
-                fullWidth
-                label="New Password"
-                type={showPassword ? "text" : "password"}
-                required
-                margin="normal"
-                variant="filled"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon sx={{ color: "#ccc" }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                InputLabelProps={{ style: { color: "#aaa" } }}
-                sx={{
-                  backgroundColor: "#2c2f36",
-                  borderRadius: 1,
-                  input: { color: "#fff" },
-                }}
-              />
-            </Tooltip>
-          )}
-
-          {/* Confirm Password */}
-          {otpSent && (
-            <Tooltip title="Re-enter new password" arrow>
-              <TextField
-                fullWidth
-                label="Confirm Password"
-                type={showConfirm ? "text" : "password"}
-                required
-                margin="normal"
-                variant="filled"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockOpenIcon sx={{ color: "#ccc" }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowConfirm(!showConfirm)} edge="end">
-                        {showConfirm ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                InputLabelProps={{ style: { color: "#aaa" } }}
-                sx={{
-                  backgroundColor: "#2c2f36",
-                  borderRadius: 1,
-                  input: { color: "#fff" },
-                }}
-              />
-            </Tooltip>
-          )}
-
-          <Box mt={4}>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              fullWidth
-              size="large"
-              endIcon={
-                loading ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : otpSent ? (
-                  <ResetIcon />
-                ) : (
-                  <SendIcon />
-                )
-              }
-              disabled={loading}
-              sx={{ py: 1.5, fontWeight: "bold", fontSize: "1rem" }}
             >
-              {loading
-                ? "Processing..."
-                : otpSent
-                ? "Reset Password"
-                : "Send OTP"}
-            </Button>
-          </Box>
-        </form>
+              <LockIcon
+                sx={{
+                  fontSize: 48,
+                  color: "#4a80f0",
+                  mb: 2,
+                }}
+              />
+              <Typography variant="h4" sx={{ fontWeight: 700, color: "white" }}>
+                Reset Password
+              </Typography>
+              <Typography variant="body1" sx={{ color: "rgba(255, 255, 255, 0.7)", mt: 1 }}>
+                {otpSent ? "Enter OTP and new password" : "Enter your email to receive OTP"}
+              </Typography>
+            </Box>
 
-        {/* Alert Messages */}
-        <Collapse in={!!message}>
-          <Box mt={3}>
-            <Alert severity={severity}>{message}</Alert>
+            {message && (
+              <Alert
+                severity={severity}
+                sx={{
+                  mb: 3,
+                  backgroundColor:
+                    severity === "error" ? "rgba(255, 80, 80, 0.2)" : "rgba(70, 200, 70, 0.2)",
+                  borderLeft: `4px solid ${severity === "error" ? "#ff6b6b" : "#4CAF50"}`,
+                }}
+              >
+                {message}
+              </Alert>
+            )}
+
+            <Box component="form" onSubmit={otpSent ? handleResetPassword : handleSendOTP}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                required
+                margin="normal"
+                variant="outlined"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon sx={{ color: "rgba(255, 255, 255, 0.7)" }} />
+                    </InputAdornment>
+                  ),
+                }}
+                disabled={otpSent}
+                sx={{ mb: 2 }}
+              />
+
+              {otpSent && (
+                <>
+                  <TextField
+                    fullWidth
+                    label="OTP"
+                    type="text"
+                    required
+                    margin="normal"
+                    variant="outlined"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <KeyIcon sx={{ color: "rgba(255, 255, 255, 0.7)" }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{ mb: 2 }}
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="New Password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    margin="normal"
+                    variant="outlined"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LockIcon sx={{ color: "rgba(255, 255, 255, 0.7)" }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                            sx={{ color: "rgba(255, 255, 255, 0.7)" }}
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{ mb: 2 }}
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="Confirm Password"
+                    type={showConfirm ? "text" : "password"}
+                    required
+                    margin="normal"
+                    variant="outlined"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LockOpenIcon sx={{ color: "rgba(255, 255, 255, 0.7)" }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowConfirm(!showConfirm)}
+                            edge="end"
+                            sx={{ color: "rgba(255, 255, 255, 0.7)" }}
+                          >
+                            {showConfirm ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{ mb: 3 }}
+                  />
+                </>
+              )}
+
+              <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                type="submit"
+                disabled={loading}
+                sx={{
+                  py: 1.5,
+                  background: "linear-gradient(45deg, #4a80f0, #6a5acd)",
+                  "&:hover": {
+                    background: "linear-gradient(45deg, #3a70e0, #5a4abd)",
+                  },
+                }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : otpSent ? (
+                  "Reset Password"
+                ) : (
+                  "Send OTP"
+                )}
+              </Button>
+
+              <Box sx={{ mt: 3, textAlign: "center" }}>
+                <Link
+                  to="/login"
+                  style={{
+                    color: "#4a80f0",
+                    fontWeight: 500,
+                    textDecoration: "none",
+                  }}
+                >
+                  Back to Login
+                </Link>
+              </Box>
+            </Box>
           </Box>
-        </Collapse>
-      </StyledBox>
-    </Container>
+        </Container>
+      </Box>
+    </ThemeProvider>
   );
 };
 

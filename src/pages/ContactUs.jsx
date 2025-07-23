@@ -118,7 +118,7 @@ const ContactUs = () => {
             <CCol md="5" className="border-end pe-4 mb-4 mb-md-0 text-start">
               <h5 className="fw-bold mb-4">Get In Touch</h5>
               <p className="mb-3 d-flex align-items-center gap-2">
-                <FaEnvelope className="text-primary" /> courseattainment996@gmail.com
+                <FaEnvelope className="text-primary" /> authorizedaccess401@gmail.com
               </p>
               <p className="mb-3 d-flex align-items-center gap-2">
                 <FaPhoneAlt className="text-primary" /> +91 9309887312
