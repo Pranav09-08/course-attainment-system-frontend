@@ -19,6 +19,7 @@ import { showToast } from "../../components/Toast";
 import "react-toastify/dist/ReactToastify.css";
 
 const ManageFaculty = () => {
+  // State variables
   const [facultyList, setFacultyList] = useState([]);
   const [filteredFacultyList, setFilteredFacultyList] = useState([]);
   const [selectedFaculty, setSelectedFaculty] = useState(null);
@@ -33,11 +34,14 @@ const ManageFaculty = () => {
   const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
+
+  // Extract user details from local storage
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const { user } = storedUser || {};
   const { id: dept_id } = user || {};
   const token = storedUser?.accessToken;
 
+  // Fetch faculty list on component mount
   useEffect(() => {
     if (!token) {
       showToast("error", "Unauthorized: Please log in again");
@@ -64,12 +68,14 @@ const ManageFaculty = () => {
     fetchFacultyList();
   }, [dept_id, token]);
 
+  // Select a faculty member for update
   const handleFacultySelect = (faculty) => {
     setSelectedFaculty(faculty);
     setErrors({});
     setShowModal(true);
   };
 
+  // Handle input changes in update modal
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setSelectedFaculty((prevFaculty) => ({
@@ -79,9 +85,9 @@ const ManageFaculty = () => {
     validateField(name, value);
   };
 
+  // Field validation logic
   const validateField = (name, value) => {
     let errorMessage = "";
-
     switch (name) {
       case "name":
         if (!/^[A-Za-z\s]+$/.test(value)) {
@@ -101,35 +107,31 @@ const ManageFaculty = () => {
       default:
         break;
     }
-
     setErrors((prevErrors) => ({
       ...prevErrors,
       [name]: errorMessage,
     }));
   };
 
+  // Full form validation before update
   const validateForm = () => {
     const newErrors = {};
-
     if (!/^[A-Za-z\s]+$/.test(selectedFaculty?.name || "")) {
       newErrors.name = "Name should contain only alphabets and spaces.";
     }
-
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{3,}$/.test(selectedFaculty?.email || "")) {
       newErrors.email = "Please enter a valid email address.";
     }
-
     if (!/^\d{10}$/.test(selectedFaculty?.mobile_no || "")) {
       newErrors.mobile_no = "Mobile number should contain exactly 10 digits.";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // Submit faculty update to server
   const handleUpdate = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) return;
     if (!token) {
       showToast("error", "No token found, please login!");
@@ -148,11 +150,10 @@ const ManageFaculty = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       showToast("success", "Faculty details updated successfully!");
       setShowModal(false);
 
-      // Refetch faculty list
+      // Refresh updated list
       const response = await axios.get(
         `https://teacher-attainment-system-backend.onrender.com/profile/faculty/department/${dept_id}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -161,22 +162,19 @@ const ManageFaculty = () => {
       setFilteredFacultyList(response.data);
     } catch (error) {
       console.error("Error updating faculty:", error);
-      showToast(
-        "error",
-        `Failed to update faculty: ${
-          error.response?.data?.message || "Unknown error"
-        }`
-      );
+      showToast("error", `Failed to update faculty: ${error.response?.data?.message || "Unknown error"}`);
     } finally {
       setOperationLoading(false);
     }
   };
 
+  // Trigger delete modal for confirmation
   const handleDeleteClick = (facultyId) => {
     setFacultyToDelete(facultyId);
     setShowDeleteModal(true);
   };
 
+  // Confirm and perform faculty deletion
   const confirmDelete = async () => {
     if (!facultyToDelete) return;
 
@@ -187,7 +185,7 @@ const ManageFaculty = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Refetch faculty list
+      // Refresh updated list
       const response = await axios.get(
         `https://teacher-attainment-system-backend.onrender.com/profile/faculty/department/${dept_id}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -205,35 +203,25 @@ const ManageFaculty = () => {
     }
   };
 
+  // Search bar filtering
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
-
-    const filtered = facultyList.filter(
-      (faculty) =>
-        faculty.faculty_id.toString().includes(term) ||
-        faculty.name.toLowerCase().includes(term.toLowerCase())
+    const filtered = facultyList.filter((faculty) =>
+      faculty.faculty_id.toString().includes(term) ||
+      faculty.name.toLowerCase().includes(term.toLowerCase())
     );
-
     setFilteredFacultyList(filtered);
   };
 
   return (
-    <Container
-      fluid
-      className="p-4"
-      style={{ position: "relative", minHeight: "80vh" }}
-    >
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-      />
+    <Container fluid className="p-4" style={{ position: "relative", minHeight: "80vh" }}>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <LoaderPage loading={loading || operationLoading || deleteLoading} />
 
       <h2 className="text-center text-primary mb-4">Faculty List</h2>
 
-      {/* Search Bar */}
+      {/* Search Input */}
       <Row className="mb-4">
         <Col md={6} className="mx-auto">
           <InputGroup>
@@ -247,9 +235,7 @@ const ManageFaculty = () => {
             <Button
               variant="outline-secondary"
               onClick={() => setSearchTerm("")}
-              disabled={
-                loading || operationLoading || deleteLoading || !searchTerm
-              }
+              disabled={loading || operationLoading || deleteLoading || !searchTerm}
             >
               Clear
             </Button>
@@ -257,12 +243,9 @@ const ManageFaculty = () => {
         </Col>
       </Row>
 
-      {message && (
-        <Alert variant="danger" className="text-center">
-          {message}
-        </Alert>
-      )}
+      {message && <Alert variant="danger" className="text-center">{message}</Alert>}
 
+      {/* Faculty Table */}
       {!loading && !operationLoading && !deleteLoading && (
         <Table striped bordered hover responsive>
           <thead>
@@ -278,9 +261,7 @@ const ManageFaculty = () => {
             {filteredFacultyList.length === 0 ? (
               <tr>
                 <td colSpan="5" className="text-center">
-                  {facultyList.length === 0
-                    ? "No faculty found"
-                    : "No matching faculty found"}
+                  {facultyList.length === 0 ? "No faculty found" : "No matching faculty found"}
                 </td>
               </tr>
             ) : (
@@ -291,22 +272,8 @@ const ManageFaculty = () => {
                   <td>{faculty.email}</td>
                   <td>{faculty.mobile_no || "N/A"}</td>
                   <td>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleFacultySelect(faculty)}
-                      disabled={operationLoading || deleteLoading}
-                    >
-                      Update
-                    </Button>{" "}
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleDeleteClick(faculty.faculty_id)}
-                      disabled={operationLoading || deleteLoading}
-                    >
-                      Delete
-                    </Button>
+                    <Button variant="primary" size="sm" onClick={() => handleFacultySelect(faculty)} disabled={operationLoading || deleteLoading}>Update</Button>{" "}
+                    <Button variant="danger" size="sm" onClick={() => handleDeleteClick(faculty.faculty_id)} disabled={operationLoading || deleteLoading}>Delete</Button>
                   </td>
                 </tr>
               ))
@@ -316,10 +283,7 @@ const ManageFaculty = () => {
       )}
 
       {/* Update Faculty Modal */}
-      <Modal
-        show={showModal}
-        onHide={() => !operationLoading && setShowModal(false)}
-      >
+      <Modal show={showModal} onHide={() => !operationLoading && setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Update Faculty</Modal.Title>
         </Modal.Header>
@@ -370,87 +334,36 @@ const ManageFaculty = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => setShowModal(false)}
-            disabled={operationLoading}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleUpdate}
-            disabled={operationLoading}
-          >
+          <Button variant="secondary" onClick={() => setShowModal(false)} disabled={operationLoading}>Cancel</Button>
+          <Button variant="primary" onClick={handleUpdate} disabled={operationLoading}>
             {operationLoading ? "Updating..." : "Update Faculty"}
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        show={showDeleteModal}
-        onHide={() => !deleteLoading && setShowDeleteModal(false)}
-        size="sm" // Makes the modal more compact
-        // centered // Centers the modal vertically
-      >
-        <Modal.Header
-          closeButton
-          className="bg-primary text-white" // Changed to primary color
-          style={{ padding: "0.75rem 1rem" }} // Tighter padding
-        >
-          <Modal.Title style={{ fontSize: "1.1rem" }}>
-            {" "}
-            {/* Adjusted font size */}
-            Confirm Deletion
-          </Modal.Title>
+      {/* Delete Faculty Modal */}
+      <Modal show={showDeleteModal} onHide={() => !deleteLoading && setShowDeleteModal(false)} size="sm">
+        <Modal.Header closeButton className="bg-primary text-white" style={{ padding: "0.75rem 1rem" }}>
+          <Modal.Title style={{ fontSize: "1.1rem" }}>Confirm Deletion</Modal.Title>
         </Modal.Header>
-
         <Modal.Body style={{ padding: "1rem" }}>
-          {" "}
-          {/* Reduced padding */}
           <p style={{ marginBottom: "0.5rem", fontSize: "0.95rem" }}>
-            {" "}
-            {/* Adjusted typography */}
             Are you sure you want to delete this faculty member?
           </p>
           <p style={{ fontSize: "0.85rem", marginBottom: 0 }}>
-            {" "}
-            {/* Danger color for warning */}
             <strong>This action cannot be undone.</strong>
           </p>
         </Modal.Body>
-
         <Modal.Footer style={{ padding: "0.75rem" }}>
-          {" "}
-          {/* Tighter footer padding */}
-          <Button
-            variant="outline-secondary"
-            onClick={() => setShowDeleteModal(false)}
-            disabled={deleteLoading}
-            size="sm" // Smaller button
-            style={{ fontSize: "0.85rem", minWidth: "80px" }} // Consistent sizing
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            onClick={confirmDelete}
-            disabled={deleteLoading}
-            size="sm" // Smaller button
-            style={{ fontSize: "0.85rem", minWidth: "100px" }} // Consistent sizing
-          >
+          <Button variant="outline-secondary" onClick={() => setShowDeleteModal(false)} disabled={deleteLoading} size="sm" style={{ fontSize: "0.85rem", minWidth: "80px" }}>Cancel</Button>
+          <Button variant="danger" onClick={confirmDelete} disabled={deleteLoading} size="sm" style={{ fontSize: "0.85rem", minWidth: "100px" }}>
             {deleteLoading ? (
               <>
-                <span
-                  className="spinner-border spinner-border-sm me-2"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                 Deleting...
               </>
             ) : (
-              "Delete" // Shortened from "Confirm Delete"
+              "Delete"
             )}
           </Button>
         </Modal.Footer>

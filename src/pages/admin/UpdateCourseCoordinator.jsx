@@ -15,7 +15,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { showToast } from "../../components/Toast";
 
+// Component to manage course coordinators
 const CourseCoordinators = () => {
+  // State management
   const [coordinators, setCoordinators] = useState([]);
   const [selectedCoordinator, setSelectedCoordinator] = useState(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -26,6 +28,9 @@ const CourseCoordinators = () => {
   const [facultyList, setFacultyList] = useState([]);
   const [courseToDelete, setCourseToDelete] = useState(null);
 
+  // =======================
+  // Fetch Coordinators
+  // =======================
   const fetchAllottedCoordinators = async () => {
     setLoading(true);
     setError("");
@@ -35,15 +40,11 @@ const CourseCoordinators = () => {
       const token = storedUser?.accessToken;
       const dept_id = storedUser?.user?.id;
 
-      if (!token || !dept_id) {
-        throw new Error("Unauthorized: Please log in again.");
-      }
+      if (!token || !dept_id) throw new Error("Unauthorized: Please log in again.");
 
       const response = await axios.get(
         `https://teacher-attainment-system-backend.onrender.com/admin/coordinator/get-course-coordinators/${dept_id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (Array.isArray(response.data) && response.data.length > 0) {
@@ -62,10 +63,16 @@ const CourseCoordinators = () => {
     }
   };
 
+  // Fetch on mount
   useEffect(() => {
     fetchAllottedCoordinators();
   }, []);
 
+  // =======================
+  // Handlers
+  // =======================
+
+  // Open update modal
   const handleUpdateClick = (coordinator) => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const deptId = storedUser?.user?.id;
@@ -73,11 +80,13 @@ const CourseCoordinators = () => {
     setShowUpdateModal(true);
   };
 
+  // Open delete confirmation modal
   const handleDeleteClick = (courseId, academicYr, sem) => {
     setCourseToDelete({ courseId, academicYr, sem });
     setShowDeleteModal(true);
   };
 
+  // Fetch all faculties in the same department
   const fetchFaculties = async () => {
     if (!selectedCoordinator?.dept_id) {
       console.error("Department ID is missing in selectedCoordinator");
@@ -116,6 +125,7 @@ const CourseCoordinators = () => {
     }
   };
 
+  // Confirm deletion of a coordinator
   const confirmDelete = async () => {
     if (!courseToDelete) return;
 
@@ -139,10 +149,7 @@ const CourseCoordinators = () => {
       await fetchAllottedCoordinators();
     } catch (error) {
       console.error("❌ Error deleting course coordinator:", error);
-      showToast(
-        "error",
-        error.response?.data?.error || "Failed to delete course coordinator"
-      );
+      showToast("error", error.response?.data?.error || "Failed to delete course coordinator");
     } finally {
       setModalLoading(false);
       setShowDeleteModal(false);
@@ -150,6 +157,7 @@ const CourseCoordinators = () => {
     }
   };
 
+  // Handle faculty selection change
   const handleFacultyChange = (e) => {
     const selectedFacultyId = e.target.value;
     const selectedFaculty = facultyList.find(
@@ -163,11 +171,13 @@ const CourseCoordinators = () => {
     }));
   };
 
+  // Confirm update of faculty assigned to course
   const confirmUpdate = async () => {
     if (!selectedCoordinator) return;
 
     setModalLoading(true);
     setError("");
+
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = storedUser?.accessToken;
 
@@ -191,34 +201,23 @@ const CourseCoordinators = () => {
       await fetchAllottedCoordinators();
     } catch (error) {
       console.error("❌ Error updating faculty:", error);
-      showToast(
-        "error",
-        error.response?.data?.error || "Failed to update faculty"
-      );
+      showToast("error", error.response?.data?.error || "Failed to update faculty");
     } finally {
       setModalLoading(false);
     }
   };
 
+  // =======================
+  // UI Rendering
+  // =======================
   return (
-    <Container
-      className="mt-4"
-      style={{ position: "relative", minHeight: "80vh" }}
-    >
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-      />
+    <Container className="mt-4" style={{ position: "relative", minHeight: "80vh" }}>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <LoaderPage loading={loading || modalLoading} />
 
       <h2 className="text-center text-primary mb-4">📌 Course Coordinators</h2>
 
-      {error && (
-        <Alert variant="danger" className="text-center">
-          {error}
-        </Alert>
-      )}
+      {error && <Alert variant="danger" className="text-center">{error}</Alert>}
 
       {!loading && coordinators.length === 0 ? (
         <p className="text-muted text-center">No course coordinators found.</p>
@@ -228,15 +227,12 @@ const CourseCoordinators = () => {
             <Col md={6} lg={4} key={coordinator.course_id}>
               <Card className="shadow-lg p-3">
                 <Card.Body>
-                  <h5 className="text-primary font-weight-bold mb-2">
-                    {coordinator.course_name}
-                  </h5>
+                  <h5 className="text-primary font-weight-bold mb-2">{coordinator.course_name}</h5>
                   <hr />
                   <Card.Text>
                     <strong>Course ID:</strong> {coordinator.course_id} <br />
                     <strong>Faculty ID:</strong> {coordinator.faculty_id} <br />
-                    <strong>Faculty Name:</strong> {coordinator.faculty_name}{" "}
-                    <br />
+                    <strong>Faculty Name:</strong> {coordinator.faculty_name} <br />
                     <strong>Class:</strong> {coordinator.class} <br />
                     <strong>Semester:</strong> {coordinator.sem} <br />
                     <strong>Academic Year:</strong> {coordinator.academic_yr}
@@ -249,14 +245,11 @@ const CourseCoordinators = () => {
                   >
                     Update
                   </Button>
+
                   <Button
                     variant="danger"
                     onClick={() =>
-                      handleDeleteClick(
-                        coordinator.course_id,
-                        coordinator.academic_yr,
-                        coordinator.sem
-                      )
+                      handleDeleteClick(coordinator.course_id, coordinator.academic_yr, coordinator.sem)
                     }
                     style={{ marginLeft: "10px" }}
                     disabled={modalLoading}
@@ -270,7 +263,7 @@ const CourseCoordinators = () => {
         </Row>
       )}
 
-      {/* Update Modal */}
+      {/* ====================== Update Modal ====================== */}
       {selectedCoordinator && (
         <Modal
           show={showUpdateModal}
@@ -292,21 +285,16 @@ const CourseCoordinators = () => {
                 >
                   <option value="">Select Faculty</option>
                   {facultyList.map((faculty) => (
-                    <option
-                      key={faculty.faculty_id}
-                      value={faculty.faculty_id.toString()}
-                    >
+                    <option key={faculty.faculty_id} value={faculty.faculty_id.toString()}>
                       {faculty.faculty_id} - {faculty.name}
                     </option>
                   ))}
                 </Form.Select>
               </Form.Group>
+
               {error && <Alert variant="danger">{error}</Alert>}
-              <Button
-                variant="primary"
-                onClick={confirmUpdate}
-                disabled={modalLoading}
-              >
+
+              <Button variant="primary" onClick={confirmUpdate} disabled={modalLoading}>
                 {modalLoading ? "Updating..." : "Update"}
               </Button>
             </Form>
@@ -314,64 +302,47 @@ const CourseCoordinators = () => {
         </Modal>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* ====================== Delete Confirmation Modal ====================== */}
       <Modal
         show={showDeleteModal}
         onHide={() => !modalLoading && setShowDeleteModal(false)}
-        size="sm" // Makes the modal smaller
+        size="sm"
       >
         <Modal.Header closeButton className="bg-primary text-white">
-          {" "}
-          {/* Changed to primary color */}
-          <Modal.Title style={{ fontSize: "1.1rem" }}>
-            Confirm Deletion
-          </Modal.Title>{" "}
-          {/* Adjusted font size */}
+          <Modal.Title style={{ fontSize: "1.1rem" }}>Confirm Deletion</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ padding: "1rem" }}>
-          {" "}
-          {/* Reduced padding */}
           <p style={{ marginBottom: "0.5rem", fontSize: "0.9rem" }}>
-            {" "}
-            {/* Adjusted font size and spacing */}
             Are you sure you want to delete this course coordinator?
           </p>
           <p style={{ fontSize: "0.85rem", marginBottom: "0" }}>
-            {" "}
-            {/* Adjusted font size and spacing */}
             <strong>This action cannot be undone.</strong>
           </p>
         </Modal.Body>
         <Modal.Footer style={{ padding: "0.75rem" }}>
-          {" "}
-          {/* Reduced padding */}
           <Button
             variant="outline-secondary"
             onClick={() => setShowDeleteModal(false)}
             disabled={modalLoading}
-            size="sm" // Smaller button
-            style={{ fontSize: "0.8rem" }} // Adjusted font size
+            size="sm"
+            style={{ fontSize: "0.8rem" }}
           >
             Cancel
           </Button>
           <Button
-            variant="danger" // Kept danger variant for delete button
+            variant="danger"
             onClick={confirmDelete}
             disabled={modalLoading}
-            size="sm" // Smaller button
-            style={{ fontSize: "0.8rem" }} // Adjusted font size
+            size="sm"
+            style={{ fontSize: "0.8rem" }}
           >
             {modalLoading ? (
               <>
-                <span
-                  className="spinner-border spinner-border-sm me-2"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
                 Deleting...
               </>
             ) : (
-              "Delete" // Changed from "Confirm Delete" to "Delete" for consistency
+              "Delete"
             )}
           </Button>
         </Modal.Footer>
